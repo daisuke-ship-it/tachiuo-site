@@ -41,35 +41,33 @@ function CustomTooltip({ active, payload, label }: TooltipPayload) {
 
 export default function CatchChart({ records }: Props) {
   const today = new Date()
-  const dateMap: Record<string, number> = {}
+  const dateMap: Record<string, { sum: number; cnt: number }> = {}
 
   for (let i = 29; i >= 0; i--) {
     const d = new Date(today)
     d.setDate(today.getDate() - i)
-    dateMap[d.toISOString().split('T')[0]] = 0
+    dateMap[d.toISOString().split('T')[0]] = { sum: 0, cnt: 0 }
   }
-
-  const sumMap: Record<string, number> = { ...dateMap }
-  const cntMap: Record<string, number> = Object.fromEntries(Object.keys(dateMap).map((k) => [k, 0]))
 
   records.forEach((r) => {
     if (!r.date) return
     const key = r.date.split('T')[0]
-    if (!(key in sumMap)) return
-    const v = r.count_max ?? r.count_min ?? 0
-    sumMap[key] += v
-    cntMap[key]++
+    if (!(key in dateMap)) return
+    const v = r.count_max ?? r.count_min
+    if (v === null || v === undefined) return
+    dateMap[key].sum += v
+    dateMap[key].cnt++
   })
 
-  const data = Object.entries(dateMap).map(([date]) => ({
+  const data = Object.entries(dateMap).map(([date, { sum, cnt }]) => ({
     date: date.slice(5).replace('-', '/'),
-    avg: cntMap[date] > 0 ? Math.round((sumMap[date] / cntMap[date]) * 10) / 10 : 0,
+    avg:  cnt > 0 ? Math.round((sum / cnt) * 10) / 10 : 0,
   }))
 
-  const maxCount = Math.max(...data.map((d) => d.avg), 1)
+  const maxVal = Math.max(...data.map((d) => d.avg), 1)
 
   return (
-    <ResponsiveContainer width="100%" height={170}>
+    <ResponsiveContainer width="100%" height={200}>
       <AreaChart data={data} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
         <defs>
           <linearGradient id="oceanGradient" x1="0" y1="0" x2="0" y2="1">
@@ -77,11 +75,7 @@ export default function CatchChart({ records }: Props) {
             <stop offset="100%" stopColor="#1A5276" stopOpacity={0}    />
           </linearGradient>
         </defs>
-        <CartesianGrid
-          strokeDasharray="3 3"
-          stroke="var(--border)"
-          vertical={false}
-        />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
         <XAxis
           dataKey="date"
           tick={{ fill: 'var(--text-muted)', fontSize: 10 }}
@@ -93,10 +87,13 @@ export default function CatchChart({ records }: Props) {
           tick={{ fill: 'var(--text-muted)', fontSize: 10 }}
           tickLine={false}
           axisLine={false}
-          domain={[0, maxCount + 1]}
+          domain={[0, maxVal + 1]}
           allowDecimals={false}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '4 2' }} />
+        <Tooltip
+          content={<CustomTooltip />}
+          cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '4 2' }}
+        />
         <Area
           type="monotone"
           dataKey="avg"
