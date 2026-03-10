@@ -92,6 +92,16 @@ async function getCatchData(): Promise<CatchRecord[]> {
   return deduped
 }
 
+async function getLatestUpdatedAt(): Promise<string | null> {
+  const { data } = await supabase
+    .from('catches')
+    .select('created_at')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return data?.created_at ?? null
+}
+
 async function getEnvData(): Promise<EnvData | null> {
   const todayStr = new Date().toISOString().split('T')[0]
   const { data } = await supabase
@@ -106,10 +116,14 @@ async function getEnvData(): Promise<EnvData | null> {
 export const revalidate = 3600
 
 export default async function Home() {
-  const [records, envData] = await Promise.all([getCatchData(), getEnvData()])
+  const [records, envData, latestAt] = await Promise.all([
+    getCatchData(),
+    getEnvData(),
+    getLatestUpdatedAt(),
+  ])
 
-  // 日付＋時刻（例: 2026年3月10日 15:32）
-  const nowStr = new Date().toLocaleString('ja-JP', {
+  // catches テーブルの最新 created_at を表示（なければ現在時刻）
+  const nowStr = new Date(latestAt ?? Date.now()).toLocaleString('ja-JP', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
