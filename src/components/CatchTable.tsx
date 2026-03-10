@@ -26,8 +26,8 @@ function formatCatch(min: number | null, max: number | null): string {
 
 function formatSize(min: number | null, max: number | null): string {
   if (!min && !max) return '—'
-  if (min && max && min !== max) return `${min}〜${max}cm`
-  return `${min ?? max}cm`
+  if (min && max && min !== max) return `${min}〜${max}`
+  return `${min ?? max}`
 }
 
 function SortTh({
@@ -82,11 +82,11 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
         }}
       >
         <colgroup>
-          <col style={{ width: '26%' }} />
-          <col style={{ width: '14%' }} />
+          <col style={{ width: '28%' }} />
+          <col style={{ width: '10%' }} />
           <col style={{ width: '16%' }} />
-          <col style={{ width: '18%' }} />
           <col style={{ width: '16%' }} />
+          <col style={{ width: '20%' }} />
           <col style={{ width: '10%' }} />
         </colgroup>
         <thead>
@@ -176,14 +176,18 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
                   {ms ? (
                     <span
                       style={{
-                        padding: '2px 6px',
-                        fontSize: 10,
+                        padding: '1px 5px',
+                        fontSize: 9,
                         fontWeight: 600,
                         borderRadius: 'var(--radius-pill)',
                         background: ms.bg,
                         color: ms.color,
                         border: `1px solid ${ms.border}`,
                         whiteSpace: 'nowrap',
+                        display: 'inline-block',
+                        maxWidth: '100%',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
                       }}
                     >
                       {r.fishing_method}

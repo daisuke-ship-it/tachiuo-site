@@ -48,8 +48,8 @@ function formatCatch(min: number | null, max: number | null): string {
 
 function formatSize(min: number | null, max: number | null): string {
   if (!min && !max) return '—'
-  if (min && max && min !== max) return `${min}〜${max}cm`
-  return `${min ?? max}cm`
+  if (min && max && min !== max) return `${min}〜${max}`
+  return `${min ?? max}`
 }
 
 function formatDate(s: string | null): string {

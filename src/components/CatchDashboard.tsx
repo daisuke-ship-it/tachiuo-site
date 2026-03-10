@@ -140,12 +140,12 @@ function SummaryCard({ records, envData, fish }: { records: CatchRecord[]; envDa
   const weatherWord = envData?.weather ? envData.weather.split(' ')[0] : null
 
   const stats: { label: string; value: string; highlight?: boolean }[] = [
-    { label: '天気',      value: weatherWord ?? '—' },
-    { label: '潮汐',      value: envData?.tide_type ?? '—' },
-    { label: `釣果 平均${fish ? `(${fish})` : ''}`, value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
-    { label: '釣果 最大', value: catchMax !== null ? String(catchMax) : '—' },
-    { label: '釣果 最小', value: catchMin !== null ? String(catchMin) : '—' },
-    { label: 'サイズ',    value: sizeVal },
+    { label: '天気',   value: weatherWord ?? '—' },
+    { label: '潮汐',   value: envData?.tide_type ?? '—' },
+    { label: `平均${fish ? `(${fish})` : ''}`, value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
+    { label: '最大',   value: catchMax !== null ? String(catchMax) : '—' },
+    { label: '最小',   value: catchMin !== null ? String(catchMin) : '—' },
+    { label: 'サイズ', value: sizeVal },
   ]
 
   return (
@@ -154,18 +154,18 @@ function SummaryCard({ records, envData, fish }: { records: CatchRecord[]; envDa
         background: 'var(--surface)',
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-lg)',
-        padding: '12px 16px',
+        padding: '12px 14px',
         boxShadow: 'var(--shadow-sm)',
       }}
     >
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
         本日の釣果サマリー
       </p>
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(6, 1fr)',
-          gap: 6,
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: 5,
         }}
       >
         {stats.map(({ label, value, highlight }) => (
@@ -174,13 +174,16 @@ function SummaryCard({ records, envData, fish }: { records: CatchRecord[]; envDa
             style={{
               background: highlight ? '#EBF4FF' : 'var(--surface-2)',
               border: `1px solid ${highlight ? '#BDD7EE' : 'var(--border)'}`,
-              borderRadius: 7,
-              padding: '6px 8px',
+              borderRadius: 6,
+              padding: '5px 8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
               minWidth: 0,
             }}
           >
-            <p style={{ fontSize: 8, color: 'var(--text-muted)', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</p>
-            <p style={{ fontSize: 13, fontWeight: 700, color: highlight ? 'var(--secondary)' : 'var(--text-main)', fontVariantNumeric: 'tabular-nums', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0, whiteSpace: 'nowrap' }}>{label}</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: highlight ? 'var(--secondary)' : 'var(--text-main)', fontVariantNumeric: 'tabular-nums', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {value}
             </p>
           </div>
