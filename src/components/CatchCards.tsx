@@ -2,38 +2,37 @@
 
 import { CatchRecord } from '@/lib/supabase'
 
-/* ── Badge styles ─────────────────────────────────────────────── */
+/* ── Badge definitions ─────────────────────────────────────── */
+const AREA_STYLE   = { bg: '#1a2744', color: '#93c5fd' }
+const PORT_STYLE   = { bg: '#1a2744', color: '#7dd3fc' }
+const FISH_STYLE   = { bg: 'rgba(30,58,95,0.7)', color: '#93c5fd' }
+
 const METHOD_STYLE: Record<string, { bg: string; color: string }> = {
-  'テンヤ':   { bg: 'rgba(20,83,45,0.6)',   color: '#86efac' },
-  'ルアー':   { bg: 'rgba(30,58,95,0.6)',   color: '#93c5fd' },
-  '餌':       { bg: 'rgba(67,20,7,0.6)',    color: '#fdba74' },
-  'テンビン': { bg: 'rgba(67,20,7,0.6)',    color: '#fdba74' },
-  '天秤':     { bg: 'rgba(67,20,7,0.6)',    color: '#fdba74' },
-  'ジギング': { bg: 'rgba(30,58,95,0.6)',   color: '#93c5fd' },
+  'テンヤ':   { bg: 'rgba(20,83,45,0.6)',  color: '#86efac' },
+  'ルアー':   { bg: 'rgba(30,58,95,0.6)',  color: '#93c5fd' },
+  'ジギング': { bg: 'rgba(30,58,95,0.6)',  color: '#93c5fd' },
+  '餌':       { bg: 'rgba(67,20,7,0.6)',   color: '#fdba74' },
+  'エサ':     { bg: 'rgba(67,20,7,0.6)',   color: '#fdba74' },
+  'テンビン': { bg: 'rgba(67,20,7,0.6)',   color: '#fdba74' },
+  '天秤':     { bg: 'rgba(67,20,7,0.6)',   color: '#fdba74' },
 }
 const METHOD_DEFAULT = { bg: 'rgba(45,55,72,0.6)', color: '#94a3b8' }
-const FISH_BADGE     = { bg: 'rgba(30,58,95,0.7)', color: '#93c5fd' }
 
 function Badge({ label, bg, color }: { label: string; bg: string; color: string }) {
   return (
-    <span
-      style={{
-        padding: '2px 8px',
-        fontSize: 10,
-        fontWeight: 600,
-        borderRadius: 'var(--radius-pill)',
-        background: bg,
-        color,
-        whiteSpace: 'nowrap',
-        border: `1px solid ${color}22`,
-      }}
-    >
+    <span style={{
+      padding: '2px 8px', fontSize: 10, fontWeight: 600,
+      borderRadius: 'var(--radius-pill)',
+      background: bg, color,
+      whiteSpace: 'nowrap',
+      border: `1px solid ${color}22`,
+    }}>
       {label}
     </span>
   )
 }
 
-/* ── Formatters ───────────────────────────────────────────────── */
+/* ── Formatters ─────────────────────────────────────────────── */
 function formatCatch(min: number | null, max: number | null): string {
   if (min === null && max === null) return '—'
   if (min !== null && max !== null && min !== max) return `${min}〜${max}本`
@@ -65,33 +64,29 @@ export default function CatchCards({ records }: Props) {
   }
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-        gap: 12,
-        padding: 16,
-      }}
-    >
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+      gap: 12,
+      padding: 16,
+    }}>
       {records.map((r) => {
         const methodStyle = r.fishing_method
           ? (METHOD_STYLE[r.fishing_method] ?? METHOD_DEFAULT)
           : null
+        const condText = r.condition_text
+          ? (r.condition_text.length > 100 ? r.condition_text.slice(0, 100) + '…' : r.condition_text)
+          : null
 
         return (
-          <div
-            key={r.id}
-            style={{
-              background: 'var(--surface-2)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-md)',
-              padding: '14px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 0,
-            }}
-          >
-            {/* ── Header: 船宿名 + 日付 ── */}
+          <div key={r.id} style={{
+            background: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
+            padding: '14px 16px',
+            display: 'flex', flexDirection: 'column', gap: 0,
+          }}>
+            {/* Header: 船宿名 + 日付 */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
               <p style={{ fontWeight: 700, fontSize: 14, color: '#e2e8f0', lineHeight: 1.3, flex: 1, marginRight: 8 }}>
                 {r.shipyard_name ?? '—'}
@@ -101,20 +96,26 @@ export default function CatchCards({ records }: Props) {
               </span>
             </div>
 
-            {/* ── Badges: 魚種 + 釣り方 ── */}
+            {/* Badges: エリア → 港 → 魚種 → 釣り方 */}
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 12 }}>
+              {r.shipyard_area && (
+                <Badge label={r.shipyard_area} bg={AREA_STYLE.bg} color={AREA_STYLE.color} />
+              )}
+              {r.port_name && (
+                <Badge label={r.port_name} bg={PORT_STYLE.bg} color={PORT_STYLE.color} />
+              )}
               {r.fish_name && (
-                <Badge label={r.fish_name} bg={FISH_BADGE.bg} color={FISH_BADGE.color} />
+                <Badge label={r.fish_name} bg={FISH_STYLE.bg} color={FISH_STYLE.color} />
               )}
               {r.fishing_method && methodStyle && (
                 <Badge label={r.fishing_method} bg={methodStyle.bg} color={methodStyle.color} />
               )}
             </div>
 
-            {/* ── Divider ── */}
+            {/* Divider */}
             <div style={{ height: 1, background: 'var(--border)', marginBottom: 12 }} />
 
-            {/* ── Stats ── */}
+            {/* Stats */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                 <span style={{ fontSize: 11, color: '#64748b', minWidth: 44 }}>釣果</span>
@@ -130,38 +131,26 @@ export default function CatchCards({ records }: Props) {
               </div>
             </div>
 
-            {/* ── 船長コメント ── */}
-            {r.condition_text && (
-              <div
-                style={{
-                  marginTop: 12,
-                  paddingTop: 12,
-                  borderTop: '1px solid var(--border)',
-                }}
-              >
-                <p style={{ fontSize: 10, color: '#64748b', marginBottom: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  💬 船長コメント
-                </p>
+            {/* 船長コメント */}
+            {condText && (
+              <div style={{
+                marginTop: 12,
+                background: '#0f1a2e',
+                border: '1px solid #2d3748',
+                borderRadius: 6,
+                padding: '8px 10px',
+              }}>
+                <p style={{ fontSize: 10, color: '#64748b', marginBottom: 4 }}>💬 船長コメント</p>
                 <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.55 }}>
-                  {r.condition_text}
+                  {condText}
                 </p>
               </div>
             )}
 
-            {/* ── 記事リンク ── */}
+            {/* 記事リンク */}
             {r.source_url && (
-              <a
-                href={r.source_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'block',
-                  textAlign: 'right',
-                  fontSize: 11,
-                  color: '#3b82f6',
-                  marginTop: 10,
-                }}
-              >
+              <a href={r.source_url} target="_blank" rel="noopener noreferrer"
+                style={{ display: 'block', textAlign: 'right', fontSize: 11, color: '#3b82f6', marginTop: 10 }}>
                 記事を見る ↗
               </a>
             )}

@@ -85,6 +85,14 @@ input[type="date"] {
   color-scheme: dark;
 }
 
+/* ─── Horizontal scroll (hidden scrollbar) ──────────────────── */
+.scroll-x {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scroll-x::-webkit-scrollbar { display: none; }
+
 /* ─── Scrollbar ─────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--surface-2); }

@@ -10,6 +10,16 @@ type Props = {
   onSort: (f: SortField) => void
 }
 
+// 釣り方別 左ボーダー色
+const METHOD_BORDER: Record<string, string> = {
+  'ルアー':   '#3b82f6',
+  'ジギング': '#3b82f6',
+  'テンヤ':   '#22c55e',
+  '餌':       '#f97316',
+  'エサ':     '#f97316',
+  'テンビン': '#f97316',
+  '天秤':     '#f97316',
+}
 
 function formatCatch(min: number | null, max: number | null): string {
   if (min === null && max === null) return '—'
@@ -18,35 +28,22 @@ function formatCatch(min: number | null, max: number | null): string {
 }
 
 function formatSize(min: number | null, max: number | null): string {
-  if (!min && !max) return '—'
-  if (min && max && min !== max) return `${min}〜${max}`
+  if (min === null && max === null) return '—'
+  if (min !== null && max !== null && min !== max) return `${min}〜${max}`
   return `${min ?? max}`
 }
 
-function SortTh({
-  label,
-  field,
-  active,
-  onSort,
-}: {
-  label: string
-  field: SortField
-  active: boolean
-  onSort: (f: SortField) => void
+function SortTh({ label, field, active, onSort }: {
+  label: string; field: SortField; active: boolean; onSort: (f: SortField) => void
 }) {
   return (
     <th
       onClick={() => onSort(active ? null : field)}
       style={{
-        padding: '10px 12px',
-        textAlign: 'right',
-        color: active ? 'var(--accent)' : 'rgba(255,255,255,0.55)',
-        fontWeight: 600,
-        fontSize: 11,
-        letterSpacing: '0.04em',
-        cursor: 'pointer',
-        whiteSpace: 'nowrap',
-        userSelect: 'none',
+        padding: '10px 12px', textAlign: 'right',
+        color: active ? '#3b82f6' : 'rgba(255,255,255,0.55)',
+        fontWeight: 600, fontSize: 11, letterSpacing: '0.04em',
+        cursor: 'pointer', whiteSpace: 'nowrap', userSelect: 'none',
         borderBottom: '1px solid rgba(255,255,255,0.07)',
       }}
     >
@@ -56,13 +53,9 @@ function SortTh({
 }
 
 const thBase: React.CSSProperties = {
-  padding: '10px 12px',
-  textAlign: 'left',
-  color: 'rgba(255,255,255,0.55)',
-  fontWeight: 600,
-  fontSize: 11,
-  letterSpacing: '0.04em',
-  borderBottom: '1px solid rgba(255,255,255,0.07)',
+  padding: '10px 12px', textAlign: 'left',
+  color: 'rgba(255,255,255,0.55)', fontWeight: 600, fontSize: 11,
+  letterSpacing: '0.04em', borderBottom: '1px solid rgba(255,255,255,0.07)',
   whiteSpace: 'nowrap',
 }
 
@@ -76,16 +69,12 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
     )
   }
 
+  // 🏆 トップ判定（count_max が最大の行）
+  const maxCount = Math.max(...records.map((r) => r.count_max ?? -1).filter((v) => v >= 0), -1)
+
   return (
     <div style={{ width: '100%' }}>
-      <table
-        style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          fontSize: 13,
-          tableLayout: 'fixed',
-        }}
-      >
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
         <colgroup>
           <col style={{ width: '34%' }} />
           <col style={{ width: '18%' }} />
@@ -97,25 +86,18 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
           <tr style={{ background: 'var(--primary)' }}>
             <th style={thBase}>船宿</th>
             <SortTh label="釣果" field="count" active={sortField === 'count'} onSort={onSort} />
-            <SortTh label="サイズ" field="size" active={sortField === 'size'} onSort={onSort} />
+            <SortTh label="サイズ" field="size"  active={sortField === 'size'}  onSort={onSort} />
             <th style={{ ...thBase, paddingLeft: 20 }}>日付</th>
             <th style={{ ...thBase, textAlign: 'center' }}>記事</th>
           </tr>
         </thead>
         <tbody>
           {records.map((r, idx) => {
-            const isEven = idx % 2 === 0
-            const methodBg: Record<string, string> = {
-              'テンヤ':   'rgba(120, 53, 15, 0.06)',
-              'ルアー':   'rgba(23, 37, 84, 0.06)',
-              '餌':       'rgba(5, 46, 22, 0.06)',
-              'テンビン': 'rgba(88, 28, 135, 0.06)',
-              '天秤':     'rgba(88, 28, 135, 0.06)',
-            }
-            const rowBg = r.fishing_method && methodBg[r.fishing_method]
-              ? methodBg[r.fishing_method]
-              : isEven ? 'var(--surface)' : 'var(--surface-2)'
-            const dateStr = r.date
+            const isEven      = idx % 2 === 0
+            const rowBg       = isEven ? 'var(--surface)' : 'var(--surface-2)'
+            const borderColor = r.fishing_method ? (METHOD_BORDER[r.fishing_method] ?? null) : null
+            const isTrophy    = maxCount > 0 && r.count_max === maxCount
+            const dateStr     = r.date
               ? new Date(r.date).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
               : '—'
 
@@ -125,72 +107,45 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
                 style={{
                   background: rowBg,
                   borderBottom: '1px solid var(--border)',
+                  borderLeft: borderColor ? `2px solid ${borderColor}` : '2px solid transparent',
                   transition: 'background 0.1s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(14,165,200,0.08)')}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(59,130,246,0.07)')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = rowBg)}
               >
                 {/* 船宿（釣り方サブテキスト付き） */}
                 <td style={{ padding: '8px 12px', maxWidth: 0 }}>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, fontSize: 13, color: 'var(--text-main)' }}>
+                    {isTrophy && <span style={{ marginRight: 3 }}>🏆</span>}
                     {r.shipyard_name ?? '—'}
                   </div>
                   {r.fishing_method && (
-                    <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2, whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: 10, color: '#64748b', marginTop: 2, whiteSpace: 'nowrap' }}>
                       {r.fishing_method}
                     </div>
                   )}
                 </td>
 
                 {/* 釣果 */}
-                <td
-                  style={{
-                    padding: '8px 12px',
-                    textAlign: 'right',
-                    fontWeight: 700,
-                    color: 'var(--secondary)',
-                    fontVariantNumeric: 'tabular-nums',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                   {formatCatch(r.count_min, r.count_max)}
                 </td>
 
                 {/* サイズ */}
-                <td
-                  style={{
-                    padding: '8px 12px',
-                    textAlign: 'right',
-                    color: 'var(--text-sub)',
-                    fontVariantNumeric: 'tabular-nums',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+                <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-sub)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                   {formatSize(r.size_min_cm, r.size_max_cm)}
                 </td>
 
                 {/* 日付 */}
-                <td
-                  style={{
-                    padding: '8px 12px',
-                    paddingLeft: 20,
-                    color: 'var(--text-sub)',
-                    fontSize: 12,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+                <td style={{ padding: '8px 12px', paddingLeft: 20, color: 'var(--text-sub)', fontSize: 12, whiteSpace: 'nowrap' }}>
                   {dateStr}
                 </td>
 
                 {/* 記事 */}
                 <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                   {r.source_url ? (
-                    <a
-                      href={r.source_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ fontSize: 14, color: 'var(--secondary)', textDecoration: 'none' }}
-                    >
+                    <a href={r.source_url} target="_blank" rel="noopener noreferrer"
+                      style={{ fontSize: 14, color: '#3b82f6', textDecoration: 'none' }}>
                       ↗
                     </a>
                   ) : (

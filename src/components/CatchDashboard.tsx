@@ -8,12 +8,19 @@ import CatchTable, { SortField } from './CatchTable'
 import CatchCards from './CatchCards'
 import CatchChart from './CatchChart'
 
-type Area   = '東京湾' | '相模湾'
-type Period = '今日' | '昨日' | '一昨日' | '直近7日' | '直近30日' | 'カスタム'
-type Tab    = '一覧' | '詳細' | 'グラフ'
+type Area = '東京湾' | '相模湾'
+type Tab  = '一覧' | '詳細' | 'グラフ'
+// Period は 'yyyy-MM-dd' の日付文字列 or '直近7日' | '直近30日'
 
 const AREAS: Area[] = ['東京湾', '相模湾']
 const TABS:  Tab[]  = ['一覧', '詳細', 'グラフ']
+
+// 釣り方ソート優先順位
+const METHOD_ORDER: Record<string, number> = {
+  'ルアー': 0, 'ジギング': 0,
+  'テンヤ': 1,
+  '餌': 2, 'エサ': 2, 'テンビン': 2, '天秤': 2,
+}
 
 interface Props {
   records: CatchRecord[]
@@ -23,18 +30,28 @@ interface Props {
   aiSummaries: AISummaryRecord[]
 }
 
-function buildPeriods(): { label: string; value: Period }[] {
-  const fmt = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}`
-  const t  = new Date(); t.setHours(0, 0, 0, 0)
-  const y  = new Date(t); y.setDate(t.getDate() - 1)
-  const db = new Date(t); db.setDate(t.getDate() - 2)
-  return [
-    { label: `今日 ${fmt(t)}`,     value: '今日'    },
-    { label: `昨日 ${fmt(y)}`,     value: '昨日'    },
-    { label: `一昨日 ${fmt(db)}`,  value: '一昨日'  },
-    { label: '直近7日',            value: '直近7日' },
-    { label: '直近30日',           value: '直近30日' },
-  ]
+// 今日起点で7日分 + 直近7日 / 直近30日
+function buildPeriods(): { label: string; value: string }[] {
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const weekdays = ['日', '月', '火', '水', '木', '金', '土']
+  const fmt = (d: Date) => d.toISOString().split('T')[0]
+
+  const result: { label: string; value: string }[] = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today)
+    d.setDate(today.getDate() - i)
+    result.push({
+      label: `${d.getMonth() + 1}/${d.getDate()}(${weekdays[d.getDay()]})`,
+      value: fmt(d),
+    })
+  }
+  result.push({ label: '直近7日', value: '直近7日' })
+  result.push({ label: '直近30日', value: '直近30日' })
+  return result
+}
+
+function todayStr(): string {
+  return new Date().toISOString().split('T')[0]
 }
 
 /* ── Utils ──────────────────────────────────────────────────── */
@@ -57,52 +74,31 @@ function filterByFish(records: CatchRecord[], fish: Fish | null): CatchRecord[] 
   return records.filter((x) => aliases.some((a) => x.fish_name?.includes(a)))
 }
 
-function filterByPeriod(
-  records: CatchRecord[],
-  period: Period,
-  customDate: string | null,
-): CatchRecord[] {
-  const now   = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(d.getDate() + n); return r }
-
-  if (period === '今日')   return records.filter((r) => r.date && isSameDay(new Date(r.date), today))
-  if (period === '昨日')   return records.filter((r) => r.date && isSameDay(new Date(r.date), addDays(today, -1)))
-  if (period === '一昨日') return records.filter((r) => r.date && isSameDay(new Date(r.date), addDays(today, -2)))
-  if (period === 'カスタム' && customDate) {
-    const target = new Date(customDate + 'T00:00:00')
-    return records.filter((r) => r.date && isSameDay(new Date(r.date), target))
-  }
+function filterByPeriod(records: CatchRecord[], period: string): CatchRecord[] {
   if (period === '直近7日') {
-    const cutoff = addDays(today, -7)
+    const cutoff = new Date(); cutoff.setHours(0, 0, 0, 0); cutoff.setDate(cutoff.getDate() - 7)
     return records.filter((r) => r.date && new Date(r.date) >= cutoff)
   }
   if (period === '直近30日') {
-    const cutoff = addDays(today, -30)
+    const cutoff = new Date(); cutoff.setHours(0, 0, 0, 0); cutoff.setDate(cutoff.getDate() - 30)
     return records.filter((r) => r.date && new Date(r.date) >= cutoff)
   }
-  return records
+  // 特定日付
+  const target = new Date(period + 'T00:00:00')
+  return records.filter((r) => r.date && isSameDay(new Date(r.date), target))
 }
 
-/* ── Period date helpers ─────────────────────────────────────── */
-function getPeriodDate(period: Period, customDate: string | null): string | null {
-  const fmt = (d: Date) => d.toISOString().split('T')[0]
-  const today = new Date()
-  if (period === '今日')   return fmt(today)
-  if (period === '昨日')   { const d = new Date(today); d.setDate(d.getDate() - 1); return fmt(d) }
-  if (period === '一昨日') { const d = new Date(today); d.setDate(d.getDate() - 2); return fmt(d) }
-  if (period === 'カスタム') return customDate
-  return null // 直近7日 / 直近30日
+/* ── Helpers ────────────────────────────────────────────────── */
+function getPeriodDate(period: string): string | null {
+  if (period === '直近7日' || period === '直近30日') return null
+  return period
 }
 
-function getSummaryLabel(period: Period, summaryDate: string | null): string {
-  if (summaryDate) {
-    const d = new Date(summaryDate + 'T00:00:00')
-    return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}の釣果サマリー`
-  }
+function getSummaryLabel(period: string): string {
   if (period === '直近7日')  return '直近7日の釣果サマリー'
   if (period === '直近30日') return '直近30日の釣果サマリー'
-  return '釣果サマリー'
+  const d = new Date(period + 'T00:00:00')
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}の釣果サマリー`
 }
 
 function addDatePrefix(text: string, dateStr: string): string {
@@ -159,6 +155,7 @@ function FilterPill({
         transition: 'all 0.15s',
         whiteSpace: 'nowrap' as const,
         opacity: disabled ? 0.5 : 1,
+        flexShrink: 0,
       }}
     >
       {children}
@@ -175,12 +172,8 @@ function FilterLabel({ text }: { text: string }) {
 }
 
 /* ── AI Summary Card ─────────────────────────────────────────── */
-function AISummaryCard({
-  variant, label, text,
-}: {
-  variant: 'area' | 'fish'
-  label: string
-  text: string
+function AISummaryCard({ variant, label, text }: {
+  variant: 'area' | 'fish'; label: string; text: string
 }) {
   const isArea    = variant === 'area'
   const bg        = isArea ? '#1a1f2e' : '#0f1a2e'
@@ -189,28 +182,19 @@ function AISummaryCard({
   const textColor = isArea ? '#93c5fd' : '#bfdbfe'
 
   return (
-    <div
-      style={{
-        background: bg,
-        borderLeft:   `4px solid ${leftColor}`,
-        borderRight:  `1px solid ${sideColor}`,
-        borderTop:    `1px solid ${sideColor}`,
-        borderBottom: `1px solid ${sideColor}`,
-        borderRadius: 8,
-        padding: '10px 14px',
-      }}
-    >
-      <p
-        style={{
-          fontSize: 10,
-          fontWeight: 700,
-          color: textColor,
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          marginBottom: 5,
-          opacity: 0.7,
-        }}
-      >
+    <div style={{
+      background: bg,
+      borderLeft:   `4px solid ${leftColor}`,
+      borderRight:  `1px solid ${sideColor}`,
+      borderTop:    `1px solid ${sideColor}`,
+      borderBottom: `1px solid ${sideColor}`,
+      borderRadius: 8,
+      padding: '10px 14px',
+    }}>
+      <p style={{
+        fontSize: 10, fontWeight: 700, color: textColor,
+        textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 5, opacity: 0.7,
+      }}>
         {label}
       </p>
       <p style={{ fontSize: 13, color: textColor, lineHeight: 1.6, margin: 0 }}>
@@ -221,33 +205,20 @@ function AISummaryCard({
 }
 
 /* ── Summary card ────────────────────────────────────────────── */
-function SummaryCard({
-  records,
-  envData,
-  period,
-  summaryDate,
-}: {
-  records: CatchRecord[]        // already period+area+fish filtered
+function SummaryCard({ records, envData, period }: {
+  records: CatchRecord[]   // pre-filtered (period + area + fish)
   envData: EnvData | null
-  period: Period
-  summaryDate: string | null    // yyyy-MM-dd or null for range periods
+  period: string
 }) {
-  const showEnv = period === '今日'
+  const showEnv = period === todayStr()
 
-  // Unique shipyards
-  const shipyardCount = new Set(
-    records.map((r) => r.shipyard_name).filter(Boolean)
-  ).size
+  const shipyardCount = new Set(records.map((r) => r.shipyard_name).filter(Boolean)).size
 
-  // Catch average
-  const catchVals = records
-    .map((r) => r.count_max ?? r.count_min)
-    .filter((v): v is number => v !== null)
-  const catchAvg = catchVals.length > 0
+  const catchVals = records.map((r) => r.count_max ?? r.count_min).filter((v): v is number => v !== null)
+  const catchAvg  = catchVals.length > 0
     ? Math.round(catchVals.reduce((a, b) => a + b, 0) / catchVals.length * 10) / 10
     : null
 
-  // Catch range
   const countMinVals = records.map((r) => r.count_min).filter((v): v is number => v !== null)
   const countMaxVals = records.map((r) => r.count_max).filter((v): v is number => v !== null)
   const catchRangeMin = countMinVals.length > 0 ? Math.min(...countMinVals) : null
@@ -259,7 +230,6 @@ function SummaryCard({
       : catchRangeMin !== null ? String(catchRangeMin)
       : '—'
 
-  // Size range
   const sizeMinVals = records.map((r) => r.size_min_cm).filter((v): v is number => v !== null)
   const sizeMaxVals = records.map((r) => r.size_max_cm).filter((v): v is number => v !== null)
   const sizeMin = sizeMinVals.length > 0 ? Math.min(...sizeMinVals) : null
@@ -282,36 +252,26 @@ function SummaryCard({
     { label: 'サイズ',   value: sizeRange },
   ]
 
-  const label = getSummaryLabel(period, summaryDate)
-
   return (
-    <div
-      style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '12px 14px',
-        boxShadow: 'var(--shadow-sm)',
-      }}
-    >
+    <div style={{
+      background: 'var(--surface)',
+      border: '1px solid var(--border)',
+      borderRadius: 'var(--radius-lg)',
+      padding: '12px 14px',
+      boxShadow: 'var(--shadow-sm)',
+    }}>
       <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
-        {label}
+        {getSummaryLabel(period)}
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
-        {stats.map(({ label: statLabel, value, highlight }) => (
-          <div
-            key={statLabel}
-            style={{
-              background: highlight ? 'rgba(59,130,246,0.12)' : 'var(--surface-2)',
-              border: `1px solid ${highlight ? 'rgba(59,130,246,0.35)' : 'var(--border)'}`,
-              borderRadius: 6,
-              padding: '6px 8px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2,
-            }}
-          >
-            <p style={{ fontSize: 9, color: 'var(--text-muted)', lineHeight: 1 }}>{statLabel}</p>
+        {stats.map(({ label, value, highlight }) => (
+          <div key={label} style={{
+            background: highlight ? 'rgba(59,130,246,0.12)' : 'var(--surface-2)',
+            border: `1px solid ${highlight ? 'rgba(59,130,246,0.35)' : 'var(--border)'}`,
+            borderRadius: 6, padding: '6px 8px',
+            display: 'flex', flexDirection: 'column', gap: 2,
+          }}>
+            <p style={{ fontSize: 9, color: 'var(--text-muted)', lineHeight: 1 }}>{label}</p>
             <p style={{ fontSize: 15, fontWeight: 700, color: highlight ? '#93c5fd' : 'var(--text-main)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
               {value}
             </p>
@@ -326,80 +286,60 @@ function SummaryCard({
 export default function CatchDashboard({
   records, envData, areas, fishSpeciesList, aiSummaries,
 }: Props) {
-  const [area,       setArea]       = useState<Area | null>('東京湾')
-  const [fish,       setFish]       = useState<Fish | null>('タチウオ')
-  const [period,     setPeriod]     = useState<Period>('今日')
-  const [customDate, setCustomDate] = useState<string | null>(null)
-  const [tab,        setTab]        = useState<Tab>('一覧')
-  const [sortField,  setSortField]  = useState<SortField>(null)
+  const [area,      setArea]      = useState<Area | null>('東京湾')
+  const [fish,      setFish]      = useState<Fish | null>('タチウオ')
+  const [period,    setPeriod]    = useState<string>(todayStr())
+  const [tab,       setTab]       = useState<Tab>('一覧')
+  const [sortField, setSortField] = useState<SortField>(null)
 
-  const toggleArea = (a: Area) => {
-    if (a === '相模湾') return
-    setArea((p) => (p === a ? null : a))
-  }
+  const toggleArea   = (a: Area) => { if (a === '相模湾') return; setArea((p) => (p === a ? null : a)) }
   const handleFishClick = (f: Fish) => setFish((p) => (p === f ? null : f))
-  const handlePeriodClick = (p: Period) => {
-    setPeriod(p)
-    setCustomDate(null)
-  }
 
   // Filtered data
-  const areaOnlyFiltered = useMemo(
-    () => filterByArea(records, area),
-    [records, area]
-  )
-  const areaFishFiltered = useMemo(
-    () => filterByFish(areaOnlyFiltered, fish),
-    [areaOnlyFiltered, fish]
-  )
+  const areaOnlyFiltered = useMemo(() => filterByArea(records, area), [records, area])
+  const areaFishFiltered = useMemo(() => filterByFish(areaOnlyFiltered, fish), [areaOnlyFiltered, fish])
+
   const filtered = useMemo(() => {
-    let r = filterByPeriod(areaFishFiltered, period, customDate)
+    let r = filterByPeriod(areaFishFiltered, period)
 
     if (sortField === 'count') {
       r = [...r].sort((a, b) => (b.count_max ?? b.count_min ?? -1) - (a.count_max ?? a.count_min ?? -1))
     } else if (sortField === 'size') {
       r = [...r].sort((a, b) => (b.size_max_cm ?? b.size_min_cm ?? -1) - (a.size_max_cm ?? a.size_min_cm ?? -1))
+    } else {
+      // デフォルト: 釣り方順 → count_max 降順
+      r = [...r].sort((a, b) => {
+        const aOrd = METHOD_ORDER[a.fishing_method ?? ''] ?? 99
+        const bOrd = METHOD_ORDER[b.fishing_method ?? ''] ?? 99
+        if (aOrd !== bOrd) return aOrd - bOrd
+        return (b.count_max ?? b.count_min ?? -1) - (a.count_max ?? a.count_min ?? -1)
+      })
     }
-
     return r
-  }, [areaFishFiltered, period, customDate, sortField])
+  }, [areaFishFiltered, period, sortField])
 
   // AI summary lookup
-  const summaryDate  = getPeriodDate(period, customDate)
-  const areaId       = findAreaId(area, areas)
-  const fishId       = findFishId(fish, fishSpeciesList)
+  const summaryDate    = getPeriodDate(period)
+  const areaId         = findAreaId(area, areas)
+  const fishId         = findFishId(fish, fishSpeciesList)
   const areaSummaryRaw = lookupSummary(aiSummaries, 'area', areaId, summaryDate)
   const fishSummary    = lookupSummary(aiSummaries, 'fish_species', fishId, summaryDate)
-
-  // Add date prefix to area summary
-  const areaSummary = areaSummaryRaw && summaryDate
+  const areaSummary    = areaSummaryRaw && summaryDate
     ? addDatePrefix(areaSummaryRaw, summaryDate)
     : areaSummaryRaw
-
-  // Custom date label for pill
-  const customDateLabel = customDate
-    ? `📅 ${new Date(customDate + 'T00:00:00').getMonth() + 1}/${new Date(customDate + 'T00:00:00').getDate()}`
-    : '📅 日付指定'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
       {/* ── 1. エリア選択 + Area AI サマリー ─────────────────────── */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '14px 16px',
-          boxShadow: 'var(--shadow-sm)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-        }}
-      >
+      <div style={{
+        background: 'var(--surface)', border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)', padding: '14px 16px',
+        boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', gap: 12,
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <FilterLabel text="エリア" />
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 6 }}>
             {AREAS.map((a) => (
               <FilterPill key={a} active={area === a} disabled={a === '相模湾'} onClick={() => toggleArea(a)}>
                 {a === '相模湾' ? '相模湾（準備中）' : a}
@@ -407,36 +347,24 @@ export default function CatchDashboard({
             ))}
           </div>
         </div>
-
         {areaSummary && (
-          <AISummaryCard
-            variant="area"
-            label="🤖 エリアの状況（AIサマリー）"
-            text={areaSummary}
-          />
+          <AISummaryCard variant="area" label="🤖 エリアの状況（AIサマリー）" text={areaSummary} />
         )}
       </div>
 
-      {/* ── 2. 魚種トレンド（エリア連動 / 2×2グリッド） ────────── */}
+      {/* ── 2. 魚種トレンド（2×2） ───────────────────────────────── */}
       <TrendBar records={areaOnlyFiltered} activeFish={fish} onFishClick={handleFishClick} />
 
       {/* ── 3. 魚種・期間フィルター ──────────────────────────────── */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '14px 16px',
-          boxShadow: 'var(--shadow-sm)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-        }}
-      >
+      <div style={{
+        background: 'var(--surface)', border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)', padding: '14px 16px',
+        boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', gap: 10,
+      }}>
         {/* 魚種 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <FilterLabel text="魚種" />
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div className="scroll-x" style={{ display: 'flex', gap: 6 }}>
             {FISH_LIST.map((f) => (
               <FilterPill key={f} active={fish === f} onClick={() => handleFishClick(f)}>
                 {f}
@@ -447,68 +375,15 @@ export default function CatchDashboard({
 
         <div style={{ height: 1, background: 'var(--border)' }} />
 
-        {/* 期間 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        {/* 期間：今日起点7日分 + 直近7日 / 直近30日（横スクロール） */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <FilterLabel text="期間" />
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="scroll-x" style={{ display: 'flex', gap: 6, paddingBottom: 2 }}>
             {buildPeriods().map(({ label, value }) => (
-              <FilterPill
-                key={value}
-                active={period === value}
-                onClick={() => handlePeriodClick(value)}
-              >
+              <FilterPill key={value} active={period === value} onClick={() => setPeriod(value)}>
                 {label}
               </FilterPill>
             ))}
-
-            {/* カレンダーボタン */}
-            <label
-              style={{
-                position: 'relative',
-                cursor: 'pointer',
-                display: 'inline-block',
-                flexShrink: 0,
-              }}
-            >
-              <span
-                style={{
-                  display: 'inline-block',
-                  padding: '5px 14px',
-                  borderRadius: 'var(--radius-pill)',
-                  fontSize: 12,
-                  fontWeight: period === 'カスタム' ? 600 : 400,
-                  cursor: 'pointer',
-                  border: period === 'カスタム'
-                    ? '1.5px solid var(--accent)'
-                    : '1px solid var(--border)',
-                  background: period === 'カスタム' ? 'var(--accent-light)' : 'transparent',
-                  color: period === 'カスタム' ? '#93c5fd' : 'var(--text-sub)',
-                  whiteSpace: 'nowrap' as const,
-                  userSelect: 'none' as const,
-                }}
-              >
-                {customDateLabel}
-              </span>
-              <input
-                type="date"
-                max={new Date().toISOString().split('T')[0]}
-                value={customDate ?? ''}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setCustomDate(e.target.value)
-                    setPeriod('カスタム')
-                  }
-                }}
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  opacity: 0,
-                  cursor: 'pointer',
-                  width: '100%',
-                  height: '100%',
-                }}
-              />
-            </label>
           </div>
         </div>
       </div>
@@ -522,54 +397,28 @@ export default function CatchDashboard({
         />
       )}
 
-      {/* ── 5. 釣果サマリーカード（期間連動） ────────────────────── */}
-      <SummaryCard
-        records={filtered}
-        envData={envData}
-        period={period}
-        summaryDate={summaryDate}
-      />
+      {/* ── 5. 釣果サマリーカード ────────────────────────────────── */}
+      <SummaryCard records={filtered} envData={envData} period={period} />
 
       {/* ── 6. 一覧 / 詳細 / グラフ タブ ────────────────────────── */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-lg)',
-          boxShadow: 'var(--shadow-sm)',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Tab bar */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            borderBottom: '1px solid var(--border)',
-            padding: '0 16px',
-            flexWrap: 'wrap',
-            gap: 6,
-          }}
-        >
+      <div style={{
+        background: 'var(--surface)', border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden',
+      }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          borderBottom: '1px solid var(--border)', padding: '0 16px', flexWrap: 'wrap', gap: 6,
+        }}>
           <div style={{ display: 'flex' }}>
             {TABS.map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                style={{
-                  padding: '12px 16px',
-                  fontSize: 13,
-                  fontWeight: tab === t ? 600 : 400,
-                  cursor: 'pointer',
-                  border: 'none',
-                  borderBottom: tab === t ? '2px solid #3b82f6' : '2px solid transparent',
-                  background: 'transparent',
-                  color: tab === t ? '#e2e8f0' : 'var(--text-sub)',
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <button key={t} onClick={() => setTab(t)} style={{
+                padding: '12px 16px', fontSize: 13,
+                fontWeight: tab === t ? 600 : 400, cursor: 'pointer', border: 'none',
+                borderBottom: tab === t ? '2px solid #3b82f6' : '2px solid transparent',
+                background: 'transparent',
+                color: tab === t ? '#e2e8f0' : 'var(--text-sub)',
+                transition: 'all 0.15s', whiteSpace: 'nowrap',
+              }}>
                 {t}
               </button>
             ))}
@@ -581,11 +430,8 @@ export default function CatchDashboard({
           )}
         </div>
 
-        {/* Tab content */}
-        {tab === '一覧' && (
-          <CatchTable records={filtered} sortField={sortField} onSort={setSortField} />
-        )}
-        {tab === '詳細' && <CatchCards records={filtered} />}
+        {tab === '一覧'  && <CatchTable records={filtered} sortField={sortField} onSort={setSortField} />}
+        {tab === '詳細'  && <CatchCards records={filtered} />}
         {tab === 'グラフ' && (
           <div style={{ padding: '20px 22px' }}>
             <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 14 }}>
