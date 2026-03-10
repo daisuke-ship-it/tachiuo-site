@@ -13,8 +13,8 @@ function formatSize(min: number | null, max: number | null): string {
 
 function formatCount(min: number | null, max: number | null): string {
   if (min === null && max === null) return '—'
-  if (min !== null && max !== null && min !== max) return `${min}〜${max}尾`
-  return `${min ?? max}尾`
+  if (min !== null && max !== null && min !== max) return `${min}〜${max}`
+  return `${min ?? max}`
 }
 
 function formatDate(dateStr: string | null): { full: string; short: string } {
@@ -136,9 +136,7 @@ export default function CatchTable({ records }: Props) {
   }
 
   return (
-    <>
-      {/* ── PC: Table ────────────────────────────────────────── */}
-      <div className="hidden md:block" style={{ overflowX: 'auto' }}>
+    <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ background: 'var(--primary)' }}>
@@ -271,123 +269,5 @@ export default function CatchTable({ records }: Props) {
           </tbody>
         </table>
       </div>
-
-      {/* ── Mobile: Cards ────────────────────────────────────── */}
-      <div
-        className="md:hidden"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-          padding: 12,
-        }}
-      >
-        {records.map((r) => {
-          const date = formatDate(r.date)
-          return (
-            <div
-              key={r.id}
-              style={{
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-md)',
-                padding: '10px 12px',
-                boxShadow: 'var(--shadow-xs)',
-              }}
-            >
-              {/* Top row */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  marginBottom: 8,
-                }}
-              >
-                <div>
-                  <p style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: 13, marginBottom: 4 }}>
-                    {r.shipyard_name ?? '不明'}
-                  </p>
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' as const }}>
-                    <AreaBadge area={r.shipyard_area ?? null} />
-                    <FishBadge fish={normalizeFishName(r.fish_name ?? null)} />
-                    {r.fishing_method && <MethodBadge method={r.fishing_method} />}
-                  </div>
-                </div>
-                <span
-                  style={{
-                    fontSize: 10,
-                    color: 'var(--text-sub)',
-                    background: 'var(--surface-2)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 5,
-                    padding: '2px 7px',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0,
-                  }}
-                >
-                  {date.short}
-                </span>
-              </div>
-
-              {/* Data grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-                <div
-                  style={{
-                    background: 'var(--surface-2)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 7,
-                    padding: '6px 10px',
-                  }}
-                >
-                  <p style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 2 }}>サイズ</p>
-                  <p style={{ fontSize: 12, color: 'var(--text-main)', fontWeight: 500 }}>
-                    {formatSize(r.size_min_cm, r.size_max_cm)}
-                  </p>
-                </div>
-                <div
-                  style={{
-                    background: '#EBF4FF',
-                    border: '1px solid #BDD7EE',
-                    borderRadius: 7,
-                    padding: '6px 10px',
-                  }}
-                >
-                  <p style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 2 }}>釣果数</p>
-                  <p
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: 'var(--secondary)',
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
-                    {formatCount(r.count_min, r.count_max)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Link */}
-              {r.source_url && (
-                <a
-                  href={r.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'block',
-                    marginTop: 8,
-                    textAlign: 'right',
-                    fontSize: 11,
-                    color: 'var(--secondary)',
-                  }}
-                >
-                  記事を見る ↗
-                </a>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </>
   )
 }

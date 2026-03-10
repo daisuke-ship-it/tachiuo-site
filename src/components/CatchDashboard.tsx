@@ -8,13 +8,11 @@ import CatchChart from './CatchChart'
 
 type Area    = '東京湾' | '相模湾'
 type Fish    = 'タチウオ' | 'アジ' | 'シーバス' | 'サワラ'
-type Method  = 'ルアー' | '餌' | 'テンヤ'
 type Period  = '今日' | '昨日' | '直近7日' | '直近30日'
 type SortKey = 'date' | 'count' | 'size'
 
 const AREAS:   Area[]   = ['東京湾', '相模湾']
 const FISHES:  Fish[]   = ['タチウオ', 'アジ', 'シーバス', 'サワラ']
-const METHODS: Method[] = ['ルアー', '餌', 'テンヤ']
 const PERIODS: { label: string; value: Period }[] = [
   { label: '今日',    value: '今日'    },
   { label: '昨日',    value: '昨日'    },
@@ -213,14 +211,14 @@ function SummaryCard({
         <StatCell
           label={`最高釣果${fish ? `（${fish}）` : ''}`}
           value={todayRecords.length > 0 ? String(maxCount) : '—'}
-          unit={todayRecords.length > 0 ? '尾' : ''}
+          unit=""
           highlight
         />
         {/* 平均釣果 */}
         <StatCell
           label="平均釣果"
           value={todayRecords.length > 0 ? String(avgCount) : '—'}
-          unit={todayRecords.length > 0 ? '尾' : ''}
+          unit=""
         />
       </div>
     </div>
@@ -278,22 +276,14 @@ export default function CatchDashboard({
 }) {
   const [area,    setArea]    = useState<Area | null>('東京湾')
   const [fish,    setFish]    = useState<Fish | null>('タチウオ')
-  const [method,  setMethod]  = useState<Method | null>(null)
   const [period,  setPeriod]  = useState<Period>('直近7日')
   const [sortKey, setSortKey] = useState<SortKey>('date')
 
-  const toggleArea   = (a: Area) => {
+  const toggleArea = (a: Area) => {
     if (a === '相模湾') return  // disabled
     setArea((p) => (p === a ? null : a))
   }
-  const toggleFish   = (f: Fish) => {
-    setFish((p) => {
-      if (p === f) { setMethod(null); return null }
-      if (f !== 'タチウオ') setMethod(null)
-      return f
-    })
-  }
-  const toggleMethod = (m: Method) => setMethod((p) => (p === m ? null : m))
+  const toggleFish = (f: Fish) => setFish((p) => (p === f ? null : f))
 
   const filtered = useMemo(() => {
     const now       = new Date()
@@ -319,7 +309,6 @@ export default function CatchDashboard({
       const aliases = fish === 'タチウオ' ? ['タチウオ', '太刀魚'] : [fish]
       result = result.filter((r) => aliases.some((a) => r.fish_name?.includes(a)))
     }
-    if (method) result = result.filter((r) => r.fishing_method?.includes(method))
 
     if (sortKey === 'count') {
       result.sort((a, b) => (b.count_max ?? b.count_min ?? -1) - (a.count_max ?? a.count_min ?? -1))
@@ -328,7 +317,7 @@ export default function CatchDashboard({
     }
 
     return result
-  }, [records, area, fish, method, period, sortKey])
+  }, [records, area, fish, period, sortKey])
 
   const chartRecords = useMemo(() => {
     let result = [...records]
@@ -414,22 +403,6 @@ export default function CatchDashboard({
           </div>
         </div>
 
-        {/* 釣り方（タチウオ時のみ） */}
-        {fish === 'タチウオ' && (
-          <>
-            <div style={{ height: 1, background: 'var(--border)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as const }}>
-              {filterLabel('釣り方')}
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' as const }}>
-                {METHODS.map((m) => (
-                  <FilterPill key={m} active={method === m} onClick={() => toggleMethod(m)}>
-                    {m}
-                  </FilterPill>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
       </div>
 
       {/* ── Summary card ───────────────────────────────────────── */}

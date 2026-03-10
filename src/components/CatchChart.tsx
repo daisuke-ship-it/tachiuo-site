@@ -34,7 +34,6 @@ function CustomTooltip({ active, payload, label }: TooltipPayload) {
       <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, marginBottom: 3 }}>{label}</p>
       <p style={{ color: 'white', fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>
         {payload[0].value}
-        <span style={{ fontSize: 11, fontWeight: 400, marginLeft: 3, color: 'rgba(255,255,255,0.6)' }}>件</span>
       </p>
     </div>
   )
@@ -50,18 +49,24 @@ export default function CatchChart({ records }: Props) {
     dateMap[d.toISOString().split('T')[0]] = 0
   }
 
+  const sumMap: Record<string, number> = { ...dateMap }
+  const cntMap: Record<string, number> = Object.fromEntries(Object.keys(dateMap).map((k) => [k, 0]))
+
   records.forEach((r) => {
     if (!r.date) return
     const key = r.date.split('T')[0]
-    if (key in dateMap) dateMap[key]++
+    if (!(key in sumMap)) return
+    const v = r.count_max ?? r.count_min ?? 0
+    sumMap[key] += v
+    cntMap[key]++
   })
 
-  const data = Object.entries(dateMap).map(([date, count]) => ({
+  const data = Object.entries(dateMap).map(([date]) => ({
     date: date.slice(5).replace('-', '/'),
-    count,
+    avg: cntMap[date] > 0 ? Math.round((sumMap[date] / cntMap[date]) * 10) / 10 : 0,
   }))
 
-  const maxCount = Math.max(...data.map((d) => d.count), 1)
+  const maxCount = Math.max(...data.map((d) => d.avg), 1)
 
   return (
     <ResponsiveContainer width="100%" height={170}>
@@ -94,7 +99,7 @@ export default function CatchChart({ records }: Props) {
         <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '4 2' }} />
         <Area
           type="monotone"
-          dataKey="count"
+          dataKey="avg"
           stroke="#1A5276"
           strokeWidth={2}
           fill="url(#oceanGradient)"
