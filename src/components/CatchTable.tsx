@@ -105,6 +105,16 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
         <tbody>
           {records.map((r, idx) => {
             const isEven = idx % 2 === 0
+            const methodBg: Record<string, string> = {
+              'テンヤ':   'rgba(120, 53, 15, 0.06)',
+              'ルアー':   'rgba(23, 37, 84, 0.06)',
+              '餌':       'rgba(5, 46, 22, 0.06)',
+              'テンビン': 'rgba(88, 28, 135, 0.06)',
+              '天秤':     'rgba(88, 28, 135, 0.06)',
+            }
+            const rowBg = r.fishing_method && methodBg[r.fishing_method]
+              ? methodBg[r.fishing_method]
+              : isEven ? 'var(--surface)' : 'var(--surface-2)'
             const dateStr = r.date
               ? new Date(r.date).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
               : '—'
@@ -113,14 +123,12 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
               <tr
                 key={r.id}
                 style={{
-                  background: isEven ? 'var(--surface)' : 'var(--surface-2)',
+                  background: rowBg,
                   borderBottom: '1px solid var(--border)',
                   transition: 'background 0.1s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(14,165,200,0.05)')}
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = isEven ? 'var(--surface)' : 'var(--surface-2)')
-                }
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(14,165,200,0.08)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = rowBg)}
               >
                 {/* 船宿（釣り方サブテキスト付き） */}
                 <td style={{ padding: '8px 12px', maxWidth: 0 }}>
