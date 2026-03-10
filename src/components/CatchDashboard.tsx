@@ -127,14 +127,14 @@ function SummaryCard({ records, envData, fish }: { records: CatchRecord[]; envDa
   const sizeMax  = sizeMaxVals.length > 0 ? Math.max(...sizeMaxVals) : null
   const sizeMin  = sizeMinVals.length > 0 ? Math.min(...sizeMinVals) : null
 
-  // サイズを「最小〜最大cm」形式にまとめる
+  // サイズを「最小-最大」形式にまとめる（ハイフン区切り、単位なし）
   const sizeVal =
     sizeMin !== null && sizeMax !== null && sizeMin !== sizeMax
-      ? `${sizeMin}〜${sizeMax}cm`
+      ? `${sizeMin}-${sizeMax}`
       : sizeMax !== null
-        ? `${sizeMax}cm`
+        ? `${sizeMax}`
         : sizeMin !== null
-          ? `${sizeMin}cm`
+          ? `${sizeMin}`
           : '—'
 
   const weatherWord = envData?.weather ? envData.weather.split(' ')[0] : null
@@ -142,7 +142,7 @@ function SummaryCard({ records, envData, fish }: { records: CatchRecord[]; envDa
   const stats: { label: string; value: string; highlight?: boolean }[] = [
     { label: '天気',   value: weatherWord ?? '—' },
     { label: '潮汐',   value: envData?.tide_type ?? '—' },
-    { label: `平均${fish ? `(${fish})` : ''}`, value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
+    { label: '平均',   value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
     { label: '最大',   value: catchMax !== null ? String(catchMax) : '—' },
     { label: '最小',   value: catchMin !== null ? String(catchMin) : '—' },
     { label: 'サイズ', value: sizeVal },
@@ -175,15 +175,14 @@ function SummaryCard({ records, envData, fish }: { records: CatchRecord[]; envDa
               background: highlight ? '#EBF4FF' : 'var(--surface-2)',
               border: `1px solid ${highlight ? '#BDD7EE' : 'var(--border)'}`,
               borderRadius: 6,
-              padding: '5px 8px',
+              padding: '6px 8px',
               display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              minWidth: 0,
+              flexDirection: 'column',
+              gap: 2,
             }}
           >
-            <p style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0, whiteSpace: 'nowrap' }}>{label}</p>
-            <p style={{ fontSize: 13, fontWeight: 700, color: highlight ? 'var(--secondary)' : 'var(--text-main)', fontVariantNumeric: 'tabular-nums', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <p style={{ fontSize: 9, color: 'var(--text-muted)', lineHeight: 1 }}>{label}</p>
+            <p style={{ fontSize: 16, fontWeight: 700, color: highlight ? 'var(--secondary)' : 'var(--text-main)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
               {value}
             </p>
           </div>
