@@ -143,9 +143,9 @@ function SummaryCard({ records, envData, fish }: { records: CatchRecord[]; envDa
     { label: '天気',   value: weatherWord ?? '—' },
     { label: '潮汐',   value: envData?.tide_type ?? '—' },
     { label: '平均',   value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
-    { label: '最大',   value: catchMax !== null ? String(catchMax) : '—' },
     { label: '最小',   value: catchMin !== null ? String(catchMin) : '—' },
-    { label: 'サイズ', value: sizeVal },
+    { label: '最大',   value: catchMax !== null ? String(catchMax) : '—' },
+    { label: 'サイズ', value: sizeVal !== '—' ? `${sizeVal}cm` : '—' },
   ]
 
   return (
