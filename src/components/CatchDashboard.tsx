@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { CatchRecord } from '@/lib/supabase'
-import { EnvData } from '@/app/page'
+import { EnvData, AISummaryRecord, AreaRecord, FishRecord } from '@/app/page'
 import TrendBar, { Fish, FISH_LIST, FISH_ALIASES } from './TrendBar'
 import CatchTable, { SortField } from './CatchTable'
 import CatchCards from './CatchCards'
@@ -14,6 +14,14 @@ type Tab    = '一覧' | '詳細' | 'グラフ'
 
 const AREAS: Area[] = ['東京湾', '相模湾']
 const TABS:  Tab[]  = ['一覧', '詳細', 'グラフ']
+
+interface Props {
+  records: CatchRecord[]
+  envData: EnvData | null
+  areas: AreaRecord[]
+  fishSpeciesList: FishRecord[]
+  aiSummaries: AISummaryRecord[]
+}
 
 function buildPeriods(): { label: string; value: Period }[] {
   const fmt = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}`
@@ -29,13 +37,24 @@ function buildPeriods(): { label: string; value: Period }[] {
   ]
 }
 
-/* ── Utils ───────────────────────────────────────────────────── */
+/* ── Utils ──────────────────────────────────────────────────── */
 function isSameDay(d1: Date, d2: Date) {
   return (
     d1.getFullYear() === d2.getFullYear() &&
     d1.getMonth()    === d2.getMonth()    &&
     d1.getDate()     === d2.getDate()
   )
+}
+
+function filterByArea(records: CatchRecord[], area: Area | null): CatchRecord[] {
+  if (!area) return records
+  return records.filter((x) => x.shipyard_area?.includes(area))
+}
+
+function filterByFish(records: CatchRecord[], fish: Fish | null): CatchRecord[] {
+  if (!fish) return records
+  const aliases = FISH_ALIASES[fish]
+  return records.filter((x) => aliases.some((a) => x.fish_name?.includes(a)))
 }
 
 function filterByPeriod(records: CatchRecord[], period: Period): CatchRecord[] {
@@ -57,14 +76,27 @@ function filterByPeriod(records: CatchRecord[], period: Period): CatchRecord[] {
   return records
 }
 
-function filterByAreaFish(records: CatchRecord[], area: Area | null, fish: Fish | null) {
-  let r = records
-  if (area) r = r.filter((x) => x.shipyard_area?.includes(area))
-  if (fish) {
-    const aliases = FISH_ALIASES[fish]
-    r = r.filter((x) => aliases.some((a) => x.fish_name?.includes(a)))
-  }
-  return r
+/* ── AI summary lookup ───────────────────────────────────────── */
+function findAreaId(area: Area | null, areas: AreaRecord[]): number | null {
+  if (!area) return null
+  return areas.find((a) => a.name === area)?.id ?? null
+}
+
+function findFishId(fish: Fish | null, fishSpeciesList: FishRecord[]): number | null {
+  if (!fish) return null
+  const aliases = FISH_ALIASES[fish]
+  return fishSpeciesList.find((f) => aliases.some((a) => f.name === a))?.id ?? null
+}
+
+function lookupSummary(
+  aiSummaries: AISummaryRecord[],
+  type: string,
+  targetId: number | null,
+): string | null {
+  if (targetId === null) return null
+  return aiSummaries.find(
+    (s) => s.summary_type === type && s.target_id === targetId
+  )?.summary_text ?? null
 }
 
 /* ── Sub-components ──────────────────────────────────────────── */
@@ -104,17 +136,61 @@ function FilterLabel({ text }: { text: string }) {
   )
 }
 
+/* ── AI Summary Card ─────────────────────────────────────────── */
+function AISummaryCard({
+  variant, label, text,
+}: {
+  variant: 'area' | 'fish'
+  label: string
+  text: string
+}) {
+  const isArea    = variant === 'area'
+  const bg        = isArea ? '#1a1f2e' : '#1a1500'
+  const leftColor = isArea ? '#3b82f6' : '#d4a017'
+  const sideColor = isArea ? 'rgba(59,130,246,0.25)' : 'rgba(212,160,23,0.25)'
+  const textColor = isArea ? '#93c5fd' : '#fde68a'
+
+  return (
+    <div
+      style={{
+        background: bg,
+        borderLeft:   `4px solid ${leftColor}`,
+        borderRight:  `1px solid ${sideColor}`,
+        borderTop:    `1px solid ${sideColor}`,
+        borderBottom: `1px solid ${sideColor}`,
+        borderRadius: 8,
+        padding: '10px 14px',
+      }}
+    >
+      <p
+        style={{
+          fontSize: 10,
+          fontWeight: 700,
+          color: textColor,
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          marginBottom: 5,
+          opacity: 0.75,
+        }}
+      >
+        {label}
+      </p>
+      <p style={{ fontSize: 13, color: textColor, lineHeight: 1.6, margin: 0 }}>
+        {text}
+      </p>
+    </div>
+  )
+}
+
 /* ── Summary card ────────────────────────────────────────────── */
 function SummaryCard({ records, envData }: { records: CatchRecord[]; envData: EnvData | null }) {
   const today = new Date()
   const todayRecs = records.filter((r) => r.date && isSameDay(new Date(r.date), today))
 
-  // 出船数：当日のユニーク船宿数
   const shipyardCount = new Set(
     todayRecs.map((r) => r.shipyard_name).filter(Boolean)
   ).size
 
-  // 平均釣果：count_max ?? count_min（null除外）
   const catchVals = todayRecs
     .map((r) => r.count_max ?? r.count_min)
     .filter((v): v is number => v !== null)
@@ -122,7 +198,6 @@ function SummaryCard({ records, envData }: { records: CatchRecord[]; envData: En
     ? Math.round(catchVals.reduce((a, b) => a + b, 0) / catchVals.length * 10) / 10
     : null
 
-  // 釣果範囲：全レコードの count_min の最小 〜 count_max の最大
   const countMinVals = todayRecs.map((r) => r.count_min).filter((v): v is number => v !== null)
   const countMaxVals = todayRecs.map((r) => r.count_max).filter((v): v is number => v !== null)
   const catchRangeMin = countMinVals.length > 0 ? Math.min(...countMinVals) : null
@@ -134,7 +209,6 @@ function SummaryCard({ records, envData }: { records: CatchRecord[]; envData: En
       : catchRangeMin !== null ? String(catchRangeMin)
       : '—'
 
-  // サイズ範囲：size_min_cm の最小 〜 size_max_cm の最大
   const sizeMinVals = todayRecs.map((r) => r.size_min_cm).filter((v): v is number => v !== null)
   const sizeMaxVals = todayRecs.map((r) => r.size_max_cm).filter((v): v is number => v !== null)
   const sizeMin = sizeMinVals.length > 0 ? Math.min(...sizeMinVals) : null
@@ -148,13 +222,10 @@ function SummaryCard({ records, envData }: { records: CatchRecord[]; envData: En
 
   const weatherWord = envData?.weather ? envData.weather.split(' ')[0] : null
 
-  // 3列2行のグリッド順
   const stats: { label: string; value: string; highlight?: boolean }[] = [
-    // 1行目
     { label: '天気',     value: weatherWord ?? '—' },
     { label: '潮汐',     value: envData?.tide_type ?? '—' },
     { label: '出船数',   value: todayRecs.length > 0 ? `${shipyardCount}` : '—' },
-    // 2行目
     { label: '平均釣果', value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
     { label: '釣果',     value: catchRange },
     { label: 'サイズ',   value: sizeRange },
@@ -199,7 +270,9 @@ function SummaryCard({ records, envData }: { records: CatchRecord[]; envData: En
 }
 
 /* ── Main ────────────────────────────────────────────────────── */
-export default function CatchDashboard({ records, envData }: { records: CatchRecord[]; envData: EnvData | null }) {
+export default function CatchDashboard({
+  records, envData, areas, fishSpeciesList, aiSummaries,
+}: Props) {
   const [area,      setArea]      = useState<Area | null>('東京湾')
   const [fish,      setFish]      = useState<Fish | null>('タチウオ')
   const [period,    setPeriod]    = useState<Period>('今日')
@@ -212,13 +285,19 @@ export default function CatchDashboard({ records, envData }: { records: CatchRec
   }
   const handleFishClick = (f: Fish) => setFish((p) => (p === f ? null : f))
 
-  // Records filtered by area+fish (used by chart & summary)
-  const areaFishFiltered = useMemo(
-    () => filterByAreaFish(records, area, fish),
-    [records, area, fish]
+  // エリアのみでフィルター（TrendBar 用）
+  const areaOnlyFiltered = useMemo(
+    () => filterByArea(records, area),
+    [records, area]
   )
 
-  // Records filtered by area+fish+period (used by table/cards)
+  // エリア＋魚種でフィルター（SummaryCard・グラフ用）
+  const areaFishFiltered = useMemo(
+    () => filterByFish(areaOnlyFiltered, fish),
+    [areaOnlyFiltered, fish]
+  )
+
+  // エリア＋魚種＋期間＋ソート（テーブル/カード用）
   const filtered = useMemo(() => {
     let r = filterByPeriod(areaFishFiltered, period)
 
@@ -231,26 +310,28 @@ export default function CatchDashboard({ records, envData }: { records: CatchRec
     return r
   }, [areaFishFiltered, period, sortField])
 
+  // AI サマリー検索
+  const areaId       = findAreaId(area, areas)
+  const fishId       = findFishId(fish, fishSpeciesList)
+  const areaSummary  = lookupSummary(aiSummaries, 'area', areaId)
+  const fishSummary  = lookupSummary(aiSummaries, 'fish_species', fishId)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-      {/* ── 1. トレンドバー ─────────────────────────────────────── */}
-      <TrendBar records={records} activeFish={fish} onFishClick={handleFishClick} />
-
-      {/* ── 2. フィルターエリア ─────────────────────────────────── */}
+      {/* ── 1. エリア選択 + Area AI サマリー ─────────────────────── */}
       <div
         style={{
           background: 'var(--surface)',
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius-lg)',
-          padding: '16px 20px',
+          padding: '14px 16px',
           boxShadow: 'var(--shadow-sm)',
           display: 'flex',
           flexDirection: 'column',
-          gap: 10,
+          gap: 12,
         }}
       >
-        {/* エリア */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <FilterLabel text="エリア" />
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -262,8 +343,31 @@ export default function CatchDashboard({ records, envData }: { records: CatchRec
           </div>
         </div>
 
-        <div style={{ height: 1, background: 'var(--border)' }} />
+        {areaSummary && (
+          <AISummaryCard
+            variant="area"
+            label="🤖 AIサマリー"
+            text={areaSummary}
+          />
+        )}
+      </div>
 
+      {/* ── 2. 魚種トレンド（エリア連動 / 2×2グリッド） ────────── */}
+      <TrendBar records={areaOnlyFiltered} activeFish={fish} onFishClick={handleFishClick} />
+
+      {/* ── 3. 魚種・期間フィルター ──────────────────────────────── */}
+      <div
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '14px 16px',
+          boxShadow: 'var(--shadow-sm)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+        }}
+      >
         {/* 魚種 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <FilterLabel text="魚種" />
@@ -278,7 +382,7 @@ export default function CatchDashboard({ records, envData }: { records: CatchRec
 
         <div style={{ height: 1, background: 'var(--border)' }} />
 
-        {/* 日付 */}
+        {/* 期間 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <FilterLabel text="期間" />
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -291,10 +395,19 @@ export default function CatchDashboard({ records, envData }: { records: CatchRec
         </div>
       </div>
 
-      {/* ── 3. サマリーカード ───────────────────────────────────── */}
+      {/* ── 4. 魚種 AI サマリー ──────────────────────────────────── */}
+      {fish && fishSummary && (
+        <AISummaryCard
+          variant="fish"
+          label={`🤖 ${area ?? 'エリア'} × ${fish} サマリー`}
+          text={fishSummary}
+        />
+      )}
+
+      {/* ── 5. 本日の釣果サマリーカード ──────────────────────────── */}
       <SummaryCard records={areaFishFiltered} envData={envData} />
 
-      {/* ── 4 & 5. データ / グラフ タブ ──────────────────────────── */}
+      {/* ── 6. 一覧 / 詳細 / グラフ タブ ────────────────────────── */}
       <div
         style={{
           background: 'var(--surface)',

@@ -22,6 +22,23 @@ export type EnvData = {
   tide_type: string | null
 }
 
+export type AISummaryRecord = {
+  summary_type: string
+  target_id: number | null
+  target_date: string
+  summary_text: string
+}
+
+export type AreaRecord = {
+  id: number
+  name: string
+}
+
+export type FishRecord = {
+  id: number
+  name: string
+}
+
 // ── データ取得 ─────────────────────────────────────────────────
 async function getCatchData(): Promise<CatchRecord[]> {
   const { data, error } = await supabase
@@ -66,8 +83,6 @@ async function getCatchData(): Promise<CatchRecord[]> {
   }))
 
   // ── フロント側デデュープ ──────────────────────────────────────
-  // 重複判定キー: shipyard_name + sail_date + fish_name + count_min + count_max
-  // DB側に重複レコードが残っている場合の保険として、最初に出現したレコードを採用する
   const seen = new Set<string>()
   const deduped = mapped.filter((r) => {
     const key = [
@@ -113,13 +128,41 @@ async function getEnvData(): Promise<EnvData | null> {
   return data
 }
 
+async function getAreas(): Promise<AreaRecord[]> {
+  const { data } = await supabase
+    .from('areas')
+    .select('id, name')
+    .order('id')
+  return (data ?? []) as AreaRecord[]
+}
+
+async function getFishSpecies(): Promise<FishRecord[]> {
+  const { data } = await supabase
+    .from('fish_species')
+    .select('id, name')
+    .order('id')
+  return (data ?? []) as FishRecord[]
+}
+
+async function getAISummaries(): Promise<AISummaryRecord[]> {
+  const { data } = await supabase
+    .from('ai_summaries')
+    .select('summary_type, target_id, target_date, summary_text')
+    .order('target_date', { ascending: false })
+    .limit(50)
+  return (data ?? []) as AISummaryRecord[]
+}
+
 export const revalidate = 3600
 
 export default async function Home() {
-  const [records, envData, latestAt] = await Promise.all([
+  const [records, envData, latestAt, areas, fishSpeciesList, aiSummaries] = await Promise.all([
     getCatchData(),
     getEnvData(),
     getLatestUpdatedAt(),
+    getAreas(),
+    getFishSpecies(),
+    getAISummaries(),
   ])
 
   // catches テーブルの最新 created_at を JST で表示（なければ現在時刻）
@@ -182,7 +225,7 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* Last updated（日付＋時刻） */}
+          {/* Last updated */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>
             <span
               style={{
@@ -196,7 +239,7 @@ export default async function Home() {
         </div>
       </header>
 
-      {/* ── Hero (navy) — タイトルのみ ─────────────────────────── */}
+      {/* ── Hero ────────────────────────────────────────────────── */}
       <div
         style={{
           background: 'var(--primary)',
@@ -226,7 +269,7 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* ── Main content ───────────────────────────────────────── */}
+      {/* ── Main content ─────────────────────────────────────────── */}
       <main style={{ padding: '24px 0 80px' }}>
         <div className="page-container">
           {records.length === 0 ? (
@@ -242,7 +285,13 @@ export default async function Home() {
               <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>現在、釣果データがありません</p>
             </div>
           ) : (
-            <CatchDashboard records={records} envData={envData} />
+            <CatchDashboard
+              records={records}
+              envData={envData}
+              areas={areas}
+              fishSpeciesList={fishSpeciesList}
+              aiSummaries={aiSummaries}
+            />
           )}
         </div>
       </main>

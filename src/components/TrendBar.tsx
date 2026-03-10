@@ -51,7 +51,7 @@ export default function TrendBar({ records, activeFish, onFishClick }: Props) {
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateColumns: 'repeat(2, 1fr)',
         gap: 8,
       }}
     >
@@ -85,8 +85,8 @@ export default function TrendBar({ records, activeFish, onFishClick }: Props) {
             style={{
               padding: '10px 8px',
               borderRadius: 'var(--radius-md)',
-              border: isActive ? '2px solid var(--accent)' : '1px solid var(--border)',
-              background: isActive ? 'var(--accent-light)' : 'var(--surface)',
+              border: isActive ? '2px solid #d4a017' : '1px solid var(--border)',
+              background: isActive ? 'rgba(212,160,23,0.08)' : 'var(--surface)',
               cursor: 'pointer',
               textAlign: 'left',
               transition: 'all 0.15s',
@@ -100,7 +100,7 @@ export default function TrendBar({ records, activeFish, onFishClick }: Props) {
                 style={{
                   fontSize: 12,
                   fontWeight: 700,
-                  color: isActive ? 'var(--secondary)' : 'var(--text-main)',
+                  color: isActive ? '#d4a017' : 'var(--text-main)',
                   whiteSpace: 'nowrap',
                 }}
               >
