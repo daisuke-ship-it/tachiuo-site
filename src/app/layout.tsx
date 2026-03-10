@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "タチウオ釣果情報 | 東京湾・相模湾",
-  description: "東京湾・相模湾エリアの船宿タチウオ釣果情報をまとめて確認できます",
+  title: "釣果.com | 東京湾・相模湾 船釣り釣果情報",
+  description:
+    "東京湾・相模湾エリアの船宿釣果情報をまとめて確認。タチウオ・アジ・シーバス・サワラの最新釣果データを毎日更新。",
 };
 
 export default function RootLayout({
@@ -25,11 +26,13 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <head>
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1812773737440303" crossOrigin="anonymous"></script>
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1812773737440303"
+          crossOrigin="anonymous"
+        />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
       </body>
     </html>

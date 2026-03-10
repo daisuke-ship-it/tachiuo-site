@@ -1,8 +1,8 @@
 'use client'
 
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -11,9 +11,7 @@ import {
 } from 'recharts'
 import { CatchRecord } from '@/lib/supabase'
 
-type Props = {
-  records: CatchRecord[]
-}
+type Props = { records: CatchRecord[] }
 
 type TooltipPayload = {
   active?: boolean
@@ -26,15 +24,17 @@ function CustomTooltip({ active, payload, label }: TooltipPayload) {
   return (
     <div
       style={{
-        background: '#0d1526',
-        border: '1px solid rgba(201,168,76,0.4)',
+        background: 'var(--primary)',
+        border: 'none',
         borderRadius: 8,
         padding: '8px 14px',
+        boxShadow: 'var(--shadow-md)',
       }}
     >
-      <p style={{ color: '#8899aa', fontSize: 11, marginBottom: 2 }}>{label}</p>
-      <p style={{ color: '#c9a84c', fontWeight: 700, fontSize: 16 }}>
-        {payload[0].value} <span style={{ fontSize: 11, fontWeight: 400 }}>件</span>
+      <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, marginBottom: 3 }}>{label}</p>
+      <p style={{ color: 'white', fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>
+        {payload[0].value}
+        <span style={{ fontSize: 11, fontWeight: 400, marginLeft: 3, color: 'rgba(255,255,255,0.6)' }}>件</span>
       </p>
     </div>
   )
@@ -47,16 +47,13 @@ export default function CatchChart({ records }: Props) {
   for (let i = 29; i >= 0; i--) {
     const d = new Date(today)
     d.setDate(today.getDate() - i)
-    const key = d.toISOString().split('T')[0]
-    dateMap[key] = 0
+    dateMap[d.toISOString().split('T')[0]] = 0
   }
 
   records.forEach((r) => {
     if (!r.date) return
     const key = r.date.split('T')[0]
-    if (key in dateMap) {
-      dateMap[key]++
-    }
+    if (key in dateMap) dateMap[key]++
   })
 
   const data = Object.entries(dateMap).map(([date, count]) => ({
@@ -67,46 +64,44 @@ export default function CatchChart({ records }: Props) {
   const maxCount = Math.max(...data.map((d) => d.count), 1)
 
   return (
-    <div
-      style={{
-        background: '#0d1526',
-        border: '1px solid rgba(201,168,76,0.2)',
-        borderRadius: 12,
-        padding: '20px 16px 12px',
-      }}
-    >
-      <p style={{ color: '#8899aa', fontSize: 12, marginBottom: 12, letterSpacing: '0.05em' }}>
-        直近30日 釣果推移
-      </p>
-      <ResponsiveContainer width="100%" height={180}>
-        <LineChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-          <XAxis
-            dataKey="date"
-            stroke="#334455"
-            tick={{ fill: '#556677', fontSize: 10 }}
-            interval={4}
-            tickLine={false}
-          />
-          <YAxis
-            stroke="#334455"
-            tick={{ fill: '#556677', fontSize: 10 }}
-            tickLine={false}
-            axisLine={false}
-            domain={[0, maxCount + 1]}
-            allowDecimals={false}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Line
-            type="monotone"
-            dataKey="count"
-            stroke="#c9a84c"
-            strokeWidth={2}
-            dot={false}
-            activeDot={{ r: 4, fill: '#c9a84c', stroke: '#e2c97a', strokeWidth: 2 }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+    <ResponsiveContainer width="100%" height={170}>
+      <AreaChart data={data} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
+        <defs>
+          <linearGradient id="oceanGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor="#1A5276" stopOpacity={0.18} />
+            <stop offset="100%" stopColor="#1A5276" stopOpacity={0}    />
+          </linearGradient>
+        </defs>
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke="var(--border)"
+          vertical={false}
+        />
+        <XAxis
+          dataKey="date"
+          tick={{ fill: 'var(--text-muted)', fontSize: 10 }}
+          tickLine={false}
+          axisLine={false}
+          interval={4}
+        />
+        <YAxis
+          tick={{ fill: 'var(--text-muted)', fontSize: 10 }}
+          tickLine={false}
+          axisLine={false}
+          domain={[0, maxCount + 1]}
+          allowDecimals={false}
+        />
+        <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '4 2' }} />
+        <Area
+          type="monotone"
+          dataKey="count"
+          stroke="#1A5276"
+          strokeWidth={2}
+          fill="url(#oceanGradient)"
+          dot={false}
+          activeDot={{ r: 4, fill: 'var(--secondary)', stroke: 'white', strokeWidth: 2 }}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
   )
 }

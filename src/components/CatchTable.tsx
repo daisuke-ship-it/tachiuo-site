@@ -2,10 +2,9 @@
 
 import { CatchRecord } from '@/lib/supabase'
 
-type Props = {
-  records: CatchRecord[]
-}
+type Props = { records: CatchRecord[] }
 
+/* ── Formatters ──────────────────────────────────────────────── */
 function formatSize(min: number | null, max: number | null): string {
   if (!min && !max) return '—'
   if (min && max && min !== max) return `${min}〜${max}cm`
@@ -22,44 +21,101 @@ function formatDate(dateStr: string | null): { full: string; short: string } {
   if (!dateStr) return { full: '—', short: '—' }
   const d = new Date(dateStr)
   return {
-    full: d.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }),
+    full:  d.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }),
     short: d.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' }),
   }
 }
 
-const areaColor: Record<string, string> = {
-  東京湾: 'rgba(42, 95, 168, 0.5)',
-  相模湾: 'rgba(26, 90, 80, 0.5)',
+/* ── Badge configs ───────────────────────────────────────────── */
+const AREA_STYLE: Record<string, { bg: string; color: string; border: string }> = {
+  '東京湾': { bg: '#EBF4FF', color: '#1A5276', border: '#BDD7EE' },
+  '相模湾': { bg: '#EAFAF3', color: '#0E6655', border: '#A9DFBF' },
 }
 
+const FISH_STYLE: Record<string, { bg: string; color: string }> = {
+  'タチウオ': { bg: '#FFF3E0', color: '#BF5E18' },
+  'アジ':     { bg: '#F0FFF4', color: '#1A7A3C' },
+  'シーバス': { bg: '#EFF6FF', color: '#1D4ED8' },
+  'サワラ':   { bg: '#FDF4FF', color: '#7E22CE' },
+}
+
+function AreaBadge({ area }: { area: string | null }) {
+  if (!area) return <span style={{ color: 'var(--text-muted)' }}>—</span>
+  const s = AREA_STYLE[area] ?? { bg: '#F3F4F6', color: '#6B7280', border: '#D1D5DB' }
+  return (
+    <span
+      style={{
+        padding: '2px 8px',
+        fontSize: 11,
+        fontWeight: 600,
+        borderRadius: 'var(--radius-pill)',
+        background: s.bg,
+        color: s.color,
+        border: `1px solid ${s.border}`,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {area}
+    </span>
+  )
+}
+
+function FishBadge({ fish }: { fish: string | null }) {
+  if (!fish) return <span style={{ color: 'var(--text-muted)' }}>—</span>
+  const s = FISH_STYLE[fish] ?? { bg: '#F3F4F6', color: '#6B7280' }
+  return (
+    <span
+      style={{
+        padding: '2px 8px',
+        fontSize: 11,
+        fontWeight: 600,
+        borderRadius: 'var(--radius-pill)',
+        background: s.bg,
+        color: s.color,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {fish}
+    </span>
+  )
+}
+
+/* ── Component ───────────────────────────────────────────────── */
 export default function CatchTable({ records }: Props) {
   if (records.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 0', color: '#445566' }}>
-        <p style={{ fontSize: 32, marginBottom: 8 }}>〜</p>
-        <p>釣果データがありません</p>
+      <div
+        style={{
+          textAlign: 'center',
+          padding: '60px 20px',
+          color: 'var(--text-muted)',
+          fontSize: 14,
+        }}
+      >
+        <p style={{ fontSize: 28, marginBottom: 8 }}>🎣</p>
+        条件に一致するデータがありません
       </div>
     )
   }
 
   return (
     <>
-      {/* PC: テーブル */}
+      {/* ── PC: Table ────────────────────────────────────────── */}
       <div className="hidden md:block" style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
-            <tr style={{ background: 'rgba(26, 58, 107, 0.4)' }}>
+            <tr style={{ background: 'var(--primary)' }}>
               {['日付', '船宿', 'エリア', '魚種', 'サイズ', '釣果', '記事'].map((h, i) => (
                 <th
                   key={h}
                   style={{
-                    padding: '10px 14px',
-                    textAlign: i >= 4 && i <= 5 ? 'right' : i === 6 ? 'center' : 'left',
-                    color: '#c9a84c',
-                    fontWeight: 500,
+                    padding: '11px 16px',
+                    textAlign: i >= 4 && i <= 5 ? 'center' : i === 6 ? 'center' : 'left',
+                    color: 'rgba(255,255,255,0.6)',
+                    fontWeight: 600,
                     fontSize: 11,
-                    letterSpacing: '0.1em',
-                    borderBottom: '1px solid rgba(201,168,76,0.2)',
+                    letterSpacing: '0.06em',
+                    borderBottom: '1px solid rgba(255,255,255,0.07)',
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -70,65 +126,50 @@ export default function CatchTable({ records }: Props) {
           </thead>
           <tbody>
             {records.map((r, idx) => {
-              const date = formatDate(r.date)
-              const area = r.shipyard_area ?? ''
-              const isEven = idx % 2 === 0
+              const date    = formatDate(r.date)
+              const isEven  = idx % 2 === 0
               return (
                 <tr
                   key={r.id}
                   style={{
-                    background: isEven ? 'rgba(13,21,38,0.6)' : 'rgba(10,15,26,0.4)',
-                    transition: 'background 0.15s',
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
+                    background: isEven ? 'var(--surface)' : 'var(--surface-2)',
+                    borderBottom: '1px solid var(--border)',
+                    transition: 'background 0.1s',
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = 'rgba(42,95,168,0.15)')
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = isEven
-                      ? 'rgba(13,21,38,0.6)'
-                      : 'rgba(10,15,26,0.4)')
-                  }
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(14,165,200,0.05)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = isEven ? 'var(--surface)' : 'var(--surface-2)')}
                 >
-                  <td style={{ padding: '10px 14px', color: '#8899aa', whiteSpace: 'nowrap' }}>
+                  <td
+                    style={{
+                      padding: '10px 16px',
+                      color: 'var(--text-sub)',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     {date.full}
                   </td>
                   <td
                     style={{
-                      padding: '10px 14px',
-                      color: '#e8dcc8',
-                      fontWeight: 600,
+                      padding: '10px 16px',
+                      color: 'var(--text-main)',
+                      fontWeight: 500,
                       whiteSpace: 'nowrap',
                     }}
                   >
                     {r.shipyard_name ?? '—'}
                   </td>
-                  <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
-                    {area ? (
-                      <span
-                        style={{
-                          background: areaColor[area] ?? 'rgba(60,60,80,0.5)',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          borderRadius: 4,
-                          padding: '2px 8px',
-                          fontSize: 11,
-                          color: '#aabbcc',
-                        }}
-                      >
-                        {area}
-                      </span>
-                    ) : (
-                      <span style={{ color: '#445566' }}>—</span>
-                    )}
+                  <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                    <AreaBadge area={r.shipyard_area ?? null} />
                   </td>
-                  <td style={{ padding: '10px 14px', color: '#aabbcc' }}>
-                    {r.fish_name ?? '—'}
+                  <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                    <FishBadge fish={r.fish_name ?? null} />
                   </td>
                   <td
                     style={{
-                      padding: '10px 14px',
-                      textAlign: 'right',
-                      color: '#8899aa',
+                      padding: '10px 16px',
+                      textAlign: 'center',
+                      color: 'var(--text-sub)',
+                      fontVariantNumeric: 'tabular-nums',
                       whiteSpace: 'nowrap',
                     }}
                   >
@@ -136,16 +177,23 @@ export default function CatchTable({ records }: Props) {
                   </td>
                   <td
                     style={{
-                      padding: '10px 14px',
-                      textAlign: 'right',
+                      padding: '10px 16px',
+                      textAlign: 'center',
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    <span style={{ color: '#c9a84c', fontWeight: 700, fontSize: 14 }}>
+                    <span
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: 'var(--secondary)',
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
                       {formatCount(r.count_min, r.count_max)}
                     </span>
                   </td>
-                  <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                  <td style={{ padding: '10px 16px', textAlign: 'center' }}>
                     {r.source_url ? (
                       <a
                         href={r.source_url}
@@ -154,26 +202,27 @@ export default function CatchTable({ records }: Props) {
                         style={{
                           display: 'inline-block',
                           fontSize: 11,
-                          color: '#8899aa',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          borderRadius: 4,
+                          color: 'var(--text-sub)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 6,
                           padding: '3px 10px',
                           transition: 'all 0.15s',
-                          textDecoration: 'none',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.color = '#c9a84c'
-                          e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'
+                          e.currentTarget.style.color = 'var(--secondary)'
+                          e.currentTarget.style.borderColor = 'var(--border-accent)'
+                          e.currentTarget.style.background = 'var(--accent-light)'
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.color = '#8899aa'
-                          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
+                          e.currentTarget.style.color = 'var(--text-sub)'
+                          e.currentTarget.style.borderColor = 'var(--border)'
+                          e.currentTarget.style.background = 'transparent'
                         }}
                       >
                         記事 ↗
                       </a>
                     ) : (
-                      <span style={{ color: '#334455' }}>—</span>
+                      <span style={{ color: 'var(--border-strong)', fontSize: 12 }}>—</span>
                     )}
                   </td>
                 </tr>
@@ -183,90 +232,108 @@ export default function CatchTable({ records }: Props) {
         </table>
       </div>
 
-      {/* スマホ: カード */}
-      <div className="md:hidden" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {/* ── Mobile: Cards ────────────────────────────────────── */}
+      <div
+        className="md:hidden"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+          padding: 12,
+        }}
+      >
         {records.map((r) => {
           const date = formatDate(r.date)
-          const area = r.shipyard_area ?? ''
           return (
             <div
               key={r.id}
               style={{
-                background: '#0d1526',
-                border: '1px solid rgba(201,168,76,0.15)',
-                borderRadius: 12,
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
                 padding: '14px 16px',
+                boxShadow: 'var(--shadow-xs)',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+              {/* Top row */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: 10,
+                }}
+              >
                 <div>
-                  <p style={{ fontWeight: 700, color: '#e8dcc8', fontSize: 15, marginBottom: 2 }}>
-                    {r.shipyard_name ?? '—'}
+                  <p
+                    style={{
+                      fontWeight: 600,
+                      color: 'var(--text-main)',
+                      fontSize: 14,
+                      marginBottom: 5,
+                    }}
+                  >
+                    {r.shipyard_name ?? '不明'}
                   </p>
-                  {area && (
-                    <span
-                      style={{
-                        background: areaColor[area] ?? 'rgba(60,60,80,0.5)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: 4,
-                        padding: '1px 7px',
-                        fontSize: 10,
-                        color: '#aabbcc',
-                      }}
-                    >
-                      {area}
-                    </span>
-                  )}
+                  <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' as const }}>
+                    <AreaBadge area={r.shipyard_area ?? null} />
+                    <FishBadge fish={r.fish_name ?? null} />
+                  </div>
                 </div>
                 <span
                   style={{
                     fontSize: 11,
-                    color: '#8899aa',
-                    background: 'rgba(26,58,107,0.3)',
-                    border: '1px solid rgba(42,95,168,0.3)',
+                    color: 'var(--text-sub)',
+                    background: 'var(--surface-2)',
+                    border: '1px solid var(--border)',
                     borderRadius: 6,
                     padding: '3px 9px',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
                   }}
                 >
                   {date.short}
                 </span>
               </div>
 
-              {r.fish_name && (
-                <p style={{ fontSize: 12, color: '#7788aa', marginBottom: 8 }}>
-                  {r.fish_name}
-                </p>
-              )}
-
+              {/* Data grid */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 <div
                   style={{
-                    background: 'rgba(8,13,26,0.6)',
-                    border: '1px solid rgba(255,255,255,0.05)',
+                    background: 'var(--surface-2)',
+                    border: '1px solid var(--border)',
                     borderRadius: 8,
                     padding: '8px 12px',
                   }}
                 >
-                  <p style={{ fontSize: 10, color: '#556677', marginBottom: 3 }}>サイズ</p>
-                  <p style={{ fontSize: 13, color: '#aabbcc' }}>
+                  <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>サイズ</p>
+                  <p style={{ fontSize: 13, color: 'var(--text-main)', fontWeight: 500 }}>
                     {formatSize(r.size_min_cm, r.size_max_cm)}
                   </p>
                 </div>
                 <div
                   style={{
-                    background: 'rgba(8,13,26,0.6)',
-                    border: '1px solid rgba(201,168,76,0.15)',
+                    background: '#EBF4FF',
+                    border: '1px solid #BDD7EE',
                     borderRadius: 8,
                     padding: '8px 12px',
                   }}
                 >
-                  <p style={{ fontSize: 10, color: '#556677', marginBottom: 3 }}>釣果</p>
-                  <p style={{ fontSize: 15, fontWeight: 700, color: '#c9a84c' }}>
+                  <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>釣果数</p>
+                  <p
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 700,
+                      color: 'var(--secondary)',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
                     {formatCount(r.count_min, r.count_max)}
                   </p>
                 </div>
               </div>
 
+              {/* Link */}
               {r.source_url && (
                 <a
                   href={r.source_url}
@@ -275,13 +342,9 @@ export default function CatchTable({ records }: Props) {
                   style={{
                     display: 'block',
                     marginTop: 10,
-                    textAlign: 'center',
+                    textAlign: 'right',
                     fontSize: 12,
-                    color: '#8899aa',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: 8,
-                    padding: '7px',
-                    textDecoration: 'none',
+                    color: 'var(--secondary)',
                   }}
                 >
                   記事を見る ↗
