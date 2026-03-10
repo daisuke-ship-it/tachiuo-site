@@ -54,11 +54,23 @@ function SortTh({
         cursor: 'pointer',
         whiteSpace: 'nowrap',
         userSelect: 'none',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
       }}
     >
       {label}{active ? ' ▼' : ''}
     </th>
   )
+}
+
+const thBase: React.CSSProperties = {
+  padding: '10px 12px',
+  textAlign: 'left',
+  color: 'rgba(255,255,255,0.55)',
+  fontWeight: 600,
+  fontSize: 11,
+  letterSpacing: '0.04em',
+  borderBottom: '1px solid rgba(255,255,255,0.07)',
+  whiteSpace: 'nowrap',
 }
 
 export default function CatchTable({ records, sortField, onSort }: Props) {
@@ -82,66 +94,28 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
         }}
       >
         <colgroup>
-          <col style={{ width: '28%' }} />
-          <col style={{ width: '10%' }} />
-          <col style={{ width: '16%' }} />
-          <col style={{ width: '16%' }} />
+          <col style={{ width: '32%' }} />
+          <col style={{ width: '12%' }} />
+          <col style={{ width: '18%' }} />
+          <col style={{ width: '18%' }} />
           <col style={{ width: '20%' }} />
-          <col style={{ width: '10%' }} />
         </colgroup>
         <thead>
           <tr style={{ background: 'var(--primary)' }}>
-            {(['船宿', '釣り方'] as const).map((h) => (
-              <th
-                key={h}
-                style={{
-                  padding: '10px 12px',
-                  textAlign: 'left',
-                  color: 'rgba(255,255,255,0.55)',
-                  fontWeight: 600,
-                  fontSize: 11,
-                  letterSpacing: '0.04em',
-                  borderBottom: '1px solid rgba(255,255,255,0.07)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {h}
-              </th>
-            ))}
+            <th style={thBase}>船宿</th>
+            <th style={thBase}>釣り方</th>
             <SortTh label="釣果" field="count" active={sortField === 'count'} onSort={onSort} />
-            <SortTh label="サイズ" field="size"  active={sortField === 'size'}  onSort={onSort} />
-            <th
-              style={{
-                padding: '10px 12px',
-                textAlign: 'left',
-                color: 'rgba(255,255,255,0.55)',
-                fontWeight: 600,
-                fontSize: 11,
-                letterSpacing: '0.04em',
-                borderBottom: '1px solid rgba(255,255,255,0.07)',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              日付
-            </th>
-            <th
-              style={{
-                padding: '10px 12px',
-                textAlign: 'center',
-                color: 'rgba(255,255,255,0.55)',
-                fontWeight: 600,
-                fontSize: 11,
-                borderBottom: '1px solid rgba(255,255,255,0.07)',
-              }}
-            >
-              記事
-            </th>
+            <SortTh label="サイズ" field="size" active={sortField === 'size'} onSort={onSort} />
+            <th style={{ ...thBase, paddingLeft: 20 }}>日付</th>
           </tr>
         </thead>
         <tbody>
           {records.map((r, idx) => {
             const isEven = idx % 2 === 0
             const ms = r.fishing_method ? (METHOD_STYLE[r.fishing_method] ?? null) : null
+            const dateStr = r.date
+              ? new Date(r.date).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
+              : '—'
 
             return (
               <tr
@@ -156,23 +130,41 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
                   (e.currentTarget.style.background = isEven ? 'var(--surface)' : 'var(--surface-2)')
                 }
               >
-                {/* 船宿 */}
+                {/* 船宿（リンク） */}
                 <td
                   style={{
                     padding: '9px 12px',
-                    color: 'var(--text-main)',
-                    fontWeight: 500,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     maxWidth: 0,
                   }}
                 >
-                  {r.shipyard_name ?? '—'}
+                  {r.source_url ? (
+                    <a
+                      href={r.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        color: 'var(--secondary)',
+                        fontWeight: 600,
+                        textDecoration: 'none',
+                        fontSize: 13,
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                      onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                    >
+                      {r.shipyard_name ?? '—'}
+                    </a>
+                  ) : (
+                    <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>
+                      {r.shipyard_name ?? '—'}
+                    </span>
+                  )}
                 </td>
 
                 {/* 釣り方 */}
-                <td style={{ padding: '9px 12px' }}>
+                <td style={{ padding: '9px 8px' }}>
                   {ms ? (
                     <span
                       style={{
@@ -193,7 +185,7 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
                       {r.fishing_method}
                     </span>
                   ) : (
-                    <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>—</span>
                   )}
                 </td>
 
@@ -228,30 +220,13 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
                 <td
                   style={{
                     padding: '9px 12px',
+                    paddingLeft: 20,
                     color: 'var(--text-sub)',
                     fontSize: 12,
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {r.date
-                    ? new Date(r.date).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
-                    : '—'}
-                </td>
-
-                {/* 記事 */}
-                <td style={{ padding: '9px 12px', textAlign: 'center' }}>
-                  {r.source_url ? (
-                    <a
-                      href={r.source_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ fontSize: 14, color: 'var(--secondary)', textDecoration: 'none' }}
-                    >
-                      ↗
-                    </a>
-                  ) : (
-                    <span style={{ color: 'var(--border-strong)', fontSize: 12 }}>—</span>
-                  )}
+                  {dateStr}
                 </td>
               </tr>
             )
