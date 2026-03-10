@@ -47,7 +47,10 @@ async function getCatchData(): Promise<CatchRecord[]> {
     return []
   }
 
-  return ((data ?? []) as unknown as RawCatch[]).map((row) => ({
+  const rawRows = (data ?? []) as unknown as RawCatch[]
+  console.log(`[getCatchData] raw count: ${rawRows.length}`)
+
+  const mapped: CatchRecord[] = rawRows.map((row) => ({
     id:             row.id,
     created_at:     row.created_at,
     date:           row.sail_date,
@@ -61,6 +64,32 @@ async function getCatchData(): Promise<CatchRecord[]> {
     shipyard_area:  row.shipyards?.areas?.name ?? null,
     fishing_method: row.fishing_methods?.name ?? null,
   }))
+
+  // ── フロント側デデュープ ──────────────────────────────────────
+  // 重複判定キー: shipyard_name + sail_date + fish_name + count_min + count_max
+  // DB側に重複レコードが残っている場合の保険として、最初に出現したレコードを採用する
+  const seen = new Set<string>()
+  const deduped = mapped.filter((r) => {
+    const key = [
+      r.shipyard_name ?? '',
+      r.date          ?? '',
+      r.fish_name     ?? '',
+      r.count_min     ?? '',
+      r.count_max     ?? '',
+    ].join('|')
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+
+  if (mapped.length !== deduped.length) {
+    console.warn(
+      `[getCatchData] dedup: ${mapped.length} → ${deduped.length} 件 ` +
+      `(${mapped.length - deduped.length} 件の重複を除去)`
+    )
+  }
+
+  return deduped
 }
 
 async function getEnvData(): Promise<EnvData | null> {
