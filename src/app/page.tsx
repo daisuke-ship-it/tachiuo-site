@@ -1,18 +1,60 @@
 import { supabase, CatchRecord } from '@/lib/supabase'
 import CatchDashboard from '@/components/CatchDashboard'
 
+// catches テーブルの JOIN レスポンス型（変換前の生データ）
+type RawCatch = {
+  id: number
+  created_at: string
+  sail_date: string | null
+  count_min: number | null
+  count_max: number | null
+  size_min_cm: number | null
+  size_max_cm: number | null
+  source_url: string | null
+  shipyards: { name: string; areas: { name: string } | null } | null
+  fish_species: { name: string } | null
+  fishing_methods: { name: string } | null
+}
+
 async function getCatchData(): Promise<CatchRecord[]> {
   const { data, error } = await supabase
-    .from('tachiuo_catch')
-    .select('*')
-    .order('date', { ascending: false })
+    .from('catches')
+    .select(`
+      id,
+      created_at,
+      sail_date,
+      count_min,
+      count_max,
+      size_min_cm,
+      size_max_cm,
+      source_url,
+      shipyards ( name, areas ( name ) ),
+      fish_species ( name ),
+      fishing_methods ( name )
+    `)
+    .order('sail_date', { ascending: false })
     .order('created_at', { ascending: false })
 
   if (error) {
     console.error('Supabase fetch error:', error)
     return []
   }
-  return data ?? []
+
+  // catches（正規化テーブル）→ CatchRecord（フラット型）へ変換
+  return ((data ?? []) as unknown as RawCatch[]).map((row) => ({
+    id:             row.id,
+    created_at:     row.created_at,
+    date:           row.sail_date,
+    fish_name:      row.fish_species?.name ?? null,
+    size_min_cm:    row.size_min_cm,
+    size_max_cm:    row.size_max_cm,
+    count_min:      row.count_min,
+    count_max:      row.count_max,
+    source_url:     row.source_url,
+    shipyard_name:  row.shipyards?.name ?? null,
+    shipyard_area:  row.shipyards?.areas?.name ?? null,
+    fishing_method: row.fishing_methods?.name ?? null,
+  }))
 }
 
 export const revalidate = 3600
