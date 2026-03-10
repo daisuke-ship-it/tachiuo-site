@@ -105,47 +105,59 @@ function FilterLabel({ text }: { text: string }) {
 }
 
 /* ── Summary card ────────────────────────────────────────────── */
-function SummaryCard({ records, envData, fish }: { records: CatchRecord[]; envData: EnvData | null; fish: Fish | null }) {
+function SummaryCard({ records, envData }: { records: CatchRecord[]; envData: EnvData | null }) {
   const today = new Date()
   const todayRecs = records.filter((r) => r.date && isSameDay(new Date(r.date), today))
 
+  // 出船数：当日のユニーク船宿数
+  const shipyardCount = new Set(
+    todayRecs.map((r) => r.shipyard_name).filter(Boolean)
+  ).size
+
+  // 平均釣果：count_max ?? count_min（null除外）
   const catchVals = todayRecs
     .map((r) => r.count_max ?? r.count_min)
     .filter((v): v is number => v !== null)
-  const sizeMaxVals = todayRecs
-    .map((r) => r.size_max_cm ?? r.size_min_cm)
-    .filter((v): v is number => v !== null)
-  const sizeMinVals = todayRecs
-    .map((r) => r.size_min_cm ?? r.size_max_cm)
-    .filter((v): v is number => v !== null)
-
   const catchAvg = catchVals.length > 0
     ? Math.round(catchVals.reduce((a, b) => a + b, 0) / catchVals.length * 10) / 10
     : null
-  const catchMax = catchVals.length > 0 ? Math.max(...catchVals) : null
-  const catchMin = catchVals.length > 0 ? Math.min(...catchVals) : null
-  const sizeMax  = sizeMaxVals.length > 0 ? Math.max(...sizeMaxVals) : null
-  const sizeMin  = sizeMinVals.length > 0 ? Math.min(...sizeMinVals) : null
 
-  // サイズを「最小-最大」形式にまとめる（ハイフン区切り、単位なし）
-  const sizeVal =
+  // 釣果範囲：全レコードの count_min の最小 〜 count_max の最大
+  const countMinVals = todayRecs.map((r) => r.count_min).filter((v): v is number => v !== null)
+  const countMaxVals = todayRecs.map((r) => r.count_max).filter((v): v is number => v !== null)
+  const catchRangeMin = countMinVals.length > 0 ? Math.min(...countMinVals) : null
+  const catchRangeMax = countMaxVals.length > 0 ? Math.max(...countMaxVals) : null
+  const catchRange =
+    catchRangeMin !== null && catchRangeMax !== null && catchRangeMin !== catchRangeMax
+      ? `${catchRangeMin}〜${catchRangeMax}`
+      : catchRangeMax !== null ? String(catchRangeMax)
+      : catchRangeMin !== null ? String(catchRangeMin)
+      : '—'
+
+  // サイズ範囲：size_min_cm の最小 〜 size_max_cm の最大
+  const sizeMinVals = todayRecs.map((r) => r.size_min_cm).filter((v): v is number => v !== null)
+  const sizeMaxVals = todayRecs.map((r) => r.size_max_cm).filter((v): v is number => v !== null)
+  const sizeMin = sizeMinVals.length > 0 ? Math.min(...sizeMinVals) : null
+  const sizeMax = sizeMaxVals.length > 0 ? Math.max(...sizeMaxVals) : null
+  const sizeRange =
     sizeMin !== null && sizeMax !== null && sizeMin !== sizeMax
-      ? `${sizeMin}-${sizeMax}`
-      : sizeMax !== null
-        ? `${sizeMax}`
-        : sizeMin !== null
-          ? `${sizeMin}`
-          : '—'
+      ? `${sizeMin}〜${sizeMax}cm`
+      : sizeMax !== null ? `${sizeMax}cm`
+      : sizeMin !== null ? `${sizeMin}cm`
+      : '—'
 
   const weatherWord = envData?.weather ? envData.weather.split(' ')[0] : null
 
+  // 3列2行のグリッド順
   const stats: { label: string; value: string; highlight?: boolean }[] = [
-    { label: '天気',   value: weatherWord ?? '—' },
-    { label: '潮汐',   value: envData?.tide_type ?? '—' },
-    { label: '平均',   value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
-    { label: '最小',   value: catchMin !== null ? String(catchMin) : '—' },
-    { label: '最大',   value: catchMax !== null ? String(catchMax) : '—' },
-    { label: 'サイズ', value: sizeVal !== '—' ? `${sizeVal}cm` : '—' },
+    // 1行目
+    { label: '天気',     value: weatherWord ?? '—' },
+    { label: '潮汐',     value: envData?.tide_type ?? '—' },
+    { label: '出船数',   value: todayRecs.length > 0 ? `${shipyardCount}` : '—' },
+    // 2行目
+    { label: '平均釣果', value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
+    { label: '釣果',     value: catchRange },
+    { label: 'サイズ',   value: sizeRange },
   ]
 
   return (
@@ -161,13 +173,7 @@ function SummaryCard({ records, envData, fish }: { records: CatchRecord[]; envDa
       <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
         本日の釣果サマリー
       </p>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 5,
-        }}
-      >
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
         {stats.map(({ label, value, highlight }) => (
           <div
             key={label}
@@ -182,7 +188,7 @@ function SummaryCard({ records, envData, fish }: { records: CatchRecord[]; envDa
             }}
           >
             <p style={{ fontSize: 9, color: 'var(--text-muted)', lineHeight: 1 }}>{label}</p>
-            <p style={{ fontSize: 16, fontWeight: 700, color: highlight ? 'var(--secondary)' : 'var(--text-main)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: highlight ? 'var(--secondary)' : 'var(--text-main)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
               {value}
             </p>
           </div>
@@ -286,7 +292,7 @@ export default function CatchDashboard({ records, envData }: { records: CatchRec
       </div>
 
       {/* ── 3. サマリーカード ───────────────────────────────────── */}
-      <SummaryCard records={areaFishFiltered} envData={envData} fish={fish} />
+      <SummaryCard records={areaFishFiltered} envData={envData} />
 
       {/* ── 4 & 5. データ / グラフ タブ ──────────────────────────── */}
       <div
