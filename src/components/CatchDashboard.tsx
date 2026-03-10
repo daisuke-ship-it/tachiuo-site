@@ -129,8 +129,8 @@ function isSameDay(d1: Date, d2: Date) {
 
 /* ── Main component ──────────────────────────────────────────── */
 export default function CatchDashboard({ records }: { records: CatchRecord[] }) {
-  const [area,    setArea]    = useState<Area | null>(null)
-  const [fish,    setFish]    = useState<Fish | null>(null)
+  const [area,    setArea]    = useState<Area | null>('東京湾')
+  const [fish,    setFish]    = useState<Fish | null>('タチウオ')
   const [method,  setMethod]  = useState<Method | null>(null)
   const [period,  setPeriod]  = useState<Period>('直近7日')
   const [sortKey, setSortKey] = useState<SortKey>('date')
@@ -165,7 +165,10 @@ export default function CatchDashboard({ records }: { records: CatchRecord[] }) 
     }
 
     if (area)   result = result.filter((r) => r.shipyard_area?.includes(area))
-    if (fish)   result = result.filter((r) => r.fish_name?.includes(fish))
+    if (fish) {
+      const aliases = fish === 'タチウオ' ? ['タチウオ', '太刀魚'] : [fish]
+      result = result.filter((r) => aliases.some((a) => r.fish_name?.includes(a)))
+    }
     if (method) result = result.filter((r) => r.fishing_method?.includes(method))
 
     if (sortKey === 'count') {
@@ -180,7 +183,10 @@ export default function CatchDashboard({ records }: { records: CatchRecord[] }) 
   const chartRecords = useMemo(() => {
     let result = [...records]
     if (area) result = result.filter((r) => r.shipyard_area?.includes(area))
-    if (fish) result = result.filter((r) => r.fish_name?.includes(fish))
+    if (fish) {
+      const aliases = fish === 'タチウオ' ? ['タチウオ', '太刀魚'] : [fish]
+      result = result.filter((r) => aliases.some((a) => r.fish_name?.includes(a)))
+    }
     return result
   }, [records, area, fish])
 

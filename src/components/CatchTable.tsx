@@ -34,9 +34,16 @@ const AREA_STYLE: Record<string, { bg: string; color: string; border: string }> 
 
 const FISH_STYLE: Record<string, { bg: string; color: string }> = {
   'タチウオ': { bg: '#FFF3E0', color: '#BF5E18' },
+  '太刀魚':   { bg: '#FFF3E0', color: '#BF5E18' },  // 「タチウオ」に統一表示
   'アジ':     { bg: '#F0FFF4', color: '#1A7A3C' },
   'シーバス': { bg: '#EFF6FF', color: '#1D4ED8' },
   'サワラ':   { bg: '#FDF4FF', color: '#7E22CE' },
+}
+
+// 「太刀魚」→「タチウオ」に統一
+const normalizeFishName = (name: string | null): string | null => {
+  if (name === '太刀魚') return 'タチウオ'
+  return name
 }
 
 function AreaBadge({ area }: { area: string | null }) {
@@ -61,8 +68,9 @@ function AreaBadge({ area }: { area: string | null }) {
 }
 
 function FishBadge({ fish }: { fish: string | null }) {
-  if (!fish) return <span style={{ color: 'var(--text-muted)' }}>—</span>
-  const s = FISH_STYLE[fish] ?? { bg: '#F3F4F6', color: '#6B7280' }
+  const displayName = normalizeFishName(fish)
+  if (!displayName) return <span style={{ color: 'var(--text-muted)' }}>—</span>
+  const s = FISH_STYLE[displayName] ?? { bg: '#F3F4F6', color: '#6B7280' }
   return (
     <span
       style={{
@@ -75,7 +83,7 @@ function FishBadge({ fish }: { fish: string | null }) {
         whiteSpace: 'nowrap',
       }}
     >
-      {fish}
+      {displayName}
     </span>
   )
 }
@@ -162,7 +170,7 @@ export default function CatchTable({ records }: Props) {
                     <AreaBadge area={r.shipyard_area ?? null} />
                   </td>
                   <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
-                    <FishBadge fish={r.fish_name ?? null} />
+                    <FishBadge fish={normalizeFishName(r.fish_name ?? null)} />
                   </td>
                   <td
                     style={{
@@ -251,7 +259,7 @@ export default function CatchTable({ records }: Props) {
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-md)',
-                padding: '14px 16px',
+                padding: '10px 12px',
                 boxShadow: 'var(--shadow-xs)',
               }}
             >
@@ -261,33 +269,26 @@ export default function CatchTable({ records }: Props) {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'flex-start',
-                  marginBottom: 10,
+                  marginBottom: 8,
                 }}
               >
                 <div>
-                  <p
-                    style={{
-                      fontWeight: 600,
-                      color: 'var(--text-main)',
-                      fontSize: 14,
-                      marginBottom: 5,
-                    }}
-                  >
+                  <p style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: 13, marginBottom: 4 }}>
                     {r.shipyard_name ?? '不明'}
                   </p>
-                  <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' as const }}>
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' as const }}>
                     <AreaBadge area={r.shipyard_area ?? null} />
-                    <FishBadge fish={r.fish_name ?? null} />
+                    <FishBadge fish={normalizeFishName(r.fish_name ?? null)} />
                   </div>
                 </div>
                 <span
                   style={{
-                    fontSize: 11,
+                    fontSize: 10,
                     color: 'var(--text-sub)',
                     background: 'var(--surface-2)',
                     border: '1px solid var(--border)',
-                    borderRadius: 6,
-                    padding: '3px 9px',
+                    borderRadius: 5,
+                    padding: '2px 7px',
                     whiteSpace: 'nowrap',
                     flexShrink: 0,
                   }}
@@ -297,17 +298,17 @@ export default function CatchTable({ records }: Props) {
               </div>
 
               {/* Data grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                 <div
                   style={{
                     background: 'var(--surface-2)',
                     border: '1px solid var(--border)',
-                    borderRadius: 8,
-                    padding: '8px 12px',
+                    borderRadius: 7,
+                    padding: '6px 10px',
                   }}
                 >
-                  <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>サイズ</p>
-                  <p style={{ fontSize: 13, color: 'var(--text-main)', fontWeight: 500 }}>
+                  <p style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 2 }}>サイズ</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-main)', fontWeight: 500 }}>
                     {formatSize(r.size_min_cm, r.size_max_cm)}
                   </p>
                 </div>
@@ -315,14 +316,14 @@ export default function CatchTable({ records }: Props) {
                   style={{
                     background: '#EBF4FF',
                     border: '1px solid #BDD7EE',
-                    borderRadius: 8,
-                    padding: '8px 12px',
+                    borderRadius: 7,
+                    padding: '6px 10px',
                   }}
                 >
-                  <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>釣果数</p>
+                  <p style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 2 }}>釣果数</p>
                   <p
                     style={{
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: 700,
                       color: 'var(--secondary)',
                       fontVariantNumeric: 'tabular-nums',
@@ -341,9 +342,9 @@ export default function CatchTable({ records }: Props) {
                   rel="noopener noreferrer"
                   style={{
                     display: 'block',
-                    marginTop: 10,
+                    marginTop: 8,
                     textAlign: 'right',
-                    fontSize: 12,
+                    fontSize: 11,
                     color: 'var(--secondary)',
                   }}
                 >
