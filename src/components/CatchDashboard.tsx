@@ -15,11 +15,11 @@ type Tab  = '一覧' | '詳細' | 'グラフ'
 const AREAS: Area[] = ['東京湾', '相模湾']
 const TABS:  Tab[]  = ['一覧', '詳細', 'グラフ']
 
-// 釣り方ソート優先順位
+// 釣り方グループ ソート優先順位
 const METHOD_ORDER: Record<string, number> = {
-  'ルアー': 0, 'ジギング': 0,
+  'ルアー': 0,
   'テンヤ': 1,
-  '餌': 2, 'エサ': 2, 'テンビン': 2, '天秤': 2,
+  'エサ':   2,
 }
 
 interface Props {
@@ -30,14 +30,14 @@ interface Props {
   aiSummaries: AISummaryRecord[]
 }
 
-// 今日起点で7日分 + 直近7日 / 直近30日
+// 今日/昨日/一昨日 + 直近7日 / 直近30日
 function buildPeriods(): { label: string; value: string }[] {
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const weekdays = ['日', '月', '火', '水', '木', '金', '土']
   const fmt = (d: Date) => d.toISOString().split('T')[0]
 
   const result: { label: string; value: string }[] = []
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 3; i++) {
     const d = new Date(today)
     d.setDate(today.getDate() - i)
     result.push({
@@ -307,10 +307,10 @@ export default function CatchDashboard({
     } else if (sortField === 'size') {
       r = [...r].sort((a, b) => (b.size_max_cm ?? b.size_min_cm ?? -1) - (a.size_max_cm ?? a.size_min_cm ?? -1))
     } else {
-      // デフォルト: 釣り方順 → count_max 降順
+      // デフォルト: 釣り方グループ順 → count_max 降順
       r = [...r].sort((a, b) => {
-        const aOrd = METHOD_ORDER[a.fishing_method ?? ''] ?? 99
-        const bOrd = METHOD_ORDER[b.fishing_method ?? ''] ?? 99
+        const aOrd = METHOD_ORDER[a.method_group ?? a.fishing_method ?? ''] ?? 99
+        const bOrd = METHOD_ORDER[b.method_group ?? b.fishing_method ?? ''] ?? 99
         if (aOrd !== bOrd) return aOrd - bOrd
         return (b.count_max ?? b.count_min ?? -1) - (a.count_max ?? a.count_min ?? -1)
       })
@@ -375,15 +375,36 @@ export default function CatchDashboard({
 
         <div style={{ height: 1, background: 'var(--border)' }} />
 
-        {/* 期間：今日起点7日分 + 直近7日 / 直近30日（横スクロール） */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* 期間：今日/昨日/一昨日 + 直近7日/直近30日 + 📅 カレンダー */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <FilterLabel text="期間" />
-          <div className="scroll-x" style={{ display: 'flex', gap: 6, paddingBottom: 2 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {buildPeriods().map(({ label, value }) => (
               <FilterPill key={value} active={period === value} onClick={() => setPeriod(value)}>
                 {label}
               </FilterPill>
             ))}
+            {/* 📅 カレンダー指定ボタン */}
+            {(() => {
+              const presets = buildPeriods().map((p) => p.value)
+              const isCustom = /^\d{4}-\d{2}-\d{2}$/.test(period) && !presets.includes(period)
+              return (
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <FilterPill active={isCustom} onClick={() => {}}>
+                    📅{isCustom ? ` ${period.slice(5).replace('-', '/')}` : ''}
+                  </FilterPill>
+                  <input
+                    type="date"
+                    value={isCustom ? period : ''}
+                    onChange={(e) => e.target.value && setPeriod(e.target.value)}
+                    style={{
+                      position: 'absolute', inset: 0,
+                      opacity: 0, cursor: 'pointer', width: '100%',
+                    }}
+                  />
+                </div>
+              )
+            })()}
           </div>
         </div>
       </div>

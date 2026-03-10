@@ -19,5 +19,6 @@ export type CatchRecord = {
   shipyard_area: string | null
   port_name: string | null
   fishing_method: string | null
+  method_group: string | null
   condition_text: string | null
 }

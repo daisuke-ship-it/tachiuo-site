@@ -14,7 +14,7 @@ type RawCatch = {
   condition_text: string | null
   shipyards: { name: string; areas: { name: string } | null; ports: { name: string } | null } | null
   fish_species: { name: string } | null
-  fishing_methods: { name: string } | null
+  fishing_methods: { name: string; method_group: string | null } | null
 }
 
 export type EnvData = {
@@ -56,7 +56,7 @@ async function getCatchData(): Promise<CatchRecord[]> {
       condition_text,
       shipyards ( name, areas ( name ), ports ( name ) ),
       fish_species ( name ),
-      fishing_methods ( name )
+      fishing_methods ( name, method_group )
     `)
     .order('sail_date', { ascending: false })
     .order('created_at', { ascending: false })
@@ -83,6 +83,7 @@ async function getCatchData(): Promise<CatchRecord[]> {
     shipyard_area:  row.shipyards?.areas?.name ?? null,
     port_name:      row.shipyards?.ports?.name ?? null,
     fishing_method: row.fishing_methods?.name ?? null,
+    method_group:   row.fishing_methods?.method_group ?? null,
     condition_text: row.condition_text ?? null,
   }))
 

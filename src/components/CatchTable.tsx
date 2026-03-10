@@ -10,15 +10,30 @@ type Props = {
   onSort: (f: SortField) => void
 }
 
-// 釣り方別 左ボーダー色
-const METHOD_BORDER: Record<string, string> = {
-  'ルアー':   '#3b82f6',
-  'ジギング': '#3b82f6',
-  'テンヤ':   '#22c55e',
-  '餌':       '#f97316',
-  'エサ':     '#f97316',
-  'テンビン': '#f97316',
-  '天秤':     '#f97316',
+// 釣り方グループ別 行背景色
+const GROUP_ROW_BG: Record<string, string> = {
+  'ルアー': '#1a1f2e',
+  'テンヤ': '#131720',
+  'エサ':   '#0f1a14',
+}
+const GROUP_ROW_BG_DEFAULT = '#0f1117'
+
+// 釣り方グループ別 左ボーダー色
+const GROUP_BORDER: Record<string, string> = {
+  'ルアー': '#3b82f6',
+  'テンヤ': '#22c55e',
+  'エサ':   '#f97316',
+}
+
+// fishing_method 文字列 → グループ名（method_group が null の場合のフォールバック）
+function resolveMethodGroup(record: { method_group: string | null; fishing_method: string | null }): string | null {
+  if (record.method_group) return record.method_group
+  const m = record.fishing_method
+  if (!m) return null
+  if (m === 'ルアー' || m === 'ジギング') return 'ルアー'
+  if (m === 'テンヤ') return 'テンヤ'
+  if (m === '餌' || m === 'エサ' || m === 'テンビン' || m === '天秤') return 'エサ'
+  return null
 }
 
 function formatCatch(min: number | null, max: number | null): string {
@@ -92,10 +107,10 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
           </tr>
         </thead>
         <tbody>
-          {records.map((r, idx) => {
-            const isEven      = idx % 2 === 0
-            const rowBg       = isEven ? 'var(--surface)' : 'var(--surface-2)'
-            const borderColor = r.fishing_method ? (METHOD_BORDER[r.fishing_method] ?? null) : null
+          {records.map((r) => {
+            const methodGroup = resolveMethodGroup(r)
+            const rowBg       = methodGroup ? (GROUP_ROW_BG[methodGroup] ?? GROUP_ROW_BG_DEFAULT) : GROUP_ROW_BG_DEFAULT
+            const borderColor = methodGroup ? (GROUP_BORDER[methodGroup] ?? null) : null
             const isTrophy    = maxCount > 0 && r.count_max === maxCount
             const dateStr     = r.date
               ? new Date(r.date).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
