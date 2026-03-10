@@ -11,6 +11,7 @@ type RawCatch = {
   size_min_cm: number | null
   size_max_cm: number | null
   source_url: string | null
+  condition_text: string | null
   shipyards: { name: string; areas: { name: string } | null } | null
   fish_species: { name: string } | null
   fishing_methods: { name: string } | null
@@ -52,6 +53,7 @@ async function getCatchData(): Promise<CatchRecord[]> {
       size_min_cm,
       size_max_cm,
       source_url,
+      condition_text,
       shipyards ( name, areas ( name ) ),
       fish_species ( name ),
       fishing_methods ( name )
@@ -80,6 +82,7 @@ async function getCatchData(): Promise<CatchRecord[]> {
     shipyard_name:  row.shipyards?.name ?? null,
     shipyard_area:  row.shipyards?.areas?.name ?? null,
     fishing_method: row.fishing_methods?.name ?? null,
+    condition_text: row.condition_text ?? null,
   }))
 
   // ── フロント側デデュープ ──────────────────────────────────────

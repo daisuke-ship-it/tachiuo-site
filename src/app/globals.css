@@ -2,42 +2,42 @@
 
 /* ─── Design Tokens ─────────────────────────────────────────── */
 :root {
-  /* Brand colors */
-  --primary:       #0F2747;   /* deep navy — header, table header */
-  --primary-700:   #1A3D6B;   /* lighter navy */
-  --secondary:     #1A5276;   /* ocean blue — links, active */
-  --accent:        #0EA5C8;   /* teal/cyan — highlights */
-  --accent-light:  #E0F7FA;   /* teal tint — active filter bg */
-  --accent-mid:    #BAE6F0;   /* teal mid */
+  /* Brand */
+  --primary:       #0d1424;   /* dark navy — header */
+  --secondary:     #3b82f6;   /* blue — links, active */
+  --accent:        #3b82f6;   /* blue — highlights */
+  --accent-light:  rgba(59, 130, 246, 0.12);
+  --accent-mid:    rgba(59, 130, 246, 0.25);
+  --gold:          #d4a017;
 
   /* Backgrounds */
-  --bg:            #EEF2F7;   /* page background */
-  --surface:       #FFFFFF;   /* card / panel */
-  --surface-2:     #F5F8FB;   /* alternate row, subtle bg */
-  --surface-3:     #EEF2F7;   /* slightly darker surface */
+  --bg:            #0f1117;   /* page background */
+  --surface:       #1a1f2e;   /* card / panel */
+  --surface-2:     #242b3d;   /* alternate row, subtle bg */
+  --surface-3:     #2d3452;
 
   /* Text */
-  --text-main:     #1A2332;   /* primary text */
-  --text-sub:      #4A5E72;   /* secondary text */
-  --text-muted:    #8EA0B3;   /* labels, captions */
-  --text-inverse:  #FFFFFF;
+  --text-main:     #e2e8f0;
+  --text-sub:      #94a3b8;
+  --text-muted:    #64748b;
+  --text-inverse:  #0f1117;
 
   /* Borders */
-  --border:        #D4E0EC;
-  --border-strong: #B0C4D8;
-  --border-accent: rgba(14, 165, 200, 0.35);
+  --border:        #2d3748;
+  --border-strong: #3d4f6b;
+  --border-accent: rgba(59, 130, 246, 0.35);
 
   /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(15, 39, 71, 0.05);
-  --shadow-sm: 0 2px 6px rgba(15, 39, 71, 0.07);
-  --shadow-md: 0 4px 16px rgba(15, 39, 71, 0.09);
-  --shadow-lg: 0 8px 32px rgba(15, 39, 71, 0.11);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
 
   /* Radii */
-  --radius-sm:  6px;
-  --radius-md:  10px;
-  --radius-lg:  14px;
-  --radius-xl:  20px;
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
   --radius-pill: 999px;
 }
 
@@ -78,6 +78,11 @@ a, button { transition: all 0.15s ease-out; }
 
 @media (min-width: 768px) {
   .page-container { padding: 0 32px; }
+}
+
+/* ─── Date input dark theme ─────────────────────────────────── */
+input[type="date"] {
+  color-scheme: dark;
 }
 
 /* ─── Scrollbar ─────────────────────────────────────────────── */

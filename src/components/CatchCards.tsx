@@ -2,26 +2,19 @@
 
 import { CatchRecord } from '@/lib/supabase'
 
-const AREA_STYLE: Record<string, { bg: string; color: string; border: string }> = {
-  '東京湾': { bg: '#EBF4FF', color: '#1A5276', border: '#BDD7EE' },
-  '相模湾': { bg: '#EAFAF3', color: '#0E6655', border: '#A9DFBF' },
+/* ── Badge styles ─────────────────────────────────────────────── */
+const METHOD_STYLE: Record<string, { bg: string; color: string }> = {
+  'テンヤ':   { bg: 'rgba(20,83,45,0.6)',   color: '#86efac' },
+  'ルアー':   { bg: 'rgba(30,58,95,0.6)',   color: '#93c5fd' },
+  '餌':       { bg: 'rgba(67,20,7,0.6)',    color: '#fdba74' },
+  'テンビン': { bg: 'rgba(67,20,7,0.6)',    color: '#fdba74' },
+  '天秤':     { bg: 'rgba(67,20,7,0.6)',    color: '#fdba74' },
+  'ジギング': { bg: 'rgba(30,58,95,0.6)',   color: '#93c5fd' },
 }
+const METHOD_DEFAULT = { bg: 'rgba(45,55,72,0.6)', color: '#94a3b8' }
+const FISH_BADGE     = { bg: 'rgba(30,58,95,0.7)', color: '#93c5fd' }
 
-const METHOD_STYLE: Record<string, { bg: string; color: string; border: string }> = {
-  'テンヤ':   { bg: '#FFFBEB', color: '#92400E', border: '#FDE68A' },
-  'ルアー':   { bg: '#F0FFF4', color: '#065F46', border: '#6EE7B7' },
-  '餌':       { bg: '#FFF7ED', color: '#9A3412', border: '#FDBA74' },
-  'テンビン': { bg: '#F5F3FF', color: '#5B21B6', border: '#C4B5FD' },
-  '天秤':     { bg: '#F5F3FF', color: '#5B21B6', border: '#C4B5FD' },
-}
-
-function Pill({
-  label,
-  style,
-}: {
-  label: string
-  style: { bg: string; color: string; border: string }
-}) {
+function Badge({ label, bg, color }: { label: string; bg: string; color: string }) {
   return (
     <span
       style={{
@@ -29,10 +22,10 @@ function Pill({
         fontSize: 10,
         fontWeight: 600,
         borderRadius: 'var(--radius-pill)',
-        background: style.bg,
-        color: style.color,
-        border: `1px solid ${style.border}`,
+        background: bg,
+        color,
         whiteSpace: 'nowrap',
+        border: `1px solid ${color}22`,
       }}
     >
       {label}
@@ -40,22 +33,23 @@ function Pill({
   )
 }
 
+/* ── Formatters ───────────────────────────────────────────────── */
 function formatCatch(min: number | null, max: number | null): string {
   if (min === null && max === null) return '—'
-  if (min !== null && max !== null && min !== max) return `${min}〜${max}`
-  return `${min ?? max}`
+  if (min !== null && max !== null && min !== max) return `${min}〜${max}本`
+  return `${min ?? max}本`
 }
 
 function formatSize(min: number | null, max: number | null): string {
-  if (!min && !max) return '—'
-  if (min && max && min !== max) return `${min}〜${max}`
-  return `${min ?? max}`
+  if (min === null && max === null) return '—'
+  if (min !== null && max !== null && min !== max) return `${min}〜${max}cm`
+  return `${min ?? max}cm`
 }
 
 function formatDate(s: string | null): string {
   if (!s) return '—'
   const d = new Date(s)
-  return d.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`
 }
 
 type Props = { records: CatchRecord[] }
@@ -80,86 +74,81 @@ export default function CatchCards({ records }: Props) {
       }}
     >
       {records.map((r) => {
-        const areaStyle  = r.shipyard_area
-          ? (AREA_STYLE[r.shipyard_area]   ?? { bg: '#F3F4F6', color: '#6B7280', border: '#D1D5DB' })
-          : null
         const methodStyle = r.fishing_method
-          ? (METHOD_STYLE[r.fishing_method] ?? { bg: '#F3F4F6', color: '#6B7280', border: '#D1D5DB' })
+          ? (METHOD_STYLE[r.fishing_method] ?? METHOD_DEFAULT)
           : null
 
         return (
           <div
             key={r.id}
             style={{
-              background: 'var(--surface)',
+              background: 'var(--surface-2)',
               border: '1px solid var(--border)',
               borderRadius: 'var(--radius-md)',
               padding: '14px 16px',
-              boxShadow: 'var(--shadow-xs)',
               display: 'flex',
               flexDirection: 'column',
-              gap: 10,
+              gap: 0,
             }}
           >
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-main)', marginBottom: 5 }}>
-                  {r.shipyard_name ?? '—'}
-                </p>
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                  {areaStyle  && <Pill label={r.shipyard_area!}   style={areaStyle}   />}
-                  {methodStyle && <Pill label={r.fishing_method!} style={methodStyle} />}
-                </div>
-              </div>
-              <span
-                style={{
-                  fontSize: 10,
-                  color: 'var(--text-sub)',
-                  background: 'var(--surface-2)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 5,
-                  padding: '2px 7px',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                  marginLeft: 8,
-                }}
-              >
+            {/* ── Header: 船宿名 + 日付 ── */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+              <p style={{ fontWeight: 700, fontSize: 14, color: '#e2e8f0', lineHeight: 1.3, flex: 1, marginRight: 8 }}>
+                {r.shipyard_name ?? '—'}
+              </p>
+              <span style={{ fontSize: 11, color: '#64748b', flexShrink: 0, paddingTop: 1 }}>
                 {formatDate(r.date)}
               </span>
             </div>
 
-            {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <div
-                style={{
-                  background: '#EBF4FF',
-                  border: '1px solid #BDD7EE',
-                  borderRadius: 8,
-                  padding: '8px 12px',
-                }}
-              >
-                <p style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 3 }}>釣果</p>
-                <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--secondary)', fontVariantNumeric: 'tabular-nums' }}>
+            {/* ── Badges: 魚種 + 釣り方 ── */}
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 12 }}>
+              {r.fish_name && (
+                <Badge label={r.fish_name} bg={FISH_BADGE.bg} color={FISH_BADGE.color} />
+              )}
+              {r.fishing_method && methodStyle && (
+                <Badge label={r.fishing_method} bg={methodStyle.bg} color={methodStyle.color} />
+              )}
+            </div>
+
+            {/* ── Divider ── */}
+            <div style={{ height: 1, background: 'var(--border)', marginBottom: 12 }} />
+
+            {/* ── Stats ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <span style={{ fontSize: 11, color: '#64748b', minWidth: 44 }}>釣果</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums' }}>
                   {formatCatch(r.count_min, r.count_max)}
-                </p>
+                </span>
               </div>
-              <div
-                style={{
-                  background: 'var(--surface-2)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 8,
-                  padding: '8px 12px',
-                }}
-              >
-                <p style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 3 }}>サイズ</p>
-                <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-main)', fontVariantNumeric: 'tabular-nums' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <span style={{ fontSize: 11, color: '#64748b', minWidth: 44 }}>サイズ</span>
+                <span style={{ fontSize: 14, fontWeight: 500, color: '#e2e8f0', fontVariantNumeric: 'tabular-nums' }}>
                   {formatSize(r.size_min_cm, r.size_max_cm)}
-                </p>
+                </span>
               </div>
             </div>
 
-            {/* Link */}
+            {/* ── 船長コメント ── */}
+            {r.condition_text && (
+              <div
+                style={{
+                  marginTop: 12,
+                  paddingTop: 12,
+                  borderTop: '1px solid var(--border)',
+                }}
+              >
+                <p style={{ fontSize: 10, color: '#64748b', marginBottom: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  💬 船長コメント
+                </p>
+                <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.55 }}>
+                  {r.condition_text}
+                </p>
+              </div>
+            )}
+
+            {/* ── 記事リンク ── */}
             {r.source_url && (
               <a
                 href={r.source_url}
@@ -169,7 +158,8 @@ export default function CatchCards({ records }: Props) {
                   display: 'block',
                   textAlign: 'right',
                   fontSize: 11,
-                  color: 'var(--secondary)',
+                  color: '#3b82f6',
+                  marginTop: 10,
                 }}
               >
                 記事を見る ↗
