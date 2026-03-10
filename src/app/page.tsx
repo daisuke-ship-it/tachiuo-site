@@ -1,7 +1,7 @@
 import { supabase, CatchRecord } from '@/lib/supabase'
 import CatchDashboard from '@/components/CatchDashboard'
 
-// catches テーブルの JOIN レスポンス型（変換前の生データ）
+// ── 型定義 ────────────────────────────────────────────────────
 type RawCatch = {
   id: number
   created_at: string
@@ -16,6 +16,13 @@ type RawCatch = {
   fishing_methods: { name: string } | null
 }
 
+export type EnvData = {
+  weather: string | null
+  wind_speed_ms: number | null
+  tide_type: string | null
+}
+
+// ── データ取得 ─────────────────────────────────────────────────
 async function getCatchData(): Promise<CatchRecord[]> {
   const { data, error } = await supabase
     .from('catches')
@@ -40,7 +47,6 @@ async function getCatchData(): Promise<CatchRecord[]> {
     return []
   }
 
-  // catches（正規化テーブル）→ CatchRecord（フラット型）へ変換
   return ((data ?? []) as unknown as RawCatch[]).map((row) => ({
     id:             row.id,
     created_at:     row.created_at,
@@ -57,39 +63,30 @@ async function getCatchData(): Promise<CatchRecord[]> {
   }))
 }
 
+async function getEnvData(): Promise<EnvData | null> {
+  const todayStr = new Date().toISOString().split('T')[0]
+  const { data } = await supabase
+    .from('environment_data')
+    .select('weather, wind_speed_ms, tide_type')
+    .eq('date', todayStr)
+    .limit(1)
+    .maybeSingle()
+  return data
+}
+
 export const revalidate = 3600
 
 export default async function Home() {
-  const records = await getCatchData()
+  const [records, envData] = await Promise.all([getCatchData(), getEnvData()])
 
-  const today = new Date().toLocaleDateString('ja-JP', {
+  // 日付＋時刻（例: 2026年3月10日 15:32）
+  const nowStr = new Date().toLocaleString('ja-JP', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   })
-
-  // ── 本日のサマリー集計 ─────────────────────────────────────────
-  const todayStr     = new Date().toISOString().split('T')[0]
-  const todayRecords = records.filter((r) => r.date?.startsWith(todayStr))
-
-  const catchValues = todayRecords
-    .map((r) => r.count_max ?? r.count_min)
-    .filter((v): v is number => v !== null && v > 0)
-  const sizeMaxValues = todayRecords
-    .map((r) => r.size_max_cm)
-    .filter((v): v is number => v !== null)
-  const sizeMinValues = todayRecords
-    .map((r) => r.size_min_cm)
-    .filter((v): v is number => v !== null)
-
-  const avgCatch = catchValues.length > 0
-    ? Math.round(catchValues.reduce((a, b) => a + b, 0) / catchValues.length)
-    : null
-  const maxCatch = catchValues.length > 0 ? Math.max(...catchValues) : null
-  const maxSize  = sizeMaxValues.length > 0 ? Math.max(...sizeMaxValues) : null
-  const minSize  = sizeMinValues.length > 0 ? Math.min(...sizeMinValues) : null
-
-  const fmt = (v: number | null, unit: string) => (v !== null ? `${v}${unit}` : '—')
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -141,7 +138,7 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* Last updated */}
+          {/* Last updated（日付＋時刻） */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>
             <span
               style={{
@@ -150,12 +147,12 @@ export default async function Home() {
                 boxShadow: '0 0 6px var(--accent)',
               }}
             />
-            <span>更新: {today}</span>
+            <span>更新: {nowStr}</span>
           </div>
         </div>
       </header>
 
-      {/* ── Hero (navy) ────────────────────────────────────────── */}
+      {/* ── Hero (navy) — タイトルのみ ─────────────────────────── */}
       <div
         style={{
           background: 'var(--primary)',
@@ -182,80 +179,6 @@ export default async function Home() {
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', maxWidth: 480, lineHeight: 1.6 }}>
             複数船宿の釣果データを毎日収集・集計。タチウオ・アジ・シーバス・サワラの最新情報を確認できます。
           </p>
-
-          {/* ── 本日の釣況サマリーカード ─────────────────────── */}
-          <div
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '16px 20px',
-              marginTop: 20,
-            }}
-          >
-            {/* Card header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.04em' }}>
-                本日の釣況サマリー
-              </span>
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{today}</span>
-            </div>
-
-            {/* Two-column layout */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1px 1fr',
-              }}
-            >
-              {/* Left: 環境情報 */}
-              <div style={{ paddingRight: 20 }}>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em', marginBottom: 8 }}>
-                  環境情報
-                </p>
-                {[
-                  { label: '天気', value: '—' },
-                  { label: '風速', value: '—' },
-                  { label: '潮汐', value: '—' },
-                ].map(({ label, value }) => (
-                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>{label}</span>
-                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{value}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Divider */}
-              <div style={{ background: 'rgba(255,255,255,0.08)', margin: '0 20px' }} />
-
-              {/* Right: 釣果データ */}
-              <div style={{ paddingLeft: 20 }}>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em', marginBottom: 8 }}>
-                  本日の釣果データ（{todayRecords.length}件）
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px' }}>
-                  {[
-                    { label: '釣果平均', value: fmt(avgCatch, '尾') },
-                    { label: '最多釣果', value: fmt(maxCatch, '尾') },
-                    { label: '最大サイズ', value: fmt(maxSize, 'cm') },
-                    { label: '最小サイズ', value: fmt(minSize, 'cm') },
-                  ].map(({ label, value }) => (
-                    <div key={label}>
-                      <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 2 }}>{label}</p>
-                      <p
-                        style={{
-                          fontSize: 20, fontWeight: 700, color: 'white',
-                          letterSpacing: '-0.02em', lineHeight: 1,
-                        }}
-                      >
-                        {value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -275,7 +198,7 @@ export default async function Home() {
               <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>現在、釣果データがありません</p>
             </div>
           ) : (
-            <CatchDashboard records={records} />
+            <CatchDashboard records={records} envData={envData} />
           )}
         </div>
       </main>

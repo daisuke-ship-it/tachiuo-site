@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { CatchRecord } from '@/lib/supabase'
+import { EnvData } from '@/app/page'
 import CatchTable from './CatchTable'
 import CatchChart from './CatchChart'
 
@@ -15,8 +16,8 @@ const AREAS:   Area[]   = ['東京湾', '相模湾']
 const FISHES:  Fish[]   = ['タチウオ', 'アジ', 'シーバス', 'サワラ']
 const METHODS: Method[] = ['ルアー', '餌', 'テンヤ']
 const PERIODS: { label: string; value: Period }[] = [
-  { label: '今日',   value: '今日'    },
-  { label: '昨日',   value: '昨日'    },
+  { label: '今日',    value: '今日'    },
+  { label: '昨日',    value: '昨日'    },
   { label: '直近7日', value: '直近7日' },
   { label: '直近30日', value: '直近30日' },
 ]
@@ -25,29 +26,37 @@ const PERIODS: { label: string; value: Period }[] = [
 
 function FilterPill({
   active,
+  disabled,
   onClick,
   children,
 }: {
   active: boolean
+  disabled?: boolean
   onClick: () => void
   children: React.ReactNode
 }) {
   return (
     <button
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
       style={{
         padding: '5px 14px',
         borderRadius: 'var(--radius-pill)',
         fontSize: 12,
         fontWeight: active ? 600 : 400,
-        cursor: 'pointer',
+        cursor: disabled ? 'not-allowed' : 'pointer',
         border: active
           ? '1.5px solid var(--accent)'
           : '1px solid var(--border)',
-        background: active ? 'var(--accent-light)' : 'transparent',
-        color: active ? 'var(--secondary)' : 'var(--text-sub)',
+        background: disabled
+          ? 'var(--surface-2)'
+          : active ? 'var(--accent-light)' : 'transparent',
+        color: disabled
+          ? 'var(--text-muted)'
+          : active ? 'var(--secondary)' : 'var(--text-sub)',
         transition: 'all 0.15s',
         whiteSpace: 'nowrap' as const,
+        opacity: disabled ? 0.6 : 1,
       }}
     >
       {children}
@@ -127,16 +136,157 @@ function isSameDay(d1: Date, d2: Date) {
   )
 }
 
+/* ── Summary Card ────────────────────────────────────────────── */
+function SummaryCard({
+  records,
+  envData,
+  fish,
+}: {
+  records: CatchRecord[]
+  envData: EnvData | null
+  fish: Fish | null
+}) {
+  const today = new Date()
+  const todayRecords = records.filter((r) => r.date && isSameDay(new Date(r.date), today))
+
+  const totalShipyards = new Set(todayRecords.map((r) => r.shipyard_name).filter(Boolean)).size
+  const maxCount = todayRecords.reduce((acc, r) => {
+    const v = r.count_max ?? r.count_min ?? 0
+    return v > acc ? v : acc
+  }, 0)
+  const avgCount = todayRecords.length > 0
+    ? Math.round(
+        todayRecords.reduce((acc, r) => acc + (r.count_max ?? r.count_min ?? 0), 0) / todayRecords.length
+      )
+    : 0
+
+  const weatherWord = envData?.weather ? envData.weather.split(' ')[0] : null
+
+  return (
+    <div
+      style={{
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '18px 22px',
+        boxShadow: 'var(--shadow-sm)',
+      }}
+    >
+      <p
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          color: 'var(--text-muted)',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          marginBottom: 14,
+        }}
+      >
+        本日の釣果サマリー
+      </p>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+          gap: 10,
+        }}
+      >
+        {/* 天気 */}
+        <StatCell label="天気" value={weatherWord ?? '—'} unit="" />
+        {/* 風速 */}
+        <StatCell
+          label="風速"
+          value={envData?.wind_speed_ms != null ? String(envData.wind_speed_ms) : '—'}
+          unit={envData?.wind_speed_ms != null ? 'm/s' : ''}
+        />
+        {/* 潮汐 */}
+        <StatCell label="潮汐" value={envData?.tide_type ?? '—'} unit="" />
+
+        {/* 参加船宿数 */}
+        <StatCell
+          label="本日の船宿"
+          value={todayRecords.length > 0 ? String(totalShipyards) : '—'}
+          unit={todayRecords.length > 0 ? '軒' : ''}
+        />
+        {/* 最高釣果 */}
+        <StatCell
+          label={`最高釣果${fish ? `（${fish}）` : ''}`}
+          value={todayRecords.length > 0 ? String(maxCount) : '—'}
+          unit={todayRecords.length > 0 ? '尾' : ''}
+          highlight
+        />
+        {/* 平均釣果 */}
+        <StatCell
+          label="平均釣果"
+          value={todayRecords.length > 0 ? String(avgCount) : '—'}
+          unit={todayRecords.length > 0 ? '尾' : ''}
+        />
+      </div>
+    </div>
+  )
+}
+
+function StatCell({
+  label,
+  value,
+  unit,
+  highlight,
+}: {
+  label: string
+  value: string
+  unit: string
+  highlight?: boolean
+}) {
+  return (
+    <div
+      style={{
+        background: highlight ? '#EBF4FF' : 'var(--surface-2)',
+        border: `1px solid ${highlight ? '#BDD7EE' : 'var(--border)'}`,
+        borderRadius: 10,
+        padding: '10px 14px',
+      }}
+    >
+      <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 4 }}>{label}</p>
+      <p
+        style={{
+          fontSize: 18,
+          fontWeight: 700,
+          color: highlight ? 'var(--secondary)' : 'var(--text-main)',
+          fontVariantNumeric: 'tabular-nums',
+          lineHeight: 1,
+        }}
+      >
+        {value}
+        {unit && (
+          <span style={{ fontSize: 11, fontWeight: 500, marginLeft: 2, color: 'var(--text-sub)' }}>
+            {unit}
+          </span>
+        )}
+      </p>
+    </div>
+  )
+}
+
 /* ── Main component ──────────────────────────────────────────── */
-export default function CatchDashboard({ records }: { records: CatchRecord[] }) {
+export default function CatchDashboard({
+  records,
+  envData,
+}: {
+  records: CatchRecord[]
+  envData: EnvData | null
+}) {
   const [area,    setArea]    = useState<Area | null>('東京湾')
   const [fish,    setFish]    = useState<Fish | null>('タチウオ')
   const [method,  setMethod]  = useState<Method | null>(null)
   const [period,  setPeriod]  = useState<Period>('直近7日')
   const [sortKey, setSortKey] = useState<SortKey>('date')
 
-  const toggleArea   = (a: Area)   => setArea  ((p) => (p === a ? null : a))
-  const toggleFish   = (f: Fish)   => {
+  const toggleArea   = (a: Area) => {
+    if (a === '相模湾') return  // disabled
+    setArea((p) => (p === a ? null : a))
+  }
+  const toggleFish   = (f: Fish) => {
     setFish((p) => {
       if (p === f) { setMethod(null); return null }
       if (f !== 'タチウオ') setMethod(null)
@@ -190,6 +340,17 @@ export default function CatchDashboard({ records }: { records: CatchRecord[] }) 
     return result
   }, [records, area, fish])
 
+  // Summary uses area+fish filtered (all periods) for today's data
+  const summaryRecords = useMemo(() => {
+    let result = [...records]
+    if (area) result = result.filter((r) => r.shipyard_area?.includes(area))
+    if (fish) {
+      const aliases = fish === 'タチウオ' ? ['タチウオ', '太刀魚'] : [fish]
+      result = result.filter((r) => aliases.some((a) => r.fish_name?.includes(a)))
+    }
+    return result
+  }, [records, area, fish])
+
   /* Label for filter section */
   const filterLabel = (text: string) => (
     <span
@@ -227,8 +388,13 @@ export default function CatchDashboard({ records }: { records: CatchRecord[] }) 
           {filterLabel('エリア')}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' as const }}>
             {AREAS.map((a) => (
-              <FilterPill key={a} active={area === a} onClick={() => toggleArea(a)}>
-                {a}
+              <FilterPill
+                key={a}
+                active={area === a}
+                disabled={a === '相模湾'}
+                onClick={() => toggleArea(a)}
+              >
+                {a === '相模湾' ? '相模湾（準備中）' : a}
               </FilterPill>
             ))}
           </div>
@@ -265,6 +431,9 @@ export default function CatchDashboard({ records }: { records: CatchRecord[] }) 
           </>
         )}
       </div>
+
+      {/* ── Summary card ───────────────────────────────────────── */}
+      <SummaryCard records={summaryRecords} envData={envData} fish={fish} />
 
       {/* ── Chart ──────────────────────────────────────────────── */}
       <div

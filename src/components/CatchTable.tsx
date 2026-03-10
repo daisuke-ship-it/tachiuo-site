@@ -34,10 +34,18 @@ const AREA_STYLE: Record<string, { bg: string; color: string; border: string }> 
 
 const FISH_STYLE: Record<string, { bg: string; color: string }> = {
   'タチウオ': { bg: '#FFF3E0', color: '#BF5E18' },
-  '太刀魚':   { bg: '#FFF3E0', color: '#BF5E18' },  // 「タチウオ」に統一表示
+  '太刀魚':   { bg: '#FFF3E0', color: '#BF5E18' },
   'アジ':     { bg: '#F0FFF4', color: '#1A7A3C' },
   'シーバス': { bg: '#EFF6FF', color: '#1D4ED8' },
   'サワラ':   { bg: '#FDF4FF', color: '#7E22CE' },
+}
+
+const METHOD_STYLE: Record<string, { bg: string; color: string; border: string }> = {
+  'テンヤ':   { bg: '#FFFBEB', color: '#92400E', border: '#FDE68A' },
+  'ルアー':   { bg: '#F0FFF4', color: '#065F46', border: '#6EE7B7' },
+  '餌':       { bg: '#FFF7ED', color: '#9A3412', border: '#FDBA74' },
+  'テンビン': { bg: '#F5F3FF', color: '#5B21B6', border: '#C4B5FD' },
+  '天秤':     { bg: '#F5F3FF', color: '#5B21B6', border: '#C4B5FD' },
 }
 
 // 「太刀魚」→「タチウオ」に統一
@@ -88,6 +96,27 @@ function FishBadge({ fish }: { fish: string | null }) {
   )
 }
 
+function MethodBadge({ method }: { method: string | null }) {
+  if (!method) return <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
+  const s = METHOD_STYLE[method] ?? { bg: '#F3F4F6', color: '#6B7280', border: '#D1D5DB' }
+  return (
+    <span
+      style={{
+        padding: '2px 8px',
+        fontSize: 11,
+        fontWeight: 600,
+        borderRadius: 'var(--radius-pill)',
+        background: s.bg,
+        color: s.color,
+        border: `1px solid ${s.border}`,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {method}
+    </span>
+  )
+}
+
 /* ── Component ───────────────────────────────────────────────── */
 export default function CatchTable({ records }: Props) {
   if (records.length === 0) {
@@ -113,12 +142,12 @@ export default function CatchTable({ records }: Props) {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ background: 'var(--primary)' }}>
-              {['日付', '船宿', 'エリア', '魚種', 'サイズ', '釣果', '記事'].map((h, i) => (
+              {['日付', '船宿', 'エリア', '魚種', '釣り方', 'サイズ', '釣果', '記事'].map((h, i) => (
                 <th
                   key={h}
                   style={{
                     padding: '11px 16px',
-                    textAlign: i >= 4 && i <= 5 ? 'center' : i === 6 ? 'center' : 'left',
+                    textAlign: i >= 5 && i <= 6 ? 'center' : i === 7 ? 'center' : 'left',
                     color: 'rgba(255,255,255,0.6)',
                     fontWeight: 600,
                     fontSize: 11,
@@ -171,6 +200,9 @@ export default function CatchTable({ records }: Props) {
                   </td>
                   <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
                     <FishBadge fish={normalizeFishName(r.fish_name ?? null)} />
+                  </td>
+                  <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                    <MethodBadge method={r.fishing_method ?? null} />
                   </td>
                   <td
                     style={{
@@ -279,6 +311,7 @@ export default function CatchTable({ records }: Props) {
                   <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' as const }}>
                     <AreaBadge area={r.shipyard_area ?? null} />
                     <FishBadge fish={normalizeFishName(r.fish_name ?? null)} />
+                    {r.fishing_method && <MethodBadge method={r.fishing_method} />}
                   </div>
                 </div>
                 <span
