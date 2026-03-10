@@ -9,17 +9,25 @@ import CatchCards from './CatchCards'
 import CatchChart from './CatchChart'
 
 type Area   = '東京湾' | '相模湾'
-type Period = '今日' | '昨日' | '直近7日' | '直近30日'
+type Period = '今日' | '昨日' | '一昨日' | '直近7日' | '直近30日'
 type Tab    = '一覧' | '詳細' | 'グラフ'
 
-const AREAS:   Area[]   = ['東京湾', '相模湾']
-const PERIODS: { label: string; value: Period }[] = [
-  { label: '今日',     value: '今日'    },
-  { label: '昨日',     value: '昨日'    },
-  { label: '直近7日',  value: '直近7日' },
-  { label: '直近30日', value: '直近30日' },
-]
-const TABS: Tab[] = ['一覧', '詳細', 'グラフ']
+const AREAS: Area[] = ['東京湾', '相模湾']
+const TABS:  Tab[]  = ['一覧', '詳細', 'グラフ']
+
+function buildPeriods(): { label: string; value: Period }[] {
+  const fmt = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}`
+  const t  = new Date(); t.setHours(0, 0, 0, 0)
+  const y  = new Date(t); y.setDate(t.getDate() - 1)
+  const db = new Date(t); db.setDate(t.getDate() - 2)
+  return [
+    { label: `今日 ${fmt(t)}`,     value: '今日'    },
+    { label: `昨日 ${fmt(y)}`,     value: '昨日'    },
+    { label: `一昨日 ${fmt(db)}`,  value: '一昨日'  },
+    { label: '直近7日',            value: '直近7日' },
+    { label: '直近30日',           value: '直近30日' },
+  ]
+}
 
 /* ── Utils ───────────────────────────────────────────────────── */
 function isSameDay(d1: Date, d2: Date) {
@@ -31,22 +39,19 @@ function isSameDay(d1: Date, d2: Date) {
 }
 
 function filterByPeriod(records: CatchRecord[], period: Period): CatchRecord[] {
-  const now       = new Date()
-  const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1)
+  const now   = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(d.getDate() + n); return r }
 
-  if (period === '今日') {
-    return records.filter((r) => r.date && isSameDay(new Date(r.date), today))
-  }
-  if (period === '昨日') {
-    return records.filter((r) => r.date && isSameDay(new Date(r.date), yesterday))
-  }
+  if (period === '今日')   return records.filter((r) => r.date && isSameDay(new Date(r.date), today))
+  if (period === '昨日')   return records.filter((r) => r.date && isSameDay(new Date(r.date), addDays(today, -1)))
+  if (period === '一昨日') return records.filter((r) => r.date && isSameDay(new Date(r.date), addDays(today, -2)))
   if (period === '直近7日') {
-    const cutoff = new Date(today); cutoff.setDate(today.getDate() - 7)
+    const cutoff = addDays(today, -7)
     return records.filter((r) => r.date && new Date(r.date) >= cutoff)
   }
   if (period === '直近30日') {
-    const cutoff = new Date(today); cutoff.setDate(today.getDate() - 30)
+    const cutoff = addDays(today, -30)
     return records.filter((r) => r.date && new Date(r.date) >= cutoff)
   }
   return records
@@ -122,16 +127,25 @@ function SummaryCard({ records, envData, fish }: { records: CatchRecord[]; envDa
   const sizeMax  = sizeMaxVals.length > 0 ? Math.max(...sizeMaxVals) : null
   const sizeMin  = sizeMinVals.length > 0 ? Math.min(...sizeMinVals) : null
 
+  // サイズを「最小〜最大cm」形式にまとめる
+  const sizeVal =
+    sizeMin !== null && sizeMax !== null && sizeMin !== sizeMax
+      ? `${sizeMin}〜${sizeMax}cm`
+      : sizeMax !== null
+        ? `${sizeMax}cm`
+        : sizeMin !== null
+          ? `${sizeMin}cm`
+          : '—'
+
   const weatherWord = envData?.weather ? envData.weather.split(' ')[0] : null
 
   const stats: { label: string; value: string; highlight?: boolean }[] = [
-    { label: '天気',     value: weatherWord ?? '—' },
-    { label: '潮汐',     value: envData?.tide_type ?? '—' },
+    { label: '天気',      value: weatherWord ?? '—' },
+    { label: '潮汐',      value: envData?.tide_type ?? '—' },
     { label: `釣果 平均${fish ? `(${fish})` : ''}`, value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
     { label: '釣果 最大', value: catchMax !== null ? String(catchMax) : '—' },
     { label: '釣果 最小', value: catchMin !== null ? String(catchMin) : '—' },
-    { label: 'サイズ 最大', value: sizeMax !== null ? `${sizeMax}cm` : '—' },
-    { label: 'サイズ 最小', value: sizeMin !== null ? `${sizeMin}cm` : '—' },
+    { label: 'サイズ',    value: sizeVal },
   ]
 
   return (
@@ -140,18 +154,18 @@ function SummaryCard({ records, envData, fish }: { records: CatchRecord[]; envDa
         background: 'var(--surface)',
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-lg)',
-        padding: '16px 20px',
+        padding: '12px 16px',
         boxShadow: 'var(--shadow-sm)',
       }}
     >
-      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
         本日の釣果サマリー
       </p>
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
-          gap: 8,
+          gridTemplateColumns: 'repeat(6, 1fr)',
+          gap: 6,
         }}
       >
         {stats.map(({ label, value, highlight }) => (
@@ -160,12 +174,13 @@ function SummaryCard({ records, envData, fish }: { records: CatchRecord[]; envDa
             style={{
               background: highlight ? '#EBF4FF' : 'var(--surface-2)',
               border: `1px solid ${highlight ? '#BDD7EE' : 'var(--border)'}`,
-              borderRadius: 8,
-              padding: '8px 12px',
+              borderRadius: 7,
+              padding: '6px 8px',
+              minWidth: 0,
             }}
           >
-            <p style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</p>
-            <p style={{ fontSize: 16, fontWeight: 700, color: highlight ? 'var(--secondary)' : 'var(--text-main)', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+            <p style={{ fontSize: 8, color: 'var(--text-muted)', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: highlight ? 'var(--secondary)' : 'var(--text-main)', fontVariantNumeric: 'tabular-nums', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {value}
             </p>
           </div>
@@ -179,7 +194,7 @@ function SummaryCard({ records, envData, fish }: { records: CatchRecord[]; envDa
 export default function CatchDashboard({ records, envData }: { records: CatchRecord[]; envData: EnvData | null }) {
   const [area,      setArea]      = useState<Area | null>('東京湾')
   const [fish,      setFish]      = useState<Fish | null>('タチウオ')
-  const [period,    setPeriod]    = useState<Period>('直近7日')
+  const [period,    setPeriod]    = useState<Period>('今日')
   const [tab,       setTab]       = useState<Tab>('一覧')
   const [sortField, setSortField] = useState<SortField>(null)
 
@@ -259,7 +274,7 @@ export default function CatchDashboard({ records, envData }: { records: CatchRec
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <FilterLabel text="期間" />
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {PERIODS.map(({ label, value }) => (
+            {buildPeriods().map(({ label, value }) => (
               <FilterPill key={value} active={period === value} onClick={() => setPeriod(value)}>
                 {label}
               </FilterPill>

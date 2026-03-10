@@ -122,13 +122,14 @@ export default async function Home() {
     getLatestUpdatedAt(),
   ])
 
-  // catches テーブルの最新 created_at を表示（なければ現在時刻）
+  // catches テーブルの最新 created_at を JST で表示（なければ現在時刻）
   const nowStr = new Date(latestAt ?? Date.now()).toLocaleString('ja-JP', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'Asia/Tokyo',
   })
 
   return (

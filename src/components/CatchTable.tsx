@@ -82,10 +82,11 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
         }}
       >
         <colgroup>
-          <col style={{ width: '30%' }} />
+          <col style={{ width: '26%' }} />
+          <col style={{ width: '14%' }} />
+          <col style={{ width: '16%' }} />
           <col style={{ width: '18%' }} />
-          <col style={{ width: '20%' }} />
-          <col style={{ width: '22%' }} />
+          <col style={{ width: '16%' }} />
           <col style={{ width: '10%' }} />
         </colgroup>
         <thead>
@@ -109,6 +110,20 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
             ))}
             <SortTh label="釣果" field="count" active={sortField === 'count'} onSort={onSort} />
             <SortTh label="サイズ" field="size"  active={sortField === 'size'}  onSort={onSort} />
+            <th
+              style={{
+                padding: '10px 12px',
+                textAlign: 'left',
+                color: 'rgba(255,255,255,0.55)',
+                fontWeight: 600,
+                fontSize: 11,
+                letterSpacing: '0.04em',
+                borderBottom: '1px solid rgba(255,255,255,0.07)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              日付
+            </th>
             <th
               style={{
                 padding: '10px 12px',
@@ -203,6 +218,20 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
                   }}
                 >
                   {formatSize(r.size_min_cm, r.size_max_cm)}
+                </td>
+
+                {/* 日付 */}
+                <td
+                  style={{
+                    padding: '9px 12px',
+                    color: 'var(--text-sub)',
+                    fontSize: 12,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {r.date
+                    ? new Date(r.date).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
+                    : '—'}
                 </td>
 
                 {/* 記事 */}
