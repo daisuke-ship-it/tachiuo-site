@@ -1,10 +1,18 @@
 'use client'
 
+import Link from 'next/link'
 import { CatchRecord } from '@/lib/supabase'
 
 export type Fish = 'タチウオ' | 'アジ' | 'シーバス' | 'サワラ'
 
 export const FISH_LIST: Fish[] = ['タチウオ', 'アジ', 'シーバス', 'サワラ']
+
+const FISH_SLUGS: Record<Fish, string> = {
+  'タチウオ': 'tachiuo',
+  'アジ':     'aji',
+  'シーバス': 'seabass',
+  'サワラ':   'sawara',
+}
 
 export const FISH_ALIASES: Record<Fish, string[]> = {
   'タチウオ': ['タチウオ', '太刀魚'],
@@ -79,9 +87,12 @@ export default function TrendBar({ records, activeFish, onFishClick }: Props) {
         const isActive  = activeFish === fish
 
         return (
-          <button
+          <div
             key={fish}
+            role="button"
+            tabIndex={0}
             onClick={() => onFishClick(fish)}
+            onKeyDown={(e) => e.key === 'Enter' && onFishClick(fish)}
             style={{
               padding: '10px 8px',
               borderRadius: 'var(--radius-md)',
@@ -96,14 +107,7 @@ export default function TrendBar({ records, activeFish, onFishClick }: Props) {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: isActive ? '#d4a017' : 'var(--text-main)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <span style={{ fontSize: 12, fontWeight: 700, color: isActive ? '#d4a017' : 'var(--text-main)', whiteSpace: 'nowrap' }}>
                 {fish}
               </span>
               <span style={{ fontSize: 16, color: trend.color, lineHeight: 1, marginLeft: 4 }}>
@@ -116,7 +120,14 @@ export default function TrendBar({ records, activeFish, onFishClick }: Props) {
             <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 1 }}>
               直近{Math.round(recentAvg * 10) / 10} / 前週{Math.round(prevAvg * 10) / 10}
             </div>
-          </button>
+            <Link
+              href={`/fish/${FISH_SLUGS[fish]}`}
+              onClick={(e) => e.stopPropagation()}
+              style={{ fontSize: 10, color: '#3b82f6', marginTop: 4, textAlign: 'right' }}
+            >
+              詳細を見る →
+            </Link>
+          </div>
         )
       })}
     </div>
