@@ -11,10 +11,11 @@ type Props = {
 }
 
 // 釣り方グループ別 行背景色
+// ルアーは #1a1f2e(--surface)と同じになるため少し暗い青に
 const GROUP_ROW_BG: Record<string, string> = {
-  'ルアー': '#1a1f2e',
+  'ルアー': '#161c2d',
   'テンヤ': '#131720',
-  'エサ':   '#0f1a14',
+  'エサ':   '#131a10',
 }
 const GROUP_ROW_BG_DEFAULT = '#0f1117'
 
@@ -26,13 +27,14 @@ const GROUP_BORDER: Record<string, string> = {
 }
 
 // fishing_method 文字列 → グループ名（method_group が null の場合のフォールバック）
+// includes で部分一致させ表記ゆれに対応
 function resolveMethodGroup(record: { method_group: string | null; fishing_method: string | null }): string | null {
   if (record.method_group) return record.method_group
-  const m = record.fishing_method
+  const m = record.fishing_method ?? ''
   if (!m) return null
-  if (m === 'ルアー' || m === 'ジギング') return 'ルアー'
-  if (m === 'テンヤ') return 'テンヤ'
-  if (m === '餌' || m === 'エサ' || m === 'テンビン' || m === '天秤') return 'エサ'
+  if (m.includes('ルアー') || m.includes('ジギング')) return 'ルアー'
+  if (m.includes('テンヤ')) return 'テンヤ'
+  if (m.includes('餌') || m.includes('エサ') || m.includes('テンビン') || m.includes('天秤')) return 'エサ'
   return null
 }
 

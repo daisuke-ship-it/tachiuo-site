@@ -30,11 +30,18 @@ interface Props {
   aiSummaries: AISummaryRecord[]
 }
 
+// ローカル日付を YYYY-MM-DD 形式で返す（toISOString はUTC変換するためJSTでは1日ズレる）
+function localDateStr(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 // 今日/昨日/一昨日 + 直近7日 / 直近30日
 function buildPeriods(): { label: string; value: string }[] {
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const weekdays = ['日', '月', '火', '水', '木', '金', '土']
-  const fmt = (d: Date) => d.toISOString().split('T')[0]
 
   const result: { label: string; value: string }[] = []
   for (let i = 0; i < 3; i++) {
@@ -42,7 +49,7 @@ function buildPeriods(): { label: string; value: string }[] {
     d.setDate(today.getDate() - i)
     result.push({
       label: `${d.getMonth() + 1}/${d.getDate()}(${weekdays[d.getDay()]})`,
-      value: fmt(d),
+      value: localDateStr(d),
     })
   }
   result.push({ label: '直近7日', value: '直近7日' })
@@ -51,7 +58,7 @@ function buildPeriods(): { label: string; value: string }[] {
 }
 
 function todayStr(): string {
-  return new Date().toISOString().split('T')[0]
+  return localDateStr(new Date())
 }
 
 /* ── Utils ──────────────────────────────────────────────────── */
@@ -77,15 +84,17 @@ function filterByFish(records: CatchRecord[], fish: Fish | null): CatchRecord[] 
 function filterByPeriod(records: CatchRecord[], period: string): CatchRecord[] {
   if (period === '直近7日') {
     const cutoff = new Date(); cutoff.setHours(0, 0, 0, 0); cutoff.setDate(cutoff.getDate() - 7)
-    return records.filter((r) => r.date && new Date(r.date) >= cutoff)
+    // r.date は 'YYYY-MM-DD' 文字列 → 文字列比較でUTCズレを回避
+    const cutoffStr = localDateStr(cutoff)
+    return records.filter((r) => r.date && r.date >= cutoffStr)
   }
   if (period === '直近30日') {
     const cutoff = new Date(); cutoff.setHours(0, 0, 0, 0); cutoff.setDate(cutoff.getDate() - 30)
-    return records.filter((r) => r.date && new Date(r.date) >= cutoff)
+    const cutoffStr = localDateStr(cutoff)
+    return records.filter((r) => r.date && r.date >= cutoffStr)
   }
-  // 特定日付
-  const target = new Date(period + 'T00:00:00')
-  return records.filter((r) => r.date && isSameDay(new Date(r.date), target))
+  // 特定日付 → 文字列一致で比較（タイムゾーンの影響を受けない）
+  return records.filter((r) => r.date === period)
 }
 
 /* ── Helpers ────────────────────────────────────────────────── */
