@@ -5,6 +5,14 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+export type CatchDetail = {
+  id: number
+  species_name: string | null
+  count: number | null
+  unit: string | null
+  size_text: string | null
+}
+
 export type CatchRecord = {
   id: number
   created_at: string
@@ -21,4 +29,5 @@ export type CatchRecord = {
   fishing_method: string | null
   method_group: string | null
   condition_text: string | null
+  catch_details: CatchDetail[]
 }

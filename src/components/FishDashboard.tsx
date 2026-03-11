@@ -23,6 +23,15 @@ function localDateStr(d: Date): string {
 
 function todayStr(): string { return localDateStr(new Date()) }
 
+function defaultDateStr(): string {
+  const now = new Date()
+  const jstHour = (now.getUTCHours() + 9) % 24
+  if (jstHour >= 15) return localDateStr(now)
+  const yesterday = new Date(now)
+  yesterday.setDate(now.getDate() - 1)
+  return localDateStr(yesterday)
+}
+
 function buildPeriods(): { label: string; value: string }[] {
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const weekdays = ['日', '月', '火', '水', '木', '金', '土']
@@ -204,7 +213,7 @@ interface Props {
 
 export default function FishDashboard({ records, envData, aiSummaries, fishId, content }: Props) {
   const [area,      setArea]      = useState<Area | null>('東京湾')
-  const [period,    setPeriod]    = useState<string>(todayStr())
+  const [period,    setPeriod]    = useState<string>(defaultDateStr())
   const [sortField, setSortField] = useState<SortField>(null)
 
   const presets      = buildPeriods()
@@ -268,7 +277,7 @@ export default function FishDashboard({ records, envData, aiSummaries, fishId, c
             ))}
             <div style={{ position: 'relative', display: 'inline-block' }}>
               <FilterPill active={isCustomPeriod} onClick={() => {}}>
-                📅{isCustomPeriod ? ` ${period.slice(5).replace('-', '/')}` : ''}
+                日付指定 📅{isCustomPeriod ? ` ${period.slice(5).replace('-', '/')}` : ''}
               </FilterPill>
               <input
                 type="date"

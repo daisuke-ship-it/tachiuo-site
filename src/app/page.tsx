@@ -2,6 +2,14 @@ import { supabase, CatchRecord } from '@/lib/supabase'
 import CatchDashboard from '@/components/CatchDashboard'
 
 // ── 型定義 ────────────────────────────────────────────────────
+type RawCatchDetail = {
+  id: number
+  species_name: string | null
+  count: number | null
+  unit: string | null
+  size_text: string | null
+}
+
 type RawCatch = {
   id: number
   created_at: string
@@ -15,6 +23,7 @@ type RawCatch = {
   shipyards: { name: string; areas: { name: string } | null; ports: { name: string } | null } | null
   fish_species: { name: string } | null
   fishing_methods: { name: string; method_group: string | null } | null
+  catch_details: RawCatchDetail[]
 }
 
 export type EnvData = {
@@ -56,7 +65,8 @@ async function getCatchData(): Promise<CatchRecord[]> {
       condition_text,
       shipyards ( name, areas ( name ), ports ( name ) ),
       fish_species ( name ),
-      fishing_methods ( name, method_group )
+      fishing_methods ( name, method_group ),
+      catch_details (*)
     `)
     .order('sail_date', { ascending: false })
     .order('created_at', { ascending: false })
@@ -85,6 +95,13 @@ async function getCatchData(): Promise<CatchRecord[]> {
     fishing_method: row.fishing_methods?.name ?? null,
     method_group:   row.fishing_methods?.method_group ?? null,
     condition_text: row.condition_text ?? null,
+    catch_details:  (row.catch_details ?? []).map((d) => ({
+      id:           d.id,
+      species_name: d.species_name ?? null,
+      count:        d.count ?? null,
+      unit:         d.unit ?? null,
+      size_text:    d.size_text ?? null,
+    })),
   }))
 
   // ── フロント側デデュープ ──────────────────────────────────────
@@ -225,7 +242,7 @@ export default async function Home() {
                   lineHeight: 1, marginTop: 1, letterSpacing: '0.04em',
                 }}
               >
-                東京湾 · 相模湾
+                関東圏
               </span>
             </div>
           </div>
@@ -266,10 +283,10 @@ export default async function Home() {
               letterSpacing: '-0.02em', lineHeight: 1.25, marginBottom: 6,
             }}
           >
-            東京湾・相模湾の船釣り釣果まとめ
+            関東圏の船釣り釣果まとめ
           </h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', maxWidth: 480, lineHeight: 1.6 }}>
-            複数船宿の釣果データを毎日収集・集計。タチウオ・アジ・シーバス・サワラの最新情報を確認できます。
+            関東圏の複数船宿から釣果データを毎日自動収集。エリア・魚種・釣り方で絞り込み、今日の釣果を素早く確認・分析できます。
           </p>
         </div>
       </div>
@@ -308,7 +325,7 @@ export default async function Home() {
           style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}
         >
           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            © {new Date().getFullYear()} 釣果情報.com — 東京湾・相模湾 船釣り釣果情報
+            © {new Date().getFullYear()} 釣果情報.com — 関東圏 船釣り釣果情報
           </span>
           <span style={{ fontSize: 11, color: 'var(--border-strong)' }}>
             データは各船宿サイトより自動収集しています

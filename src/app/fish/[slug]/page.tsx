@@ -7,6 +7,14 @@ import { EnvData, AISummaryRecord, AreaRecord } from '@/app/page'
 import FishDashboard from '@/components/FishDashboard'
 
 // ── 型定義 ────────────────────────────────────────────────────
+type RawCatchDetail = {
+  id: number
+  species_name: string | null
+  count: number | null
+  unit: string | null
+  size_text: string | null
+}
+
 type RawCatch = {
   id: number
   created_at: string
@@ -20,6 +28,7 @@ type RawCatch = {
   shipyards: { name: string; areas: { name: string } | null; ports: { name: string } | null } | null
   fish_species: { name: string } | null
   fishing_methods: { name: string; method_group: string | null } | null
+  catch_details: RawCatchDetail[]
 }
 
 // ── データ取得 ─────────────────────────────────────────────────
@@ -47,7 +56,8 @@ async function getCatchDataForFish(fishSpeciesId: number): Promise<CatchRecord[]
       condition_text,
       shipyards ( name, areas ( name ), ports ( name ) ),
       fish_species ( name ),
-      fishing_methods ( name, method_group )
+      fishing_methods ( name, method_group ),
+      catch_details (*)
     `)
     .eq('fish_species_id', fishSpeciesId)
     .order('sail_date', { ascending: false })
@@ -77,6 +87,13 @@ async function getCatchDataForFish(fishSpeciesId: number): Promise<CatchRecord[]
     fishing_method: row.fishing_methods?.name ?? null,
     method_group:   row.fishing_methods?.method_group ?? null,
     condition_text: row.condition_text ?? null,
+    catch_details:  (row.catch_details ?? []).map((d) => ({
+      id:           d.id,
+      species_name: d.species_name ?? null,
+      count:        d.count ?? null,
+      unit:         d.unit ?? null,
+      size_text:    d.size_text ?? null,
+    })),
   }))
 
   // フロント側デデュープ

@@ -1,6 +1,6 @@
 'use client'
 
-import { CatchRecord } from '@/lib/supabase'
+import { CatchRecord, CatchDetail } from '@/lib/supabase'
 
 /* ── Badge definitions ─────────────────────────────────────── */
 const AREA_STYLE   = { bg: '#1a2744', color: '#93c5fd' }
@@ -116,20 +116,40 @@ export default function CatchCards({ records }: Props) {
             <div style={{ height: 1, background: 'var(--border)', marginBottom: 12 }} />
 
             {/* Stats */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                <span style={{ fontSize: 11, color: '#64748b', minWidth: 44 }}>釣果</span>
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums' }}>
-                  {formatCatch(r.count_min, r.count_max)}
-                </span>
+            {r.catch_details.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {r.catch_details.map((d: CatchDetail) => (
+                  <div key={d.id} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <span style={{ fontSize: 12, color: '#94a3b8', minWidth: 56, flexShrink: 0 }}>
+                      {d.species_name ?? '—'}
+                    </span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums' }}>
+                      {d.count !== null ? `${d.count}${d.unit ?? '尾'}` : '—'}
+                    </span>
+                    {d.size_text && (
+                      <span style={{ fontSize: 11, color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
+                        {d.size_text}
+                      </span>
+                    )}
+                  </div>
+                ))}
               </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                <span style={{ fontSize: 11, color: '#64748b', minWidth: 44 }}>サイズ</span>
-                <span style={{ fontSize: 14, fontWeight: 500, color: '#e2e8f0', fontVariantNumeric: 'tabular-nums' }}>
-                  {formatSize(r.size_min_cm, r.size_max_cm)}
-                </span>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: '#64748b', minWidth: 44 }}>釣果</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums' }}>
+                    {formatCatch(r.count_min, r.count_max)}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: '#64748b', minWidth: 44 }}>サイズ</span>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: '#e2e8f0', fontVariantNumeric: 'tabular-nums' }}>
+                    {formatSize(r.size_min_cm, r.size_max_cm)}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* 船長コメント */}
             {condText && (

@@ -61,6 +61,15 @@ function todayStr(): string {
   return localDateStr(new Date())
 }
 
+function defaultDateStr(): string {
+  const now = new Date()
+  const jstHour = (now.getUTCHours() + 9) % 24
+  if (jstHour >= 15) return localDateStr(now)
+  const yesterday = new Date(now)
+  yesterday.setDate(now.getDate() - 1)
+  return localDateStr(yesterday)
+}
+
 /* ── Utils ──────────────────────────────────────────────────── */
 function isSameDay(d1: Date, d2: Date) {
   return (
@@ -78,7 +87,10 @@ function filterByArea(records: CatchRecord[], area: Area | null): CatchRecord[] 
 function filterByFish(records: CatchRecord[], fish: Fish | null): CatchRecord[] {
   if (!fish) return records
   const aliases = FISH_ALIASES[fish]
-  return records.filter((x) => aliases.some((a) => x.fish_name?.includes(a)))
+  return records.filter((x) => {
+    if (x.fish_name && aliases.some((a) => x.fish_name!.includes(a))) return true
+    return x.catch_details.some((d) => d.species_name && aliases.some((a) => d.species_name!.includes(a)))
+  })
 }
 
 function filterByPeriod(records: CatchRecord[], period: string): CatchRecord[] {
@@ -297,7 +309,7 @@ export default function CatchDashboard({
 }: Props) {
   const [area,      setArea]      = useState<Area | null>('東京湾')
   const [fish,      setFish]      = useState<Fish | null>('タチウオ')
-  const [period,    setPeriod]    = useState<string>(todayStr())
+  const [period,    setPeriod]    = useState<string>(defaultDateStr())
   const [tab,       setTab]       = useState<Tab>('一覧')
   const [sortField, setSortField] = useState<SortField>(null)
 
@@ -400,7 +412,7 @@ export default function CatchDashboard({
               return (
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   <FilterPill active={isCustom} onClick={() => {}}>
-                    📅{isCustom ? ` ${period.slice(5).replace('-', '/')}` : ''}
+                    日付指定 📅{isCustom ? ` ${period.slice(5).replace('-', '/')}` : ''}
                   </FilterPill>
                   <input
                     type="date"
