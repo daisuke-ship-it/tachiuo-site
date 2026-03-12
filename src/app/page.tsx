@@ -51,6 +51,10 @@ export type FishRecord = {
   name: string
 }
 
+// species_name → そのグループに属する全 species_name[]
+// 例: 'サワラ' → ['サワラ', 'イナダ', 'ワラサ', 'ブリ', '青物', ...]
+export type SpeciesGroupMap = Record<string, string[]>
+
 // ── データ取得 ─────────────────────────────────────────────────
 async function getCatchData(): Promise<CatchRecord[]> {
   const { data, error } = await supabase
@@ -173,6 +177,27 @@ async function getFishSpecies(): Promise<FishRecord[]> {
   return (data ?? []) as FishRecord[]
 }
 
+async function getSpeciesGroupMap(): Promise<SpeciesGroupMap> {
+  const { data } = await supabase
+    .from('species_groups')
+    .select('species_name, group_name')
+  if (!data || data.length === 0) return {}
+
+  // group_name → species_name[] を構築
+  const byGroup: Record<string, string[]> = {}
+  for (const row of data) {
+    if (!byGroup[row.group_name]) byGroup[row.group_name] = []
+    byGroup[row.group_name].push(row.species_name)
+  }
+
+  // species_name → 同グループの全 species_name[] にマッピング
+  const result: SpeciesGroupMap = {}
+  for (const row of data) {
+    result[row.species_name] = byGroup[row.group_name]
+  }
+  return result
+}
+
 async function getAISummaries(): Promise<AISummaryRecord[]> {
   const { data } = await supabase
     .from('ai_summaries')
@@ -185,13 +210,14 @@ async function getAISummaries(): Promise<AISummaryRecord[]> {
 export const revalidate = 3600
 
 export default async function Home() {
-  const [records, envData, latestAt, areas, fishSpeciesList, aiSummaries] = await Promise.all([
+  const [records, envData, latestAt, areas, fishSpeciesList, aiSummaries, speciesGroupMap] = await Promise.all([
     getCatchData(),
     getEnvDataMap(),
     getLatestUpdatedAt(),
     getAreas(),
     getFishSpecies(),
     getAISummaries(),
+    getSpeciesGroupMap(),
   ])
 
   // catches テーブルの最新 created_at を JST で表示（なければ現在時刻）
@@ -320,6 +346,7 @@ export default async function Home() {
               areas={areas}
               fishSpeciesList={fishSpeciesList}
               aiSummaries={aiSummaries}
+              speciesGroupMap={speciesGroupMap}
             />
           )}
         </div>

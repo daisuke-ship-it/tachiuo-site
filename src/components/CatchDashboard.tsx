@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { CatchRecord } from '@/lib/supabase'
-import { EnvData, EnvDataMap, AISummaryRecord, AreaRecord, FishRecord } from '@/app/page'
+import { EnvData, EnvDataMap, AISummaryRecord, AreaRecord, FishRecord, SpeciesGroupMap } from '@/app/page'
 import TrendBar, { Fish, FISH_LIST, FISH_ALIASES } from './TrendBar'
 import CatchTable, { SortField } from './CatchTable'
 import CatchCards from './CatchCards'
@@ -28,6 +28,7 @@ interface Props {
   areas: AreaRecord[]
   fishSpeciesList: FishRecord[]
   aiSummaries: AISummaryRecord[]
+  speciesGroupMap: SpeciesGroupMap
 }
 
 // JST 日付を YYYY-MM-DD で返す（サーバー[UTC]・ブラウザ[JST]両対応）
@@ -85,9 +86,14 @@ function filterByArea(records: CatchRecord[], area: Area | null): CatchRecord[] 
   return records.filter((x) => x.shipyard_area?.includes(area))
 }
 
-function filterByFish(records: CatchRecord[], fish: Fish | null): CatchRecord[] {
+function filterByFish(
+  records: CatchRecord[],
+  fish: Fish | null,
+  speciesGroupMap: SpeciesGroupMap,
+): CatchRecord[] {
   if (!fish) return records
-  const aliases = FISH_ALIASES[fish]
+  // species_groups テーブル由来のエイリアス。なければ FISH_ALIASES にフォールバック
+  const aliases = speciesGroupMap[fish] ?? FISH_ALIASES[fish]
   return records.filter((x) => {
     if (x.fish_name && aliases.some((a) => x.fish_name!.includes(a))) return true
     return x.catch_details.some((d) => d.species_name && aliases.some((a) => d.species_name!.includes(a)))
@@ -307,7 +313,7 @@ function SummaryCard({ records, envData, period }: {
 
 /* ── Main ────────────────────────────────────────────────────── */
 export default function CatchDashboard({
-  records, envData, areas, fishSpeciesList, aiSummaries,
+  records, envData, areas, fishSpeciesList, aiSummaries, speciesGroupMap,
 }: Props) {
   const [area,      setArea]      = useState<Area | null>('東京湾')
   const [fish,      setFish]      = useState<Fish | null>('タチウオ')
@@ -320,7 +326,10 @@ export default function CatchDashboard({
 
   // Filtered data
   const areaOnlyFiltered = useMemo(() => filterByArea(records, area), [records, area])
-  const areaFishFiltered = useMemo(() => filterByFish(areaOnlyFiltered, fish), [areaOnlyFiltered, fish])
+  const areaFishFiltered = useMemo(
+    () => filterByFish(areaOnlyFiltered, fish, speciesGroupMap),
+    [areaOnlyFiltered, fish, speciesGroupMap],
+  )
 
   const filtered = useMemo(() => {
     let r = filterByPeriod(areaFishFiltered, period)
