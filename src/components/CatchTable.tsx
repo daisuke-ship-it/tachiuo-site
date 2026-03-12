@@ -1,6 +1,6 @@
 'use client'
 
-import { CatchRecord } from '@/lib/supabase'
+import { CatchRecord, CatchDetail } from '@/lib/supabase'
 
 export type SortField = 'count' | 'size' | null
 
@@ -38,16 +38,26 @@ function resolveMethodGroup(record: { method_group: string | null; fishing_metho
   return null
 }
 
-function formatCatch(min: number | null, max: number | null): string {
-  if (min === null && max === null) return '—'
-  if (min !== null && max !== null && min !== max) return `${min}〜${max}`
-  return `${min ?? max}`
+function maxDetailCount(details: CatchDetail[]): number {
+  if (details.length === 0) return -1
+  return Math.max(...details.map((d) => d.count ?? -1))
 }
 
-function formatSize(min: number | null, max: number | null): string {
-  if (min === null && max === null) return '—'
-  if (min !== null && max !== null && min !== max) return `${min}〜${max}`
-  return `${min ?? max}`
+function formatDetails(details: CatchDetail[]): string {
+  if (details.length === 0) return '—'
+  const parts = details
+    .filter((d) => d.species_name || d.count !== null)
+    .map((d) => {
+      const name = d.species_name ?? ''
+      const cnt  = d.count !== null ? `${d.count}${d.unit ?? '尾'}` : '—'
+      return name ? `${name} ${cnt}` : cnt
+    })
+  return parts.join(' / ') || '—'
+}
+
+function formatSizeFromDetails(details: CatchDetail[]): string {
+  const text = details.map((d) => d.size_text).find(Boolean)
+  return text ?? '—'
 }
 
 function SortTh({ label, field, active, onSort }: {
@@ -86,8 +96,8 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
     )
   }
 
-  // 🏆 トップ判定（count_max が最大の行）
-  const maxCount = Math.max(...records.map((r) => r.count_max ?? -1).filter((v) => v >= 0), -1)
+  // 🏆 トップ判定（catch_details の最大釣果数を持つ行）
+  const maxCount = Math.max(...records.map((r) => maxDetailCount(r.catch_details)), -1)
 
   return (
     <div style={{ width: '100%' }}>
@@ -113,7 +123,7 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
             const methodGroup = resolveMethodGroup(r)
             const rowBg       = methodGroup ? (GROUP_ROW_BG[methodGroup] ?? GROUP_ROW_BG_DEFAULT) : GROUP_ROW_BG_DEFAULT
             const borderColor = methodGroup ? (GROUP_BORDER[methodGroup] ?? null) : null
-            const isTrophy    = maxCount > 0 && r.count_max === maxCount
+            const isTrophy    = maxCount > 0 && maxDetailCount(r.catch_details) === maxCount
             const dateStr     = r.date
               ? new Date(r.date).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
               : '—'
@@ -143,14 +153,14 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
                   )}
                 </td>
 
-                {/* 釣果 */}
-                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                  {formatCatch(r.count_min, r.count_max)}
+                {/* 釣果（複数魚種を「タチウオ 15尾 / アジ 20尾」形式で表示） */}
+                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums', fontSize: 12 }}>
+                  {formatDetails(r.catch_details)}
                 </td>
 
-                {/* サイズ */}
+                {/* サイズ（catch_details の size_text から取得） */}
                 <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-sub)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                  {formatSize(r.size_min_cm, r.size_max_cm)}
+                  {formatSizeFromDetails(r.catch_details)}
                 </td>
 
                 {/* 日付 */}

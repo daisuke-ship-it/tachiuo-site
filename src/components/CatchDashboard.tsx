@@ -325,17 +325,22 @@ export default function CatchDashboard({
   const filtered = useMemo(() => {
     let r = filterByPeriod(areaFishFiltered, period)
 
+    const maxCount = (r: CatchRecord) =>
+      r.catch_details.length > 0
+        ? Math.max(...r.catch_details.map((d) => d.count ?? -1))
+        : -1
+
     if (sortField === 'count') {
-      r = [...r].sort((a, b) => (b.count_max ?? b.count_min ?? -1) - (a.count_max ?? a.count_min ?? -1))
+      r = [...r].sort((a, b) => maxCount(b) - maxCount(a))
     } else if (sortField === 'size') {
-      r = [...r].sort((a, b) => (b.size_max_cm ?? b.size_min_cm ?? -1) - (a.size_max_cm ?? a.size_min_cm ?? -1))
+      r = [...r].sort((a, b) => maxCount(b) - maxCount(a)) // size_text はテキストのため count で代替
     } else {
-      // デフォルト: 釣り方グループ順 → count_max 降順
+      // デフォルト: 釣り方グループ順 → catch_details の最大釣果数降順
       r = [...r].sort((a, b) => {
         const aOrd = METHOD_ORDER[a.method_group ?? a.fishing_method ?? ''] ?? 99
         const bOrd = METHOD_ORDER[b.method_group ?? b.fishing_method ?? ''] ?? 99
         if (aOrd !== bOrd) return aOrd - bOrd
-        return (b.count_max ?? b.count_min ?? -1) - (a.count_max ?? a.count_min ?? -1)
+        return maxCount(b) - maxCount(a)
       })
     }
     return r
