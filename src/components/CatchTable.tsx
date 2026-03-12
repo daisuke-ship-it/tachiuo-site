@@ -43,10 +43,21 @@ function maxDetailCount(details: CatchDetail[]): number {
   return Math.max(...details.map((d) => d.count ?? -1))
 }
 
-// 単位なし・最少〜最多形式（一覧用）
-function formatDetails(details: CatchDetail[], countMin: number | null): string {
+// 単位なし・最少-最多形式（一覧用）
+function formatDetails(
+  details: CatchDetail[],
+  countMin: number | null,
+  countMax: number | null,
+): string {
+  // count_min / count_max が両方ある場合はそちらを優先
+  if (countMax !== null) {
+    if (countMin !== null && countMin !== countMax) return `${countMin}-${countMax}`
+    return `${countMax}`
+  }
+  if (countMin !== null) return `${countMin}`
+
+  // catch_details にフォールバック
   if (details.length === 0) return '—'
-  // 複数魚種：魚種名 + 数のみ（単位なし）
   if (details.length > 1) {
     const parts = details
       .filter((d) => d.species_name || d.count !== null)
@@ -57,11 +68,8 @@ function formatDetails(details: CatchDetail[], countMin: number | null): string 
       })
     return parts.join(' / ') || '—'
   }
-  // 単一魚種：最少〜最多（単位なし）
-  const maxCount = details[0].count
-  if (maxCount === null) return '—'
-  if (countMin !== null && countMin !== maxCount) return `${countMin}〜${maxCount}`
-  return `${maxCount}`
+  const cnt = details[0].count
+  return cnt !== null ? `${cnt}` : '—'
 }
 
 function formatSizeFromDetails(details: CatchDetail[]): string {
@@ -170,7 +178,7 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
 
                 {/* 釣果（複数魚種を「タチウオ 15尾 / アジ 20尾」形式で表示） */}
                 <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums', fontSize: 12 }}>
-                  {formatDetails(r.catch_details, r.count_min)}
+                  {formatDetails(r.catch_details, r.count_min, r.count_max)}
                 </td>
 
                 {/* サイズ（catch_details の size_text から取得） */}
