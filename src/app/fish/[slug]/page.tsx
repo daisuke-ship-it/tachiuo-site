@@ -19,6 +19,7 @@ type RawCatch = {
   id: number
   created_at: string
   sail_date: string | null
+  boat_name: string | null
   count_min: number | null
   count_max: number | null
   size_min_cm: number | null
@@ -48,6 +49,7 @@ async function getCatchDataForFish(fishSpeciesId: number): Promise<CatchRecord[]
       id,
       created_at,
       sail_date,
+      boat_name,
       count_min,
       count_max,
       size_min_cm,
@@ -75,6 +77,7 @@ async function getCatchDataForFish(fishSpeciesId: number): Promise<CatchRecord[]
     id:             row.id,
     created_at:     row.created_at,
     date:           row.sail_date,
+    boat_name:      row.boat_name ?? null,
     fish_name:      row.fish_species?.name ?? null,
     size_min_cm:    row.size_min_cm,
     size_max_cm:    row.size_max_cm,

@@ -17,6 +17,7 @@ export type CatchRecord = {
   id: number
   created_at: string
   date: string | null
+  boat_name: string | null
   fish_name: string | null
   size_min_cm: number | null
   size_max_cm: number | null

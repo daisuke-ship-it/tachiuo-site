@@ -140,14 +140,19 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
                 onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(59,130,246,0.07)')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = rowBg)}
               >
-                {/* 船宿（釣り方サブテキスト付き） */}
+                {/* 船宿（便名・釣り方サブテキスト付き） */}
                 <td style={{ padding: '8px 12px', maxWidth: 0 }}>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, fontSize: 13, color: 'var(--text-main)' }}>
                     {isTrophy && <span style={{ marginRight: 3 }}>🏆</span>}
                     {r.shipyard_name ?? '—'}
                   </div>
+                  {r.boat_name && (
+                    <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {r.boat_name}
+                    </div>
+                  )}
                   {r.fishing_method && (
-                    <div style={{ fontSize: 10, color: '#64748b', marginTop: 2, whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: 10, color: '#64748b', marginTop: 1, whiteSpace: 'nowrap' }}>
                       {r.fishing_method}
                     </div>
                   )}
