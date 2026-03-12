@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { CatchRecord } from '@/lib/supabase'
 import { EnvData, EnvDataMap, AISummaryRecord, AreaRecord, FishRecord, SpeciesGroupMap } from '@/app/page'
 import TrendBar, { Fish, FISH_LIST, FISH_ALIASES } from './TrendBar'
@@ -320,6 +320,7 @@ export default function CatchDashboard({
   const [period,    setPeriod]    = useState<string>(defaultDateStr())
   const [tab,       setTab]       = useState<Tab>('一覧')
   const [sortField, setSortField] = useState<SortField>(null)
+  const dateInputRef = useRef<HTMLInputElement>(null)
 
   const toggleArea   = (a: Area) => { if (a === '相模湾') return; setArea((p) => (p === a ? null : a)) }
   const handleFishClick = (f: Fish) => setFish((p) => (p === f ? null : f))
@@ -427,17 +428,18 @@ export default function CatchDashboard({
               const isCustom = /^\d{4}-\d{2}-\d{2}$/.test(period) && !presets.includes(period)
               return (
                 <div style={{ position: 'relative', display: 'inline-block' }}>
-                  <FilterPill active={isCustom} onClick={() => {}}>
+                  <FilterPill
+                    active={isCustom}
+                    onClick={() => dateInputRef.current?.showPicker()}
+                  >
                     日付指定 📅{isCustom ? ` ${period.slice(5).replace('-', '/')}` : ''}
                   </FilterPill>
                   <input
+                    ref={dateInputRef}
                     type="date"
                     value={isCustom ? period : ''}
                     onChange={(e) => e.target.value && setPeriod(e.target.value)}
-                    style={{
-                      position: 'absolute', inset: 0,
-                      opacity: 0, cursor: 'pointer', width: '100%',
-                    }}
+                    style={{ position: 'absolute', visibility: 'hidden', width: 0, height: 0 }}
                   />
                 </div>
               )

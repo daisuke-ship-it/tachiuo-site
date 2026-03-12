@@ -43,21 +43,31 @@ function maxDetailCount(details: CatchDetail[]): number {
   return Math.max(...details.map((d) => d.count ?? -1))
 }
 
-function formatDetails(details: CatchDetail[]): string {
+// 単位なし・最少〜最多形式（一覧用）
+function formatDetails(details: CatchDetail[], countMin: number | null): string {
   if (details.length === 0) return '—'
-  const parts = details
-    .filter((d) => d.species_name || d.count !== null)
-    .map((d) => {
-      const name = d.species_name ?? ''
-      const cnt  = d.count !== null ? `${d.count}${d.unit ?? '尾'}` : '—'
-      return name ? `${name} ${cnt}` : cnt
-    })
-  return parts.join(' / ') || '—'
+  // 複数魚種：魚種名 + 数のみ（単位なし）
+  if (details.length > 1) {
+    const parts = details
+      .filter((d) => d.species_name || d.count !== null)
+      .map((d) => {
+        const name = d.species_name ?? ''
+        const cnt  = d.count !== null ? `${d.count}` : '—'
+        return name ? `${name} ${cnt}` : cnt
+      })
+    return parts.join(' / ') || '—'
+  }
+  // 単一魚種：最少〜最多（単位なし）
+  const maxCount = details[0].count
+  if (maxCount === null) return '—'
+  if (countMin !== null && countMin !== maxCount) return `${countMin}〜${maxCount}`
+  return `${maxCount}`
 }
 
 function formatSizeFromDetails(details: CatchDetail[]): string {
   const text = details.map((d) => d.size_text).find(Boolean)
-  return text ?? '—'
+  if (!text) return '—'
+  return text.replace(/\s*cm$/i, '')
 }
 
 function SortTh({ label, field, active, onSort }: {
@@ -113,7 +123,7 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
           <tr style={{ background: 'var(--primary)' }}>
             <th style={thBase}>船宿</th>
             <SortTh label="釣果" field="count" active={sortField === 'count'} onSort={onSort} />
-            <SortTh label="サイズ" field="size"  active={sortField === 'size'}  onSort={onSort} />
+            <SortTh label="サイズ（cm）" field="size"  active={sortField === 'size'}  onSort={onSort} />
             <th style={{ ...thBase, paddingLeft: 20 }}>日付</th>
             <th style={{ ...thBase, textAlign: 'center' }}>記事</th>
           </tr>
@@ -160,7 +170,7 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
 
                 {/* 釣果（複数魚種を「タチウオ 15尾 / アジ 20尾」形式で表示） */}
                 <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums', fontSize: 12 }}>
-                  {formatDetails(r.catch_details)}
+                  {formatDetails(r.catch_details, r.count_min)}
                 </td>
 
                 {/* サイズ（catch_details の size_text から取得） */}
