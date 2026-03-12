@@ -3,7 +3,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { supabase, CatchRecord } from '@/lib/supabase'
 import { fishContents } from '@/lib/fishContent'
-import { EnvData, AISummaryRecord, AreaRecord } from '@/app/page'
+import { EnvData, EnvDataMap, AISummaryRecord, AreaRecord } from '@/app/page'
 import FishDashboard from '@/components/FishDashboard'
 
 // ── 型定義 ────────────────────────────────────────────────────
@@ -106,15 +106,20 @@ async function getCatchDataForFish(fishSpeciesId: number): Promise<CatchRecord[]
   })
 }
 
-async function getEnvData(): Promise<EnvData | null> {
-  const todayStr = new Date().toISOString().split('T')[0]
+async function getEnvDataMap(): Promise<EnvDataMap> {
   const { data } = await supabase
     .from('environment_data')
-    .select('weather, wind_speed_ms, tide_type')
-    .eq('date', todayStr)
-    .limit(1)
-    .maybeSingle()
-  return data
+    .select('date, weather, wind_speed_ms, tide_type')
+    .order('date', { ascending: false })
+    .limit(30)
+  if (!data) return {}
+  return Object.fromEntries(
+    data.map((row) => [row.date, {
+      weather:       row.weather       ?? null,
+      wind_speed_ms: row.wind_speed_ms ?? null,
+      tide_type:     row.tide_type     ?? null,
+    }])
+  )
 }
 
 async function getAISummaries(fishId: number): Promise<AISummaryRecord[]> {
@@ -176,7 +181,7 @@ export default async function FishPage({ params }: { params: PageParams }) {
 
   const [records, envData, aiSummaries, areas, latestAt] = await Promise.all([
     getCatchDataForFish(fishId),
-    getEnvData(),
+    getEnvDataMap(),
     getAISummaries(fishId),
     getAreas(),
     getLatestUpdatedAt(),

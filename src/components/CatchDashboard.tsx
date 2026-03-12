@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { CatchRecord } from '@/lib/supabase'
-import { EnvData, AISummaryRecord, AreaRecord, FishRecord } from '@/app/page'
+import { EnvData, EnvDataMap, AISummaryRecord, AreaRecord, FishRecord } from '@/app/page'
 import TrendBar, { Fish, FISH_LIST, FISH_ALIASES } from './TrendBar'
 import CatchTable, { SortField } from './CatchTable'
 import CatchCards from './CatchCards'
@@ -24,17 +24,18 @@ const METHOD_ORDER: Record<string, number> = {
 
 interface Props {
   records: CatchRecord[]
-  envData: EnvData | null
+  envData: EnvDataMap
   areas: AreaRecord[]
   fishSpeciesList: FishRecord[]
   aiSummaries: AISummaryRecord[]
 }
 
-// ローカル日付を YYYY-MM-DD 形式で返す（toISOString はUTC変換するためJSTでは1日ズレる）
+// JST 日付を YYYY-MM-DD で返す（サーバー[UTC]・ブラウザ[JST]両対応）
 function localDateStr(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
+  const jst = new Date(d.getTime() + 9 * 60 * 60 * 1000)
+  const y   = jst.getUTCFullYear()
+  const m   = String(jst.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(jst.getUTCDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
 }
 
@@ -228,10 +229,11 @@ function AISummaryCard({ variant, label, text }: {
 /* ── Summary card ────────────────────────────────────────────── */
 function SummaryCard({ records, envData, period }: {
   records: CatchRecord[]   // pre-filtered (period + area + fish)
-  envData: EnvData | null
+  envData: EnvDataMap
   period: string
 }) {
-  const showEnv = period === todayStr()
+  const isDatePeriod = period !== '直近7日' && period !== '直近30日'
+  const envForPeriod: EnvData | null = isDatePeriod ? (envData[period] ?? null) : null
 
   const shipyardCount = new Set(records.map((r) => r.shipyard_name).filter(Boolean)).size
 
@@ -262,11 +264,11 @@ function SummaryCard({ records, envData, period }: {
       : sizeMin !== null ? `${sizeMin}cm`
       : '—'
 
-  const weatherWord = showEnv && envData?.weather ? envData.weather.split(' ')[0] : null
+  const weatherWord = envForPeriod?.weather ? envForPeriod.weather.split(' ')[0] : null
 
   const stats: { label: string; value: string; highlight?: boolean }[] = [
     { label: '天気',     value: weatherWord ?? '—' },
-    { label: '潮汐',     value: showEnv ? (envData?.tide_type ?? '—') : '—' },
+    { label: '潮汐',     value: envForPeriod?.tide_type ?? '—' },
     { label: '出船数',   value: records.length > 0 ? `${shipyardCount}` : '—' },
     { label: '平均釣果', value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
     { label: '釣果',     value: catchRange },

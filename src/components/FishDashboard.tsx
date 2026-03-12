@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { CatchRecord } from '@/lib/supabase'
-import { EnvData, AISummaryRecord, AreaRecord } from '@/app/page'
+import { EnvData, EnvDataMap, AISummaryRecord, AreaRecord } from '@/app/page'
 import { FishContent } from '@/lib/fishContent'
 import CatchTable, { SortField } from './CatchTable'
 import CatchChart from './CatchChart'
@@ -14,10 +14,12 @@ const METHOD_ORDER: Record<string, number> = {
 }
 
 // ── Date utils (JST-safe) ─────────────────────────────────────
+// JST 日付を YYYY-MM-DD で返す（サーバー[UTC]・ブラウザ[JST]両対応）
 function localDateStr(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
+  const jst = new Date(d.getTime() + 9 * 60 * 60 * 1000)
+  const y   = jst.getUTCFullYear()
+  const m   = String(jst.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(jst.getUTCDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
 }
 
@@ -123,9 +125,10 @@ function AISummaryCard({ text, fishName }: { text: string; fishName: string }) {
 }
 
 function StatsCard({ records, envData, period }: {
-  records: CatchRecord[]; envData: EnvData | null; period: string
+  records: CatchRecord[]; envData: EnvDataMap; period: string
 }) {
-  const isToday = period === todayStr()
+  const isDatePeriod = period !== '直近7日' && period !== '直近30日'
+  const envForPeriod: EnvData | null = isDatePeriod ? (envData[period] ?? null) : null
   const shipyardCount = new Set(records.map((r) => r.shipyard_name).filter(Boolean)).size
 
   const countVals = records.map((r) => r.count_max ?? r.count_min).filter((v): v is number => v !== null)
@@ -140,11 +143,11 @@ function StatsCard({ records, envData, period }: {
     ? `${sizeMin}〜${sizeMax}cm`
     : sizeMax !== null ? `${sizeMax}cm` : '—'
 
-  const weatherWord = isToday && envData?.weather ? envData.weather.split(' ')[0] : null
+  const weatherWord = envForPeriod?.weather ? envForPeriod.weather.split(' ')[0] : null
 
   const stats: { label: string; value: string; highlight?: boolean }[] = [
     { label: '天気',     value: weatherWord ?? '—' },
-    { label: '潮汐',     value: isToday ? (envData?.tide_type ?? '—') : '—' },
+    { label: '潮汐',     value: envForPeriod?.tide_type ?? '—' },
     { label: '出船数',   value: shipyardCount > 0 ? `${shipyardCount}` : '—' },
     { label: '平均釣果', value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
     { label: '最大釣果', value: maxCatch !== null ? `${maxCatch}本` : '—' },
@@ -204,7 +207,7 @@ function FishInfoCard({ content }: { content: FishContent }) {
 // ── Main ──────────────────────────────────────────────────────
 interface Props {
   records: CatchRecord[]
-  envData: EnvData | null
+  envData: EnvDataMap
   aiSummaries: AISummaryRecord[]
   areas: AreaRecord[]
   fishId: number | null

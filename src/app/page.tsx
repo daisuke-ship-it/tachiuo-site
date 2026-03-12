@@ -32,6 +32,8 @@ export type EnvData = {
   tide_type: string | null
 }
 
+export type EnvDataMap = Record<string, EnvData>
+
 export type AISummaryRecord = {
   summary_type: string
   target_id: number | null
@@ -139,15 +141,20 @@ async function getLatestUpdatedAt(): Promise<string | null> {
   return data?.created_at ?? null
 }
 
-async function getEnvData(): Promise<EnvData | null> {
-  const todayStr = new Date().toISOString().split('T')[0]
+async function getEnvDataMap(): Promise<EnvDataMap> {
   const { data } = await supabase
     .from('environment_data')
-    .select('weather, wind_speed_ms, tide_type')
-    .eq('date', todayStr)
-    .limit(1)
-    .maybeSingle()
-  return data
+    .select('date, weather, wind_speed_ms, tide_type')
+    .order('date', { ascending: false })
+    .limit(30)
+  if (!data) return {}
+  return Object.fromEntries(
+    data.map((row) => [row.date, {
+      weather:       row.weather       ?? null,
+      wind_speed_ms: row.wind_speed_ms ?? null,
+      tide_type:     row.tide_type     ?? null,
+    }])
+  )
 }
 
 async function getAreas(): Promise<AreaRecord[]> {
@@ -180,7 +187,7 @@ export const revalidate = 3600
 export default async function Home() {
   const [records, envData, latestAt, areas, fishSpeciesList, aiSummaries] = await Promise.all([
     getCatchData(),
-    getEnvData(),
+    getEnvDataMap(),
     getLatestUpdatedAt(),
     getAreas(),
     getFishSpecies(),
