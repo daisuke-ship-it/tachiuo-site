@@ -146,13 +146,16 @@ export default function CatchCards({ records }: Props) {
               const agg = [...map.entries()].map(([name, v]) => ({ name, ...v }))
               return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {agg.map(({ name, min, max, unit, size_text }) => (
+                {agg.map(({ name, min, max, unit, size_text }) => {
+                  // 単独魚種のみ count_min を min として使用（複数魚種は per-species min 不明のため max のみ）
+                  const lo = agg.length === 1 ? (r.count_min ?? max) : max
+                  return (
                   <div key={name} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                     <span style={{ fontSize: 12, color: '#94a3b8', minWidth: 56, flexShrink: 0 }}>
                       {name}
                     </span>
                     <span style={{ fontSize: 15, fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums' }}>
-                      {`${min}〜${max}${unit}`}
+                      {`${lo}〜${max}${unit}`}
                     </span>
                     {size_text && (
                       <span style={{ fontSize: 11, color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
@@ -160,7 +163,8 @@ export default function CatchCards({ records }: Props) {
                       </span>
                     )}
                   </div>
-                ))}
+                  )
+                })}
               </div>
               )
             })() : (

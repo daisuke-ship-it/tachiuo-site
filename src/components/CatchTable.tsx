@@ -58,14 +58,18 @@ function aggregateBySpecies(details: CatchDetail[]) {
 }
 
 // 単位なし・MIN〜MAX形式（一覧用）
-function formatDetails(details: CatchDetail[]): string {
+// countMin: catches.count_min（船内最少）を渡し、単独魚種の場合に min として使用
+function formatDetails(details: CatchDetail[], countMin: number | null): string {
   if (details.length === 0) return '—'
   const agg = aggregateBySpecies(details)
   if (agg.length === 0) return '—'
-  return agg.map(({ name, min, max }) => {
-    const cnt = `${min}〜${max}`
-    return agg.length > 1 ? `${name} ${cnt}` : cnt
-  }).join(' / ')
+  if (agg.length === 1) {
+    const { max } = agg[0]
+    const lo = countMin ?? max
+    return `${lo}〜${max}`
+  }
+  // 複数魚種: per-species min は存在しないため max のみ表示
+  return agg.map(({ name, max }) => `${name} ${max}`).join(' / ')
 }
 
 function formatSizeFromDetails(details: CatchDetail[]): string {
@@ -176,7 +180,7 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
 
                 {/* 釣果（複数魚種を「タチウオ 15尾 / アジ 20尾」形式で表示） */}
                 <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums', fontSize: 12 }}>
-                  {formatDetails(r.catch_details)}
+                  {formatDetails(r.catch_details, r.count_min)}
                 </td>
 
                 {/* サイズ（catch_details の size_text から取得） */}
