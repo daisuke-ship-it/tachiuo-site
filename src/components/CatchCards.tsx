@@ -123,34 +123,39 @@ export default function CatchCards({ records }: Props) {
             <div style={{ height: 1, background: 'var(--border)', marginBottom: 12 }} />
 
             {/* Stats */}
-            {r.catch_details.length > 0 ? (
+            {r.catch_details.length > 0 ? (() => {
+              // species_name でグループ集計
+              const map = new Map<string, { min: number; max: number; unit: string; size_text: string | null }>()
+              for (const d of r.catch_details) {
+                if (d.count === null) continue
+                const key = d.species_name ?? '—'
+                const cur = map.get(key)
+                map.set(key, cur
+                  ? { ...cur, min: Math.min(cur.min, d.count), max: Math.max(cur.max, d.count) }
+                  : { min: d.count, max: d.count, unit: d.unit ?? '尾', size_text: d.size_text ?? null }
+                )
+              }
+              const agg = [...map.entries()].map(([name, v]) => ({ name, ...v }))
+              return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {r.catch_details.map((d: CatchDetail) => {
-                  const unit = d.unit ?? '尾'
-                  const isSingle = r.catch_details.length === 1
-                  const countStr = d.count !== null
-                    ? (isSingle && r.count_min !== null && r.count_min !== d.count
-                        ? `${r.count_min}〜${d.count}${unit}`
-                        : `${d.count}${unit}`)
-                    : '—'
-                  return (
-                  <div key={d.id} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                {agg.map(({ name, min, max, unit, size_text }) => (
+                  <div key={name} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                     <span style={{ fontSize: 12, color: '#94a3b8', minWidth: 56, flexShrink: 0 }}>
-                      {d.species_name ?? '—'}
+                      {name}
                     </span>
                     <span style={{ fontSize: 15, fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums' }}>
-                      {countStr}
+                      {min !== max ? `${min}〜${max}${unit}` : `${max}${unit}`}
                     </span>
-                    {d.size_text && (
+                    {size_text && (
                       <span style={{ fontSize: 11, color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
-                        {d.size_text}
+                        {size_text}
                       </span>
                     )}
                   </div>
-                  )
-                })}
+                ))}
               </div>
-            ) : (
+              )
+            })() : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                   <span style={{ fontSize: 11, color: '#64748b', minWidth: 44 }}>釣果</span>
