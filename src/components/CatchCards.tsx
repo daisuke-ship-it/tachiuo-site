@@ -147,8 +147,7 @@ export default function CatchCards({ records }: Props) {
               return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {agg.map(({ name, min, max, unit, size_text }) => {
-                  // 単独魚種のみ count_min を min として使用（複数魚種は per-species min 不明のため max のみ）
-                  const lo = agg.length === 1 ? (r.count_min ?? max) : max
+                  const lo = r.count_min ?? max
                   return (
                   <div key={name} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                     <span style={{ fontSize: 12, color: '#94a3b8', minWidth: 56, flexShrink: 0 }}>

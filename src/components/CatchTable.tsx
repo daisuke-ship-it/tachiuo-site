@@ -63,13 +63,10 @@ function formatDetails(details: CatchDetail[], countMin: number | null): string 
   if (details.length === 0) return '—'
   const agg = aggregateBySpecies(details)
   if (agg.length === 0) return '—'
-  if (agg.length === 1) {
-    const { max } = agg[0]
+  return agg.map(({ name, max }) => {
     const lo = countMin ?? max
-    return `${lo}〜${max}`
-  }
-  // 複数魚種: per-species min は存在しないため max のみ表示
-  return agg.map(({ name, max }) => `${name} ${max}`).join(' / ')
+    return agg.length > 1 ? `${name} ${lo}〜${max}` : `${lo}〜${max}`
+  }).join(' / ')
 }
 
 function formatSizeFromDetails(details: CatchDetail[]): string {
