@@ -427,21 +427,17 @@ export default function CatchDashboard({
               const presets = buildPeriods().map((p) => p.value)
               const isCustom = /^\d{4}-\d{2}-\d{2}$/.test(period) && !presets.includes(period)
               return (
-                <div style={{ position: 'relative', display: 'inline-block' }}>
-                  <FilterPill
-                    active={isCustom}
-                    onClick={() => dateInputRef.current?.showPicker()}
-                  >
+                <label style={{ position: 'relative', display: 'inline-block', cursor: 'pointer' }}>
+                  <FilterPill active={isCustom} onClick={() => {}}>
                     日付指定 📅{isCustom ? ` ${period.slice(5).replace('-', '/')}` : ''}
                   </FilterPill>
                   <input
-                    ref={dateInputRef}
                     type="date"
                     value={isCustom ? period : ''}
                     onChange={(e) => e.target.value && setPeriod(e.target.value)}
-                    style={{ position: 'absolute', visibility: 'hidden', width: 0, height: 0 }}
+                    style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
                   />
-                </div>
+                </label>
               )
             })()}
           </div>

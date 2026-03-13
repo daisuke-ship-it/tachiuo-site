@@ -91,12 +91,12 @@ export default function CatchCards({ records }: Props) {
               <div style={{ flex: 1, marginRight: 8 }}>
                 <p style={{ fontWeight: 700, fontSize: 14, color: '#e2e8f0', lineHeight: 1.3 }}>
                   {r.shipyard_name ?? '—'}
+                  {r.boat_name && (
+                    <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 400, marginLeft: 6 }}>
+                      {r.boat_name}
+                    </span>
+                  )}
                 </p>
-                {r.boat_name && (
-                  <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 2, lineHeight: 1.3 }}>
-                    {r.boat_name}
-                  </p>
-                )}
               </div>
               <span style={{ fontSize: 11, color: '#64748b', flexShrink: 0, paddingTop: 1 }}>
                 {formatDate(r.date)}
