@@ -114,7 +114,7 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
   const maxCount = Math.max(...records.map((r) => maxDetailCount(r.catch_details)), -1)
 
   return (
-    <div style={{ width: '100%' }}>
+    <div style={{ width: '100%', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
         <colgroup>
           <col style={{ width: '34%' }} />

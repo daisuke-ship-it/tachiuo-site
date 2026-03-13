@@ -44,7 +44,10 @@
 /* ─── Reset & Base ──────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
 
 body {
   background: var(--bg);
@@ -54,6 +57,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.65;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* Interactive defaults */
