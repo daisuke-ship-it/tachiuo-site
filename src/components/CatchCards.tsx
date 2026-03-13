@@ -35,14 +35,22 @@ function Badge({ label, bg, color }: { label: string; bg: string; color: string 
 /* ── Formatters ─────────────────────────────────────────────── */
 function formatCatch(min: number | null, max: number | null): string {
   if (min === null && max === null) return '—'
-  if (min !== null && max !== null && min !== max) return `${min}〜${max}本`
-  return `${min ?? max}本`
+  const lo = min ?? max!
+  const hi = max ?? min!
+  return `${lo}〜${hi}本`
 }
 
 function formatSize(min: number | null, max: number | null): string {
   if (min === null && max === null) return '—'
-  if (min !== null && max !== null && min !== max) return `${min}〜${max}cm`
-  return `${min ?? max}cm`
+  const lo = min ?? max!
+  const hi = max ?? min!
+  return `${lo}〜${hi}cm`
+}
+
+function normalizeSizeText(text: string): string {
+  const stripped = text.replace(/\s*cm$/i, '').replace(/\s*[-–]\s*/, '〜')
+  if (stripped.includes('〜')) return stripped
+  return `${stripped}〜${stripped}`
 }
 
 function formatDate(s: string | null): string {
@@ -144,11 +152,11 @@ export default function CatchCards({ records }: Props) {
                       {name}
                     </span>
                     <span style={{ fontSize: 15, fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums' }}>
-                      {min !== max ? `${min}〜${max}${unit}` : `${max}${unit}`}
+                      {`${min}〜${max}${unit}`}
                     </span>
                     {size_text && (
                       <span style={{ fontSize: 11, color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
-                        {size_text}
+                        {normalizeSizeText(size_text)}
                       </span>
                     )}
                   </div>

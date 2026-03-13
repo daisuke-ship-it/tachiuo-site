@@ -63,7 +63,7 @@ function formatDetails(details: CatchDetail[]): string {
   const agg = aggregateBySpecies(details)
   if (agg.length === 0) return '—'
   return agg.map(({ name, min, max }) => {
-    const cnt = min !== max ? `${min}〜${max}` : `${max}`
+    const cnt = `${min}〜${max}`
     return agg.length > 1 ? `${name} ${cnt}` : cnt
   }).join(' / ')
 }
@@ -71,7 +71,9 @@ function formatDetails(details: CatchDetail[]): string {
 function formatSizeFromDetails(details: CatchDetail[]): string {
   const text = details.map((d) => d.size_text).find(Boolean)
   if (!text) return '—'
-  return text.replace(/\s*cm$/i, '')
+  const stripped = text.replace(/\s*cm$/i, '').replace(/\s*[-–]\s*/, '〜')
+  if (stripped.includes('〜')) return stripped
+  return `${stripped}〜${stripped}`
 }
 
 function SortTh({ label, field, active, onSort }: {
