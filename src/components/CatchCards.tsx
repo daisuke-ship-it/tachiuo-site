@@ -125,13 +125,21 @@ export default function CatchCards({ records }: Props) {
             {/* Stats */}
             {r.catch_details.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {r.catch_details.map((d: CatchDetail) => (
+                {r.catch_details.map((d: CatchDetail) => {
+                  const unit = d.unit ?? '尾'
+                  const isSingle = r.catch_details.length === 1
+                  const countStr = d.count !== null
+                    ? (isSingle && r.count_min !== null && r.count_min !== d.count
+                        ? `${r.count_min}〜${d.count}${unit}`
+                        : `${d.count}${unit}`)
+                    : '—'
+                  return (
                   <div key={d.id} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                     <span style={{ fontSize: 12, color: '#94a3b8', minWidth: 56, flexShrink: 0 }}>
                       {d.species_name ?? '—'}
                     </span>
                     <span style={{ fontSize: 15, fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums' }}>
-                      {d.count !== null ? `${d.count}${d.unit ?? '尾'}` : '—'}
+                      {countStr}
                     </span>
                     {d.size_text && (
                       <span style={{ fontSize: 11, color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
@@ -139,7 +147,8 @@ export default function CatchCards({ records }: Props) {
                       </span>
                     )}
                   </div>
-                ))}
+                  )
+                })}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
