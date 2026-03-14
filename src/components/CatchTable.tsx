@@ -120,17 +120,15 @@ export default function CatchTable({ records, sortField, onSort, sizeUnit = 'cm'
     <div style={{ width: '100%', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
         <colgroup>
-          <col style={{ width: '38%' }} />
-          <col style={{ width: '24%' }} />
-          <col style={{ width: '22%' }} />
-          <col style={{ width: '16%' }} />
+          <col style={{ width: '45%' }} />
+          <col style={{ width: '30%' }} />
+          <col style={{ width: '25%' }} />
         </colgroup>
         <thead>
           <tr style={{ background: 'var(--primary)' }}>
             <th style={thBase}>船宿</th>
             <SortTh label="釣果" field="count" active={sortField === 'count'} onSort={onSort} />
             <SortTh label={`サイズ（${sizeUnit}）`} field="size"  active={sortField === 'size'}  onSort={onSort} />
-            <th style={{ ...thBase, paddingLeft: 20 }}>日付</th>
           </tr>
         </thead>
         <tbody>
@@ -139,9 +137,6 @@ export default function CatchTable({ records, sortField, onSort, sizeUnit = 'cm'
             const rowBg       = methodGroup ? (GROUP_ROW_BG[methodGroup] ?? GROUP_ROW_BG_DEFAULT) : GROUP_ROW_BG_DEFAULT
             const borderColor = methodGroup ? (GROUP_BORDER[methodGroup] ?? null) : null
             const isTrophy    = maxCount > 0 && maxDetailCount(r.catch_details) === maxCount
-            const dateStr     = r.date
-              ? new Date(r.date).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
-              : '—'
 
             return (
               <tr
@@ -185,10 +180,6 @@ export default function CatchTable({ records, sortField, onSort, sizeUnit = 'cm'
                   {formatSizeFromDetails(r.catch_details)}
                 </td>
 
-                {/* 日付 */}
-                <td style={{ padding: '8px 12px', paddingLeft: 20, color: 'var(--text-sub)', fontSize: 12, whiteSpace: 'nowrap' }}>
-                  {dateStr}
-                </td>
               </tr>
             )
           })}
