@@ -48,7 +48,7 @@ function formatSize(min: number | null, max: number | null): string {
 }
 
 function normalizeSizeText(text: string): string {
-  const stripped = text.replace(/\s*cm$/i, '').replace(/\s*[-–]\s*/, '〜')
+  const stripped = text.replace(/\s*cm$/i, '').replace(/[~\-–〜]/g, '〜')
   if (stripped.includes('〜')) return stripped
   return `${stripped}〜${stripped}`
 }

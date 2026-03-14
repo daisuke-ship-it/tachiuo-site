@@ -72,7 +72,7 @@ function formatDetails(details: CatchDetail[], countMin: number | null): string 
 function formatSizeFromDetails(details: CatchDetail[]): string {
   const text = details.map((d) => d.size_text).find(Boolean)
   if (!text) return '—'
-  const stripped = text.replace(/\s*cm$/i, '').replace(/\s*[-–]\s*/, '〜')
+  const stripped = text.replace(/\s*cm$/i, '').replace(/[~\-–〜]/g, '〜')
   if (stripped.includes('〜')) return stripped
   return `${stripped}〜${stripped}`
 }
