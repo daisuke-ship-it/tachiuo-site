@@ -3,15 +3,16 @@
 import Link from 'next/link'
 import { CatchRecord } from '@/lib/supabase'
 
-export type Fish = 'タチウオ' | 'アジ' | 'シーバス' | 'サワラ'
+export type Fish = 'タチウオ' | 'アジ' | 'シーバス' | 'サワラ' | 'トラフグ'
 
-export const FISH_LIST: Fish[] = ['タチウオ', 'アジ', 'シーバス', 'サワラ']
+export const FISH_LIST: Fish[] = ['タチウオ', 'アジ', 'シーバス', 'サワラ', 'トラフグ']
 
 const FISH_SLUGS: Record<Fish, string> = {
   'タチウオ': 'tachiuo',
   'アジ':     'aji',
   'シーバス': 'seabass',
   'サワラ':   'sawara',
+  'トラフグ': 'torafugu',
 }
 
 export const FISH_ALIASES: Record<Fish, string[]> = {
@@ -19,6 +20,7 @@ export const FISH_ALIASES: Record<Fish, string[]> = {
   'アジ':     ['アジ'],
   'シーバス': ['シーバス'],
   'サワラ':   ['サワラ'],
+  'トラフグ': ['トラフグ', 'フグ'],
 }
 
 type Trend = { icon: string; label: string; color: string }
