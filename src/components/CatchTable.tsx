@@ -148,6 +148,9 @@ export default function CatchTable({ records, sortField, onSort, sizeUnit = 'cm'
             const rowBg       = methodGroup ? (GROUP_ROW_BG[methodGroup] ?? GROUP_ROW_BG_DEFAULT) : GROUP_ROW_BG_DEFAULT
             const borderColor = methodGroup ? (GROUP_BORDER[methodGroup] ?? null) : null
             const isTrophy    = maxCount > 0 && maxDetailCount(r.catch_details) === maxCount
+            const dateStr     = r.date
+              ? new Date(r.date).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
+              : null
 
             return (
               <tr
@@ -167,9 +170,10 @@ export default function CatchTable({ records, sortField, onSort, sizeUnit = 'cm'
                     {isTrophy && <span style={{ marginRight: 3 }}>🏆</span>}
                     {r.shipyard_name ?? '—'}
                   </div>
-                  {r.boat_name && (
-                    <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {r.boat_name}
+                  {(dateStr || r.boat_name) && (
+                    <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', gap: 4 }}>
+                      {dateStr && <span style={{ color: '#64748b', flexShrink: 0 }}>{dateStr}</span>}
+                      {r.boat_name && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.boat_name}</span>}
                     </div>
                   )}
                   {r.fishing_method && (
