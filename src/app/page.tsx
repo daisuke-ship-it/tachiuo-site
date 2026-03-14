@@ -210,7 +210,7 @@ async function getAISummaries(): Promise<AISummaryRecord[]> {
   return (data ?? []) as AISummaryRecord[]
 }
 
-export const revalidate = 3600
+export const revalidate = 300
 
 export default async function Home() {
   const [records, envData, latestAt, areas, fishSpeciesList, aiSummaries, speciesGroupMap] = await Promise.all([

@@ -260,15 +260,23 @@ function SummaryCard({ records, envData, period }: {
       : catchRangeMin !== null ? String(catchRangeMin)
       : '—'
 
-  const sizeMinVals = records.map((r) => r.size_min_cm).filter((v): v is number => v !== null)
-  const sizeMaxVals = records.map((r) => r.size_max_cm).filter((v): v is number => v !== null)
-  const sizeMin = sizeMinVals.length > 0 ? Math.min(...sizeMinVals) : null
-  const sizeMax = sizeMaxVals.length > 0 ? Math.max(...sizeMaxVals) : null
+  // size_min_cm/max_cm（旧形式）または catch_details.size_text（新形式）からサイズを集計
+  const sizeNums = records.flatMap((r) => {
+    if (r.size_min_cm !== null || r.size_max_cm !== null) {
+      return [r.size_min_cm, r.size_max_cm].filter((v): v is number => v !== null)
+    }
+    return r.catch_details.flatMap((d) => {
+      if (!d.size_text) return []
+      const nums = d.size_text.replace(/センチ/g, '').match(/\d+/g)
+      return nums ? nums.map(Number) : []
+    })
+  })
+  const sizeMin = sizeNums.length > 0 ? Math.min(...sizeNums) : null
+  const sizeMax = sizeNums.length > 0 ? Math.max(...sizeNums) : null
   const sizeRange =
     sizeMin !== null && sizeMax !== null && sizeMin !== sizeMax
       ? `${sizeMin}〜${sizeMax}cm`
       : sizeMax !== null ? `${sizeMax}cm`
-      : sizeMin !== null ? `${sizeMin}cm`
       : '—'
 
   const weatherWord = envForPeriod?.weather ? envForPeriod.weather.split(' ')[0] : null
