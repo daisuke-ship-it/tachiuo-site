@@ -69,12 +69,23 @@ function formatDetailsLines(details: CatchDetail[], countMin: number | null): st
   })
 }
 
-function formatSizeFromDetails(details: CatchDetail[]): string {
-  const text = details.map((d) => d.size_text).find(Boolean)
-  if (!text) return '—'
-  const stripped = text.replace(/\s*cm/gi, '').replace(/\s*kg/gi, '').replace(/\s*センチ/g, '').replace(/[~\-–〜～]/g, '〜').trim()
-  if (!stripped) return '—'
-  return stripped
+// 魚種ごとのサイズ行を返す（formatDetailsLines と同順）
+function formatSizeLines(details: CatchDetail[]): string[] {
+  if (details.length === 0) return ['—']
+  const agg = aggregateBySpecies(details)
+  if (agg.length === 0) return ['—']
+  // 魚種ごとに最初の size_text を取得
+  const sizeMap = new Map<string, string | null>()
+  for (const d of details) {
+    const key = d.species_name ?? '—'
+    if (!sizeMap.has(key)) sizeMap.set(key, d.size_text ?? null)
+  }
+  return agg.map(({ name }) => {
+    const text = sizeMap.get(name) ?? null
+    if (!text) return '—'
+    const stripped = text.replace(/\s*cm/gi, '').replace(/\s*kg/gi, '').replace(/\s*センチ/g, '').replace(/[~\-–〜～]/g, '〜').trim()
+    return stripped || '—'
+  })
 }
 
 function SortTh({ label, field, active, onSort }: {
@@ -175,9 +186,11 @@ export default function CatchTable({ records, sortField, onSort, sizeUnit = 'cm'
                   ))}
                 </td>
 
-                {/* サイズ（catch_details の size_text から取得） */}
+                {/* サイズ（魚種ごとに複数行） */}
                 <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-sub)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                  {formatSizeFromDetails(r.catch_details)}
+                  {formatSizeLines(r.catch_details).map((line, i) => (
+                    <div key={i}>{line}</div>
+                  ))}
                 </td>
 
               </tr>
