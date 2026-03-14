@@ -266,9 +266,13 @@ function SummaryCard({ records, envData, period, sizeUnit = 'cm', fishAliases = 
     : null
 
   // 全レコードの count 値をフラットに収集し、全体の min〜max を求める
+  // catch_details に最小値（0など）が含まれないケースがあるため、
+  // details がある場合もレコードレベルの count_min を必ず含める
   const allCounts = records.flatMap((r) => {
     const dc = detailCounts(r)
-    if (dc.length > 0) return dc
+    if (dc.length > 0) {
+      return r.count_min !== null ? [...dc, r.count_min] : dc
+    }
     if (!fishAliases) return [r.count_min, r.count_max].filter((v): v is number => v !== null)
     return []
   })
