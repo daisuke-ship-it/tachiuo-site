@@ -132,6 +132,7 @@ function getSummaryLabel(period: string): string {
 function addDatePrefix(text: string, dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00')
   const prefix = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}の`
+  if (text.startsWith(prefix)) return text          // 既に日付プレフィックスあり → そのまま返す
   if (text.startsWith('本日の')) return prefix + text.slice(3)
   if (text.startsWith('本日'))   return prefix + text.slice(2)
   return prefix + text
