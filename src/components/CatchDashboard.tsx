@@ -46,7 +46,7 @@ function buildPeriods(): { label: string; value: string }[] {
   const weekdays = ['日', '月', '火', '水', '木', '金', '土']
 
   const result: { label: string; value: string }[] = []
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 7; i++) {
     const d = new Date(today)
     d.setDate(today.getDate() - i)
     result.push({
@@ -481,7 +481,7 @@ export default function CatchDashboard({
         {/* 期間：今日/昨日/一昨日 + 直近7日/直近30日 + 📅 カレンダー */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <FilterLabel text="期間" />
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div className="scroll-x" style={{ display: 'flex', gap: 6, flexWrap: 'nowrap' }}>
             {buildPeriods().map(({ label, value }) => (
               <FilterPill key={value} active={period === value} onClick={() => setPeriod(value)}>
                 {label}
