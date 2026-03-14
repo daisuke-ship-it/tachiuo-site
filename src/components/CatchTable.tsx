@@ -57,16 +57,15 @@ function aggregateBySpecies(details: CatchDetail[]) {
   return [...map.entries()].map(([name, { min, max }]) => ({ name, min, max }))
 }
 
-// 単位なし・MIN〜MAX形式（一覧用）
-// countMin: catches.count_min（船内最少）を渡し、単独魚種の場合に min として使用
-function formatDetails(details: CatchDetail[], countMin: number | null): string {
-  if (details.length === 0) return '—'
+// 単位なし・MIN〜MAX形式（一覧用）複数魚種は行ごとの配列で返す
+function formatDetailsLines(details: CatchDetail[], countMin: number | null): string[] {
+  if (details.length === 0) return ['—']
   const agg = aggregateBySpecies(details)
-  if (agg.length === 0) return '—'
+  if (agg.length === 0) return ['—']
   return agg.map(({ name, max }) => {
     const lo = countMin ?? max
     return agg.length > 1 ? `${name} ${lo}〜${max}` : `${lo}〜${max}`
-  }).join(' / ')
+  })
 }
 
 function formatSizeFromDetails(details: CatchDetail[]): string {
@@ -120,11 +119,10 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
     <div style={{ width: '100%', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
         <colgroup>
-          <col style={{ width: '34%' }} />
-          <col style={{ width: '18%' }} />
-          <col style={{ width: '18%' }} />
-          <col style={{ width: '20%' }} />
-          <col style={{ width: '10%' }} />
+          <col style={{ width: '38%' }} />
+          <col style={{ width: '24%' }} />
+          <col style={{ width: '22%' }} />
+          <col style={{ width: '16%' }} />
         </colgroup>
         <thead>
           <tr style={{ background: 'var(--primary)' }}>
@@ -132,7 +130,6 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
             <SortTh label="釣果" field="count" active={sortField === 'count'} onSort={onSort} />
             <SortTh label="サイズ（cm）" field="size"  active={sortField === 'size'}  onSort={onSort} />
             <th style={{ ...thBase, paddingLeft: 20 }}>日付</th>
-            <th style={{ ...thBase, textAlign: 'center' }}>記事</th>
           </tr>
         </thead>
         <tbody>
@@ -175,9 +172,11 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
                   )}
                 </td>
 
-                {/* 釣果（複数魚種を「タチウオ 15尾 / アジ 20尾」形式で表示） */}
+                {/* 釣果（複数魚種は改行） */}
                 <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums', fontSize: 12 }}>
-                  {formatDetails(r.catch_details, r.count_min)}
+                  {formatDetailsLines(r.catch_details, r.count_min).map((line, i) => (
+                    <div key={i}>{line}</div>
+                  ))}
                 </td>
 
                 {/* サイズ（catch_details の size_text から取得） */}
@@ -188,18 +187,6 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
                 {/* 日付 */}
                 <td style={{ padding: '8px 12px', paddingLeft: 20, color: 'var(--text-sub)', fontSize: 12, whiteSpace: 'nowrap' }}>
                   {dateStr}
-                </td>
-
-                {/* 記事 */}
-                <td style={{ padding: '8px 12px', textAlign: 'center' }}>
-                  {r.source_url ? (
-                    <a href={r.source_url} target="_blank" rel="noopener noreferrer"
-                      style={{ fontSize: 14, color: '#3b82f6', textDecoration: 'none' }}>
-                      ↗
-                    </a>
-                  ) : (
-                    <span style={{ color: 'var(--border-strong)', fontSize: 12 }}>—</span>
-                  )}
                 </td>
               </tr>
             )

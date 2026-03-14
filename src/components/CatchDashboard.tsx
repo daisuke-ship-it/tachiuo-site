@@ -9,11 +9,11 @@ import CatchCards from './CatchCards'
 import CatchChart from './CatchChart'
 
 type Area = '東京湾' | '相模湾'
-type Tab  = '一覧' | '詳細' | 'グラフ'
+type Tab  = '一覧' | 'グラフ'
 // Period は 'yyyy-MM-dd' の日付文字列 or '直近7日' | '直近30日'
 
 const AREAS: Area[] = ['東京湾', '相模湾']
-const TABS:  Tab[]  = ['一覧', '詳細', 'グラフ']
+const TABS:  Tab[]  = ['一覧', 'グラフ']
 
 // 釣り方グループ ソート優先順位
 const METHOD_ORDER: Record<string, number> = {
@@ -465,11 +465,12 @@ export default function CatchDashboard({
       {/* ── 5. 釣果サマリーカード ────────────────────────────────── */}
       <SummaryCard records={filtered} envData={envData} period={period} />
 
-      {/* ── 6. 一覧 / 詳細 / グラフ タブ ────────────────────────── */}
+      {/* ── 6. 釣果一覧 / グラフ タブ ───────────────────────────── */}
       <div style={{
         background: 'var(--surface)', border: '1px solid var(--border)',
         borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden',
       }}>
+        {/* タブヘッダー */}
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           borderBottom: '1px solid var(--border)', padding: '0 16px', flexWrap: 'wrap', gap: 6,
@@ -488,15 +489,35 @@ export default function CatchDashboard({
               </button>
             ))}
           </div>
-          {tab !== 'グラフ' && (
+          {tab === '一覧' && (
             <span style={{ fontSize: 12, color: 'var(--text-muted)', paddingRight: 4 }}>
               {filtered.length}件
             </span>
           )}
         </div>
 
-        {tab === '一覧'  && <CatchTable records={filtered} sortField={sortField} onSort={setSortField} />}
-        {tab === '詳細'  && <CatchCards records={filtered} />}
+        {/* 一覧タブ: テーブル（上）+ 詳細カード（下） */}
+        {tab === '一覧' && (
+          <>
+            <CatchTable records={filtered} sortField={sortField} onSort={setSortField} />
+            {filtered.length > 0 && (
+              <>
+                <div style={{
+                  borderTop: '1px solid var(--border)',
+                  padding: '10px 16px 6px',
+                  background: 'var(--primary)',
+                }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                    詳細カード
+                  </p>
+                </div>
+                <CatchCards records={filtered} />
+              </>
+            )}
+          </>
+        )}
+
+        {/* グラフタブ */}
         {tab === 'グラフ' && (
           <div style={{ padding: '20px 22px' }}>
             <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 14 }}>
