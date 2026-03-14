@@ -275,19 +275,19 @@ function SummaryCard({ records, envData, period }: {
   const sizeMax = sizeNums.length > 0 ? Math.max(...sizeNums) : null
   const sizeRange =
     sizeMin !== null && sizeMax !== null && sizeMin !== sizeMax
-      ? `${sizeMin}〜${sizeMax}cm`
-      : sizeMax !== null ? `${sizeMax}cm`
+      ? `${sizeMin}〜${sizeMax}`
+      : sizeMax !== null ? `${sizeMax}`
       : '—'
 
   const weatherWord = envForPeriod?.weather ? envForPeriod.weather.split(' ')[0] : null
 
   const stats: { label: string; value: string; highlight?: boolean }[] = [
-    { label: '天気',     value: weatherWord ?? '—' },
-    { label: '潮汐',     value: envForPeriod?.tide_type ?? '—' },
-    { label: '出船数',   value: records.length > 0 ? `${shipyardCount}` : '—' },
-    { label: '平均釣果', value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
-    { label: '釣果',     value: catchRange },
-    { label: 'サイズ',   value: sizeRange },
+    { label: '天気',        value: weatherWord ?? '—' },
+    { label: '潮汐',        value: envForPeriod?.tide_type ?? '—' },
+    { label: '出船数',      value: records.length > 0 ? `${shipyardCount}` : '—' },
+    { label: '平均釣果',    value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
+    { label: '釣果',        value: catchRange },
+    { label: 'サイズ（cm）', value: sizeRange },
   ]
 
   return (

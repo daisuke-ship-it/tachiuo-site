@@ -72,9 +72,9 @@ function formatDetails(details: CatchDetail[], countMin: number | null): string 
 function formatSizeFromDetails(details: CatchDetail[]): string {
   const text = details.map((d) => d.size_text).find(Boolean)
   if (!text) return '—'
-  const stripped = text.replace(/\s*cm$/i, '').replace(/[~\-–〜]/g, '〜')
-  if (stripped.includes('〜')) return stripped
-  return `${stripped}〜${stripped}`
+  const stripped = text.replace(/\s*cm/gi, '').replace(/\s*センチ/g, '').replace(/[~\-–〜～]/g, '〜').trim()
+  if (!stripped) return '—'
+  return stripped  // 単値はそのまま、範囲は〜区切りで返す
 }
 
 function SortTh({ label, field, active, onSort }: {

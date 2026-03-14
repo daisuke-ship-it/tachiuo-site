@@ -48,9 +48,7 @@ function formatSize(min: number | null, max: number | null): string {
 }
 
 function normalizeSizeText(text: string): string {
-  const stripped = text.replace(/\s*cm$/i, '').replace(/[~\-–〜]/g, '〜')
-  if (stripped.includes('〜')) return stripped
-  return `${stripped}〜${stripped}`
+  return text.replace(/\s*cm/gi, '').replace(/\s*センチ/g, '').replace(/[~\-–〜～]/g, '〜').trim()
 }
 
 function formatDate(s: string | null): string {
