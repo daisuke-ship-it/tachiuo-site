@@ -8,6 +8,7 @@ type Props = {
   records: CatchRecord[]
   sortField: SortField
   onSort: (f: SortField) => void
+  sizeUnit?: 'cm' | 'kg'
 }
 
 // 釣り方グループ別 行背景色
@@ -71,9 +72,9 @@ function formatDetailsLines(details: CatchDetail[], countMin: number | null): st
 function formatSizeFromDetails(details: CatchDetail[]): string {
   const text = details.map((d) => d.size_text).find(Boolean)
   if (!text) return '—'
-  const stripped = text.replace(/\s*cm/gi, '').replace(/\s*センチ/g, '').replace(/[~\-–〜～]/g, '〜').trim()
+  const stripped = text.replace(/\s*cm/gi, '').replace(/\s*kg/gi, '').replace(/\s*センチ/g, '').replace(/[~\-–〜～]/g, '〜').trim()
   if (!stripped) return '—'
-  return stripped  // 単値はそのまま、範囲は〜区切りで返す
+  return stripped
 }
 
 function SortTh({ label, field, active, onSort }: {
@@ -102,7 +103,7 @@ const thBase: React.CSSProperties = {
   whiteSpace: 'nowrap',
 }
 
-export default function CatchTable({ records, sortField, onSort }: Props) {
+export default function CatchTable({ records, sortField, onSort, sizeUnit = 'cm' }: Props) {
   if (records.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)', fontSize: 14 }}>
@@ -128,7 +129,7 @@ export default function CatchTable({ records, sortField, onSort }: Props) {
           <tr style={{ background: 'var(--primary)' }}>
             <th style={thBase}>船宿</th>
             <SortTh label="釣果" field="count" active={sortField === 'count'} onSort={onSort} />
-            <SortTh label="サイズ（cm）" field="size"  active={sortField === 'size'}  onSort={onSort} />
+            <SortTh label={`サイズ（${sizeUnit}）`} field="size"  active={sortField === 'size'}  onSort={onSort} />
             <th style={{ ...thBase, paddingLeft: 20 }}>日付</th>
           </tr>
         </thead>

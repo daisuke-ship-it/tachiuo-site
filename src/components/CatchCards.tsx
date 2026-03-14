@@ -48,7 +48,7 @@ function formatSize(min: number | null, max: number | null): string {
 }
 
 function normalizeSizeText(text: string): string {
-  return text.replace(/\s*cm/gi, '').replace(/\s*センチ/g, '').replace(/[~\-–〜～]/g, '〜').trim()
+  return text.replace(/\s*cm/gi, '').replace(/\s*kg/gi, '').replace(/\s*センチ/g, '').replace(/[~\-–〜～]/g, '〜').trim()
 }
 
 function formatDate(s: string | null): string {

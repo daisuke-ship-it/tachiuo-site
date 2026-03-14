@@ -234,10 +234,11 @@ function AISummaryCard({ variant, label, text }: {
 }
 
 /* ── Summary card ────────────────────────────────────────────── */
-function SummaryCard({ records, envData, period }: {
+function SummaryCard({ records, envData, period, sizeUnit = 'cm' }: {
   records: CatchRecord[]   // pre-filtered (period + area + fish)
   envData: EnvDataMap
   period: string
+  sizeUnit?: 'cm' | 'kg'
 }) {
   const isDatePeriod = period !== '直近7日' && period !== '直近30日'
   const envForPeriod: EnvData | null = isDatePeriod ? (envData[period] ?? null) : null
@@ -261,12 +262,21 @@ function SummaryCard({ records, envData, period }: {
       : '—'
 
   // size_min_cm/max_cm（旧形式）または catch_details.size_text（新形式）からサイズを集計
+  // sizeUnit='kg' のとき: size_text に 'kg' を含む行のみ小数含む数値を抽出
+  // sizeUnit='cm' のとき: kg 表記の行を除外して cm ベースで集計
   const sizeNums = records.flatMap((r) => {
+    if (sizeUnit === 'kg') {
+      return r.catch_details.flatMap((d) => {
+        if (!d.size_text || !/kg/i.test(d.size_text)) return []
+        const nums = d.size_text.match(/\d+\.?\d*/g)
+        return nums ? nums.map(Number) : []
+      })
+    }
     if (r.size_min_cm !== null || r.size_max_cm !== null) {
       return [r.size_min_cm, r.size_max_cm].filter((v): v is number => v !== null)
     }
     return r.catch_details.flatMap((d) => {
-      if (!d.size_text) return []
+      if (!d.size_text || /kg/i.test(d.size_text)) return []
       const nums = d.size_text.replace(/センチ/g, '').match(/\d+/g)
       return nums ? nums.map(Number) : []
     })
@@ -287,7 +297,7 @@ function SummaryCard({ records, envData, period }: {
     { label: '出船数',      value: records.length > 0 ? `${shipyardCount}` : '—' },
     { label: '平均釣果',    value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
     { label: '釣果',        value: catchRange },
-    { label: 'サイズ（cm）', value: sizeRange },
+    { label: `サイズ（${sizeUnit}）`, value: sizeRange },
   ]
 
   return (
@@ -364,6 +374,8 @@ export default function CatchDashboard({
     }
     return r
   }, [areaFishFiltered, period, sortField])
+
+  const sizeUnit: 'cm' | 'kg' = fish === 'トラフグ' ? 'kg' : 'cm'
 
   // AI summary lookup
   const summaryDate    = getPeriodDate(period)
@@ -463,7 +475,7 @@ export default function CatchDashboard({
       )}
 
       {/* ── 5. 釣果サマリーカード ────────────────────────────────── */}
-      <SummaryCard records={filtered} envData={envData} period={period} />
+      <SummaryCard records={filtered} envData={envData} period={period} sizeUnit={sizeUnit} />
 
       {/* ── 6. 釣果一覧 / グラフ タブ ───────────────────────────── */}
       <div style={{
@@ -499,7 +511,7 @@ export default function CatchDashboard({
         {/* 一覧タブ: テーブル（上）+ 詳細カード（下） */}
         {tab === '一覧' && (
           <>
-            <CatchTable records={filtered} sortField={sortField} onSort={setSortField} />
+            <CatchTable records={filtered} sortField={sortField} onSort={setSortField} sizeUnit={sizeUnit} />
             {filtered.length > 0 && (
               <>
                 <div style={{
