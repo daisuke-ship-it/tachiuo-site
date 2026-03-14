@@ -514,15 +514,7 @@ export default function CatchDashboard({
             <CatchTable records={filtered} sortField={sortField} onSort={setSortField} sizeUnit={sizeUnit} />
             {filtered.length > 0 && (
               <>
-                <div style={{
-                  borderTop: '1px solid var(--border)',
-                  padding: '10px 16px 6px',
-                  background: 'var(--primary)',
-                }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                    詳細カード
-                  </p>
-                </div>
+                <div style={{ borderTop: '1px solid var(--border)' }} />
                 <CatchCards records={filtered} />
               </>
             )}
