@@ -265,20 +265,15 @@ function SummaryCard({ records, envData, period, sizeUnit = 'cm', fishAliases = 
     ? Math.round(catchVals.reduce((a, b) => a + b, 0) / catchVals.length * 10) / 10
     : null
 
-  const countMinVals = records.flatMap((r) => {
+  // 全レコードの count 値をフラットに収集し、全体の min〜max を求める
+  const allCounts = records.flatMap((r) => {
     const dc = detailCounts(r)
-    if (dc.length > 0) return [Math.min(...dc)]
-    if (!fishAliases && r.count_min !== null) return [r.count_min]
+    if (dc.length > 0) return dc
+    if (!fishAliases) return [r.count_min, r.count_max].filter((v): v is number => v !== null)
     return []
   })
-  const countMaxVals = records.flatMap((r) => {
-    const dc = detailCounts(r)
-    if (dc.length > 0) return [Math.max(...dc)]
-    if (!fishAliases && r.count_max !== null) return [r.count_max]
-    return []
-  })
-  const catchRangeMin = countMinVals.length > 0 ? Math.min(...countMinVals) : null
-  const catchRangeMax = countMaxVals.length > 0 ? Math.max(...countMaxVals) : null
+  const catchRangeMin = allCounts.length > 0 ? Math.min(...allCounts) : null
+  const catchRangeMax = allCounts.length > 0 ? Math.max(...allCounts) : null
   const catchRange =
     catchRangeMin !== null && catchRangeMax !== null && catchRangeMin !== catchRangeMax
       ? `${catchRangeMin}〜${catchRangeMax}`
