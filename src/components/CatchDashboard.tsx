@@ -395,7 +395,7 @@ export default function CatchDashboard({
           </div>
         </div>
         {areaSummary && (
-          <AISummaryCard variant="area" label="🤖 エリアの状況（AIサマリー）" text={areaSummary} />
+          <AISummaryCard variant="area" label="🤖 エリアの状況" text={areaSummary} />
         )}
       </div>
 
@@ -457,7 +457,7 @@ export default function CatchDashboard({
       {fish && fishSummary && (
         <AISummaryCard
           variant="fish"
-          label={`🤖 ${area ?? 'エリア'} × ${fish}の状況（AIサマリー）`}
+          label={`🤖 ${area ?? 'エリア'} × ${fish}の状況`}
           text={fishSummary}
         />
       )}
