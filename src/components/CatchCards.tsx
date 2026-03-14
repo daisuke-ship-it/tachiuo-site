@@ -48,7 +48,9 @@ function formatSize(min: number | null, max: number | null): string {
 }
 
 function normalizeSizeText(text: string): string {
-  return text.replace(/\s*cm/gi, '').replace(/\s*kg/gi, '').replace(/\s*センチ/g, '').replace(/[~\-–〜～]/g, '〜').trim()
+  const unit = /kg/i.test(text) ? 'kg' : 'cm'
+  const stripped = text.replace(/\s*cm/gi, '').replace(/\s*kg/gi, '').replace(/\s*センチ/g, '').replace(/[~\-–〜～]/g, '〜').trim()
+  return stripped ? stripped + unit : ''
 }
 
 function formatDate(s: string | null): string {
