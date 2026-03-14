@@ -234,24 +234,49 @@ function AISummaryCard({ variant, label, text }: {
 }
 
 /* ── Summary card ────────────────────────────────────────────── */
-function SummaryCard({ records, envData, period, sizeUnit = 'cm' }: {
+function SummaryCard({ records, envData, period, sizeUnit = 'cm', fishAliases = null }: {
   records: CatchRecord[]   // pre-filtered (period + area + fish)
   envData: EnvDataMap
   period: string
   sizeUnit?: 'cm' | 'kg'
+  fishAliases?: string[] | null
 }) {
   const isDatePeriod = period !== '直近7日' && period !== '直近30日'
   const envForPeriod: EnvData | null = isDatePeriod ? (envData[period] ?? null) : null
 
   const shipyardCount = new Set(records.map((r) => r.shipyard_name).filter(Boolean)).size
 
-  const catchVals = records.map((r) => r.count_max ?? r.count_min).filter((v): v is number => v !== null)
+  // fishAliases がある場合は catch_details を魚種で絞って集計
+  // ない場合はレコードの count_max/count_min をそのまま使用
+  function detailCounts(r: CatchRecord): number[] {
+    if (!fishAliases) return []
+    return r.catch_details
+      .filter((d) => d.count !== null && d.species_name && fishAliases.some((a) => d.species_name!.includes(a)))
+      .map((d) => d.count!)
+  }
+
+  const catchVals = records.flatMap((r) => {
+    const dc = detailCounts(r)
+    if (dc.length > 0) return [Math.max(...dc)]
+    if (!fishAliases) return (r.count_max ?? r.count_min) !== null ? [r.count_max ?? r.count_min!] : []
+    return []
+  })
   const catchAvg  = catchVals.length > 0
     ? Math.round(catchVals.reduce((a, b) => a + b, 0) / catchVals.length * 10) / 10
     : null
 
-  const countMinVals = records.map((r) => r.count_min).filter((v): v is number => v !== null)
-  const countMaxVals = records.map((r) => r.count_max).filter((v): v is number => v !== null)
+  const countMinVals = records.flatMap((r) => {
+    const dc = detailCounts(r)
+    if (dc.length > 0) return [Math.min(...dc)]
+    if (!fishAliases && r.count_min !== null) return [r.count_min]
+    return []
+  })
+  const countMaxVals = records.flatMap((r) => {
+    const dc = detailCounts(r)
+    if (dc.length > 0) return [Math.max(...dc)]
+    if (!fishAliases && r.count_max !== null) return [r.count_max]
+    return []
+  })
   const catchRangeMin = countMinVals.length > 0 ? Math.min(...countMinVals) : null
   const catchRangeMax = countMaxVals.length > 0 ? Math.max(...countMaxVals) : null
   const catchRange =
@@ -262,20 +287,24 @@ function SummaryCard({ records, envData, period, sizeUnit = 'cm' }: {
       : '—'
 
   // size_min_cm/max_cm（旧形式）または catch_details.size_text（新形式）からサイズを集計
-  // sizeUnit='kg' のとき: size_text に 'kg' を含む行のみ小数含む数値を抽出
-  // sizeUnit='cm' のとき: kg 表記の行を除外して cm ベースで集計
+  // fishAliases がある場合は該当魚種の details のみ対象
+  // sizeUnit='kg': size_text に 'kg' を含む行のみ小数含む数値を抽出
+  // sizeUnit='cm': kg 表記の行を除外して cm ベースで集計
   const sizeNums = records.flatMap((r) => {
+    const details = fishAliases
+      ? r.catch_details.filter((d) => d.species_name && fishAliases.some((a) => d.species_name!.includes(a)))
+      : r.catch_details
     if (sizeUnit === 'kg') {
-      return r.catch_details.flatMap((d) => {
+      return details.flatMap((d) => {
         if (!d.size_text || !/kg/i.test(d.size_text)) return []
         const nums = d.size_text.match(/\d+\.?\d*/g)
         return nums ? nums.map(Number) : []
       })
     }
-    if (r.size_min_cm !== null || r.size_max_cm !== null) {
+    if (!fishAliases && (r.size_min_cm !== null || r.size_max_cm !== null)) {
       return [r.size_min_cm, r.size_max_cm].filter((v): v is number => v !== null)
     }
-    return r.catch_details.flatMap((d) => {
+    return details.flatMap((d) => {
       if (!d.size_text || /kg/i.test(d.size_text)) return []
       const nums = d.size_text.replace(/センチ/g, '').match(/\d+/g)
       return nums ? nums.map(Number) : []
@@ -475,7 +504,7 @@ export default function CatchDashboard({
       )}
 
       {/* ── 5. 釣果サマリーカード ────────────────────────────────── */}
-      <SummaryCard records={filtered} envData={envData} period={period} sizeUnit={sizeUnit} />
+      <SummaryCard records={filtered} envData={envData} period={period} sizeUnit={sizeUnit} fishAliases={fish ? (speciesGroupMap[fish] ?? FISH_ALIASES[fish]) : null} />
 
       {/* ── 6. 釣果一覧 / グラフ タブ ───────────────────────────── */}
       <div style={{
