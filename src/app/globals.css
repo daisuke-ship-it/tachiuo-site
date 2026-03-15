@@ -1,40 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
 /* ─── Design Tokens ─────────────────────────────────────────── */
 :root {
   /* Brand */
   --primary:       #0A1A32;
-  --secondary:     #00F5FF;
-  --accent:        #00F5FF;
-  --accent-light:  rgba(0, 245, 255, 0.10);
-  --accent-mid:    rgba(0, 245, 255, 0.22);
-  --gold:          #00F5FF;
+  --secondary:     #00d4c8;
+  --accent:        #00d4c8;
+  --accent-light:  rgba(0, 212, 200, 0.10);
+  --accent-mid:    rgba(0, 212, 200, 0.22);
+  --accent-dim:    rgba(0, 212, 200, 0.15);
+  --gold:          #00d4c8;
+
+  /* Deep backgrounds */
+  --bg-deep:       #05080f;
+  --bg-surface:    #0a1628;
 
   /* Backgrounds */
-  --bg:            #050A18;
+  --bg:            #05080f;
   --surface:       rgba(255, 255, 255, 0.04);
   --surface-2:     rgba(255, 255, 255, 0.07);
   --surface-3:     rgba(255, 255, 255, 0.10);
 
+  /* Glass */
+  --glass-bg:      rgba(255, 255, 255, 0.04);
+  --glass-border:  rgba(255, 255, 255, 0.08);
+
   /* Text */
-  --text:          #F0F4FF;
-  --text-main:     #F0F4FF;
+  --text:          #f0f4ff;
+  --text-main:     #f0f4ff;
+  --text-primary:  #f0f4ff;
   --text-sub:      rgba(240, 244, 255, 0.65);
+  --text-secondary: #8899bb;
   --text-muted:    rgba(240, 244, 255, 0.40);
-  --text-inverse:  #050A18;
+  --text-dim:      #4a5a7a;
+  --text-inverse:  #05080f;
 
   /* Borders — extremely subtle (glass effect) */
   --border:        rgba(255, 255, 255, 0.07);
   --border-strong: rgba(255, 255, 255, 0.14);
-  --border-accent: rgba(0, 245, 255, 0.30);
+  --border-accent: rgba(0, 212, 200, 0.30);
 
   /* Shadows */
-  --shadow-xs: 0 1px 4px rgba(0, 0, 0, 0.40);
-  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.50);
-  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.55), 0 0 1px rgba(255,255,255,0.06);
-  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.65), 0 0 1px rgba(255,255,255,0.07);
+  --shadow-xs: 0 1px 4px rgba(0, 0, 0, 0.50);
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.55);
+  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.60), 0 0 1px rgba(255,255,255,0.06);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.70), 0 0 1px rgba(255,255,255,0.07);
 
-  /* Radii — 24px+ everywhere */
+  /* Radii */
   --radius-sm:   12px;
   --radius-md:   16px;
   --radius-lg:   24px;
@@ -42,7 +55,7 @@
   --radius-pill: 999px;
 
   /* Typography */
-  --font-serif: "Hiragino Mincho ProN", "Hiragino Mincho Pro", "YuMincho", "Yu Mincho", "游明朝", Georgia, serif;
+  --font-serif: "Noto Serif JP", "Hiragino Mincho ProN", "Hiragino Mincho Pro", "YuMincho", "Yu Mincho", "游明朝", Georgia, serif;
 }
 
 /* ─── Reset & Base ──────────────────────────────────────────── */
@@ -54,11 +67,11 @@ html {
 }
 
 body {
-  background: linear-gradient(180deg, #050A18 0%, #0A1A32 50%, #050A18 100%);
+  background: radial-gradient(ellipse at top, #0d1f3c 0%, #05080f 60%);
   background-attachment: fixed;
   min-height: 100vh;
   color: var(--text-main);
-  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.65;
@@ -79,11 +92,26 @@ a, button { transition: all 0.2s ease-out; }
 
 /* ─── Glass card utility ─────────────────────────────────────── */
 .glass {
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-md);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-md);
+  transition: transform 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 212, 200, 0.25);
+  box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 212, 200, 0.08);
 }
 
 /* ─── Serif heading utility ─────────────────────────────────── */
@@ -130,5 +158,5 @@ input[type="date"] {
 
 /* ─── Glow effect for accent elements ─────────────────────── */
 .accent-glow {
-  box-shadow: 0 0 12px rgba(0, 245, 255, 0.35);
+  box-shadow: 0 0 12px rgba(0, 212, 200, 0.35);
 }

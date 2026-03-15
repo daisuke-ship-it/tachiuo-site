@@ -12,17 +12,16 @@ type Props = {
 }
 
 // 釣り方グループ別 行背景色
-// ルアーは #1a1f2e(--surface)と同じになるため少し暗い青に
 const GROUP_ROW_BG: Record<string, string> = {
-  'ルアー': '#161c2d',
-  'テンヤ': '#131720',
-  'エサ':   '#131a10',
+  'ルアー': 'rgba(0,212,200,0.04)',
+  'テンヤ': 'rgba(74,222,128,0.04)',
+  'エサ':   'rgba(251,146,60,0.04)',
 }
-const GROUP_ROW_BG_DEFAULT = '#0f1117'
+const GROUP_ROW_BG_DEFAULT = 'transparent'
 
 // 釣り方グループ別 左ボーダー色
 const GROUP_BORDER: Record<string, string> = {
-  'ルアー': '#3b82f6',
+  'ルアー': '#00d4c8',
   'テンヤ': '#22c55e',
   'エサ':   '#f97316',
 }
@@ -96,7 +95,7 @@ function SortTh({ label, field, active, onSort }: {
       onClick={() => onSort(active ? null : field)}
       style={{
         padding: '10px 12px', textAlign: 'right',
-        color: active ? '#3b82f6' : 'rgba(255,255,255,0.55)',
+        color: active ? 'var(--accent)' : 'rgba(255,255,255,0.55)',
         fontWeight: 600, fontSize: 11, letterSpacing: '0.04em',
         cursor: 'pointer', whiteSpace: 'nowrap', userSelect: 'none',
         borderBottom: '1px solid rgba(255,255,255,0.07)',
@@ -136,7 +135,7 @@ export default function CatchTable({ records, sortField, onSort, sizeUnit = 'cm'
           <col style={{ width: '25%' }} />
         </colgroup>
         <thead>
-          <tr style={{ background: 'var(--primary)' }}>
+          <tr style={{ background: 'rgba(5,8,15,0.85)' }}>
             <th style={thBase}>船宿</th>
             <SortTh label="釣果" field="count" active={sortField === 'count'} onSort={onSort} />
             <SortTh label={`サイズ（${sizeUnit}）`} field="size"  active={sortField === 'size'}  onSort={onSort} />
@@ -161,7 +160,7 @@ export default function CatchTable({ records, sortField, onSort, sizeUnit = 'cm'
                   borderLeft: borderColor ? `2px solid ${borderColor}` : '2px solid transparent',
                   transition: 'background 0.1s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(59,130,246,0.07)')}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0,212,200,0.07)')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = rowBg)}
               >
                 {/* 船宿（便名・釣り方サブテキスト付き） */}
@@ -184,7 +183,7 @@ export default function CatchTable({ records, sortField, onSort, sizeUnit = 'cm'
                 </td>
 
                 {/* 釣果（複数魚種は改行） */}
-                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums', fontSize: 12 }}>
+                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: 'var(--accent)', fontVariantNumeric: 'tabular-nums', fontSize: 12 }}>
                   {formatDetailsLines(r.catch_details, r.count_min).map((line, i) => (
                     <div key={i}>{line}</div>
                   ))}

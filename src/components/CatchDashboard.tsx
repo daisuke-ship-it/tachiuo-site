@@ -181,7 +181,7 @@ function FilterPill({
         cursor: disabled ? 'not-allowed' : 'pointer',
         border: active ? '1.5px solid var(--accent)' : '1px solid var(--border)',
         background: disabled ? 'var(--surface-2)' : active ? 'var(--accent-light)' : 'transparent',
-        color: disabled ? 'var(--text-muted)' : active ? '#93c5fd' : 'var(--text-sub)',
+        color: disabled ? 'var(--text-muted)' : active ? 'var(--accent)' : 'var(--text-sub)',
         transition: 'all 0.15s',
         whiteSpace: 'nowrap' as const,
         opacity: disabled ? 0.5 : 1,
@@ -206,10 +206,10 @@ function AISummaryCard({ variant, label, text }: {
   variant: 'area' | 'fish'; label: string; text: string
 }) {
   const isArea    = variant === 'area'
-  const bg        = isArea ? '#1a1f2e' : '#0f1a2e'
-  const leftColor = isArea ? '#3b82f6' : '#d4a017'
-  const sideColor = isArea ? 'rgba(59,130,246,0.25)' : 'rgba(212,160,23,0.25)'
-  const textColor = isArea ? '#93c5fd' : '#bfdbfe'
+  const bg        = 'rgba(0,212,200,0.05)'
+  const leftColor = 'var(--accent)'
+  const sideColor = 'rgba(0,212,200,0.20)'
+  const textColor = isArea ? '#7ee8e4' : '#a0efec'
 
   return (
     <div style={{
@@ -359,13 +359,13 @@ function SummaryCard({ records, envData, period, sizeUnit = 'cm', fishAliases = 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
         {stats.map(({ label, value, highlight }) => (
           <div key={label} style={{
-            background: highlight ? 'rgba(59,130,246,0.12)' : 'var(--surface-2)',
-            border: `1px solid ${highlight ? 'rgba(59,130,246,0.35)' : 'var(--border)'}`,
+            background: highlight ? 'rgba(0,212,200,0.12)' : 'var(--surface-2)',
+            border: `1px solid ${highlight ? 'rgba(0,212,200,0.35)' : 'var(--border)'}`,
             borderRadius: 6, padding: '6px 8px',
             display: 'flex', flexDirection: 'column', gap: 2,
           }}>
             <p style={{ fontSize: 9, color: 'var(--text-muted)', lineHeight: 1 }}>{label}</p>
-            <p style={{ fontSize: 15, fontWeight: 700, color: highlight ? '#93c5fd' : 'var(--text-main)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: highlight ? 'var(--accent)' : 'var(--text-main)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
               {value}
             </p>
           </div>
@@ -538,7 +538,7 @@ export default function CatchDashboard({
               <button key={t} onClick={() => setTab(t)} style={{
                 padding: '12px 16px', fontSize: 13,
                 fontWeight: tab === t ? 600 : 400, cursor: 'pointer', border: 'none',
-                borderBottom: tab === t ? '2px solid #3b82f6' : '2px solid transparent',
+                borderBottom: tab === t ? '2px solid var(--accent)' : '2px solid transparent',
                 background: 'transparent',
                 color: tab === t ? '#e2e8f0' : 'var(--text-sub)',
                 transition: 'all 0.15s', whiteSpace: 'nowrap',

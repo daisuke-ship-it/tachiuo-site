@@ -87,7 +87,7 @@ function FilterPill({
         fontWeight: active ? 600 : 400, cursor: disabled ? 'not-allowed' : 'pointer',
         border: active ? '1.5px solid var(--accent)' : '1px solid var(--border)',
         background: disabled ? 'var(--surface-2)' : active ? 'var(--accent-light)' : 'transparent',
-        color: disabled ? 'var(--text-muted)' : active ? '#93c5fd' : 'var(--text-sub)',
+        color: disabled ? 'var(--text-muted)' : active ? 'var(--accent)' : 'var(--text-sub)',
         transition: 'all 0.15s', whiteSpace: 'nowrap' as const, opacity: disabled ? 0.5 : 1, flexShrink: 0,
       }}
     >
@@ -107,17 +107,17 @@ function FilterLabel({ text }: { text: string }) {
 function AISummaryCard({ text, fishName }: { text: string; fishName: string }) {
   return (
     <div style={{
-      background: '#1a1500',
-      borderLeft: '4px solid #d4a017',
-      borderRight: '1px solid rgba(212,160,23,0.2)',
-      borderTop: '1px solid rgba(212,160,23,0.2)',
-      borderBottom: '1px solid rgba(212,160,23,0.2)',
+      background: 'rgba(0,212,200,0.05)',
+      borderLeft: '4px solid var(--accent)',
+      borderRight: '1px solid rgba(0,212,200,0.20)',
+      borderTop: '1px solid rgba(0,212,200,0.20)',
+      borderBottom: '1px solid rgba(0,212,200,0.20)',
       borderRadius: 8, padding: '10px 14px',
     }}>
-      <p style={{ fontSize: 10, fontWeight: 700, color: '#d4a017', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 5, opacity: 0.8 }}>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 5, opacity: 0.8 }}>
         🤖 {fishName}の釣況（AIサマリー）
       </p>
-      <p style={{ fontSize: 13, color: '#fef3c7', lineHeight: 1.6, margin: 0 }}>
+      <p style={{ fontSize: 13, color: '#a0efec', lineHeight: 1.6, margin: 0 }}>
         {text}
       </p>
     </div>
@@ -162,13 +162,13 @@ function StatsCard({ records, envData, period }: {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
         {stats.map(({ label, value, highlight }) => (
           <div key={label} style={{
-            background: highlight ? 'rgba(59,130,246,0.12)' : 'var(--surface-2)',
-            border: `1px solid ${highlight ? 'rgba(59,130,246,0.35)' : 'var(--border)'}`,
+            background: highlight ? 'rgba(0,212,200,0.12)' : 'var(--surface-2)',
+            border: `1px solid ${highlight ? 'rgba(0,212,200,0.35)' : 'var(--border)'}`,
             borderRadius: 6, padding: '6px 8px',
             display: 'flex', flexDirection: 'column', gap: 2,
           }}>
             <p style={{ fontSize: 9, color: 'var(--text-muted)', lineHeight: 1 }}>{label}</p>
-            <p style={{ fontSize: 15, fontWeight: 700, color: highlight ? '#93c5fd' : 'var(--text-main)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: highlight ? 'var(--accent)' : 'var(--text-main)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
               {value}
             </p>
           </div>
