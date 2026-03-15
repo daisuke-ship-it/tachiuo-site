@@ -144,14 +144,13 @@ export default function CatchCards({ records }: Props) {
               return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {agg.map(({ name, min, max, unit, size_text }) => {
-                  const lo = r.count_min ?? max
                   return (
                   <div key={name} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                     <span style={{ fontSize: 12, color: '#94a3b8', minWidth: 56, flexShrink: 0 }}>
                       {name}
                     </span>
                     <span style={{ fontSize: 15, fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums' }}>
-                      {`${lo}〜${max}`}
+                      {min === max ? `${max}` : `${min}〜${max}`}
                     </span>
                     {size_text && (
                       <span style={{ fontSize: 14, fontWeight: 500, color: '#e2e8f0', fontVariantNumeric: 'tabular-nums' }}>
