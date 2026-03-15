@@ -179,8 +179,7 @@ export default async function Home() {
       {/* ── Hero ────────────────────────────────────────────────── */}
       <div style={{
         background: 'var(--primary)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        paddingTop: 24, paddingBottom: 28,
+        paddingTop: 40, paddingBottom: 44,
       }}>
         <div className="page-container">
           <div style={{ marginBottom: 6 }}>
@@ -190,7 +189,8 @@ export default async function Home() {
           </div>
           <h1 style={{
             fontSize: 'clamp(18px, 3.5vw, 26px)', fontWeight: 700, color: 'white',
-            letterSpacing: '-0.02em', lineHeight: 1.25, marginBottom: 6,
+            letterSpacing: '0.04em', lineHeight: 1.25, marginBottom: 6,
+            fontFamily: 'var(--font-serif)',
           }}>
             関東圏の船釣り釣果まとめ
           </h1>
@@ -201,14 +201,14 @@ export default async function Home() {
       </div>
 
       {/* ── Main ─────────────────────────────────────────────────── */}
-      <main style={{ padding: '28px 0 80px' }}>
+      <main style={{ padding: '40px 0 100px' }}>
         <div className="page-container">
 
           {/* エリアカード 2×2グリッド */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: 16,
+            gap: 20,
             marginBottom: 40,
           }}>
             {statsWithSummary.map((stat) => (
@@ -248,7 +248,7 @@ export default async function Home() {
       </main>
 
       {/* ── Footer ─────────────────────────────────────────────── */}
-      <footer style={{ borderTop: '1px solid var(--border)', background: 'var(--surface)', padding: '22px 0' }}>
+      <footer style={{ borderTop: '1px solid var(--border)', background: 'var(--surface)', padding: '32px 0' }}>
         <div className="page-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             © {new Date().getFullYear()} 釣果情報.com — 関東圏 船釣り釣果情報
@@ -273,13 +273,15 @@ function AreaCard({ stat }: { stat: AreaStat }) {
         background: 'var(--surface)',
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-lg)',
-        padding: '20px',
+        padding: '24px',
         cursor: 'pointer',
         transition: 'border-color 0.15s',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
         gap: 0,
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
       }}>
         {/* エリア名 + 説明 */}
         <div style={{ marginBottom: 14 }}>
@@ -330,8 +332,8 @@ function AreaCard({ stat }: { stat: AreaStat }) {
             {/* AIサマリー */}
             {aiSummary && (
               <div style={{
-                background: '#0f1a2e',
-                border: '1px solid #2d3748',
+                background: 'rgba(0,245,255,0.03)',
+                border: '1px solid rgba(0,245,255,0.10)',
                 borderRadius: 6,
                 padding: '8px 10px',
                 marginBottom: 14,

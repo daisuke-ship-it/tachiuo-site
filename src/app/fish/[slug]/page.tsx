@@ -223,7 +223,7 @@ export default async function FishPage({ params }: { params: PageParams }) {
       <SiteHeader updatedAt={nowStr} subtitle="東京湾 · 相模湾" />
 
       {/* ── Hero + 魚種タブ ──────────────────────────────── */}
-      <div style={{ background: 'var(--primary)', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingTop: 20, paddingBottom: 24 }}>
+      <div style={{ background: 'var(--primary)', paddingTop: 40, paddingBottom: 44 }}>
         <div className="page-container">
 
           {/* パンくずナビ */}
@@ -238,7 +238,7 @@ export default async function FishPage({ params }: { params: PageParams }) {
               FISHING REPORT — DAILY UPDATE
             </span>
           </div>
-          <h1 style={{ fontSize: 'clamp(16px, 3vw, 24px)', fontWeight: 700, color: 'white', letterSpacing: '-0.02em', lineHeight: 1.25, marginBottom: 6 }}>
+          <h1 style={{ fontSize: 'clamp(16px, 3vw, 24px)', fontWeight: 700, color: 'white', fontFamily: 'var(--font-serif)', letterSpacing: '0.04em', lineHeight: 1.25, marginBottom: 6 }}>
             東京湾 {content.name}釣果まとめ
           </h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', maxWidth: 480, lineHeight: 1.6 }}>
@@ -273,7 +273,7 @@ export default async function FishPage({ params }: { params: PageParams }) {
       </div>
 
       {/* ── Main ─────────────────────────────────────────── */}
-      <main style={{ padding: '24px 0 80px' }}>
+      <main style={{ padding: '40px 0 100px' }}>
         <div className="page-container">
           <FishDashboard
             records={records}
@@ -287,7 +287,7 @@ export default async function FishPage({ params }: { params: PageParams }) {
       </main>
 
       {/* ── Footer ───────────────────────────────────────── */}
-      <footer style={{ borderTop: '1px solid var(--border)', background: 'var(--surface)', padding: '22px 0' }}>
+      <footer style={{ borderTop: '1px solid var(--border)', background: 'var(--surface)', padding: '32px 0' }}>
         <div className="page-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             © {new Date().getFullYear()} 釣果情報.com — 東京湾・相模湾 船釣り釣果情報

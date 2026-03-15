@@ -3,29 +3,28 @@
 import { CatchRecord, CatchDetail } from '@/lib/supabase'
 
 /* ── Badge definitions ─────────────────────────────────────── */
-const AREA_STYLE   = { bg: '#1a2744', color: '#93c5fd' }
-const PORT_STYLE   = { bg: '#1a2744', color: '#7dd3fc' }
-const FISH_STYLE   = { bg: 'rgba(30,58,95,0.7)', color: '#93c5fd' }
+const AREA_STYLE   = { bg: 'rgba(0,245,255,0.08)',   color: 'rgba(0,245,255,0.9)' }
+const FISH_STYLE   = { bg: 'rgba(0,245,255,0.06)',   color: 'rgba(0,245,255,0.75)' }
 
 const METHOD_STYLE: Record<string, { bg: string; color: string }> = {
-  'テンヤ':   { bg: 'rgba(20,83,45,0.6)',  color: '#86efac' },
-  'ルアー':   { bg: 'rgba(30,58,95,0.6)',  color: '#93c5fd' },
-  'ジギング': { bg: 'rgba(30,58,95,0.6)',  color: '#93c5fd' },
-  '餌':       { bg: 'rgba(67,20,7,0.6)',   color: '#fdba74' },
-  'エサ':     { bg: 'rgba(67,20,7,0.6)',   color: '#fdba74' },
-  'テンビン': { bg: 'rgba(67,20,7,0.6)',   color: '#fdba74' },
-  '天秤':     { bg: 'rgba(67,20,7,0.6)',   color: '#fdba74' },
+  'テンヤ':   { bg: 'rgba(74,222,128,0.08)',  color: '#4ade80' },
+  'ルアー':   { bg: 'rgba(0,245,255,0.08)',   color: '#00F5FF' },
+  'ジギング': { bg: 'rgba(0,245,255,0.08)',   color: '#00F5FF' },
+  '餌':       { bg: 'rgba(251,146,60,0.08)',  color: '#fb923c' },
+  'エサ':     { bg: 'rgba(251,146,60,0.08)',  color: '#fb923c' },
+  'テンビン': { bg: 'rgba(251,146,60,0.08)',  color: '#fb923c' },
+  '天秤':     { bg: 'rgba(251,146,60,0.08)',  color: '#fb923c' },
 }
-const METHOD_DEFAULT = { bg: 'rgba(45,55,72,0.6)', color: '#94a3b8' }
+const METHOD_DEFAULT = { bg: 'rgba(255,255,255,0.06)', color: 'rgba(240,244,255,0.45)' }
 
 function Badge({ label, bg, color }: { label: string; bg: string; color: string }) {
   return (
     <span style={{
-      padding: '2px 8px', fontSize: 10, fontWeight: 600,
+      padding: '3px 10px', fontSize: 10, fontWeight: 600,
       borderRadius: 'var(--radius-pill)',
       background: bg, color,
       whiteSpace: 'nowrap',
-      border: `1px solid ${color}22`,
+      letterSpacing: '0.04em',
     }}>
       {label}
     </span>
@@ -64,7 +63,7 @@ type Props = { records: CatchRecord[] }
 export default function CatchCards({ records }: Props) {
   if (records.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)', fontSize: 14 }}>
+      <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--text-muted)', fontSize: 14 }}>
         <p style={{ fontSize: 28, marginBottom: 8 }}>🎣</p>
         条件に一致するデータがありません
       </div>
@@ -74,9 +73,9 @@ export default function CatchCards({ records }: Props) {
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-      gap: 12,
-      padding: 16,
+      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+      gap: 16,
+      padding: '4px 0',
     }}>
       {records.map((r) => {
         const methodStyle = r.fishing_method
@@ -88,31 +87,34 @@ export default function CatchCards({ records }: Props) {
 
         return (
           <div key={r.id} style={{
-            background: 'var(--surface-2)',
+            background: 'var(--surface)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '14px 16px',
+            boxShadow: 'var(--shadow-md)',
+            padding: '20px 20px 16px',
             display: 'flex', flexDirection: 'column', gap: 0,
           }}>
             {/* Header: 船宿名 + 日付 */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
               <div style={{ flex: 1, marginRight: 8 }}>
-                <p style={{ fontWeight: 700, fontSize: 14, color: '#e2e8f0', lineHeight: 1.3 }}>
+                <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-main)', lineHeight: 1.3, letterSpacing: '0.02em' }}>
                   {r.shipyard_name ?? '—'}
                 </p>
                 {r.boat_name && (
-                  <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3, letterSpacing: '0.02em' }}>
                     {r.boat_name}
                   </p>
                 )}
               </div>
-              <span style={{ fontSize: 11, color: '#64748b', flexShrink: 0, paddingTop: 1 }}>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0, paddingTop: 1, letterSpacing: '0.03em' }}>
                 {formatDate(r.date)}
               </span>
             </div>
 
-            {/* Badges: エリア → 港 → 魚種 → 釣り方 */}
-            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 12 }}>
+            {/* Badges */}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
               {r.shipyard_area && (
                 <Badge label={r.port_name ? `${r.shipyard_area}　${r.port_name}` : r.shipyard_area} bg={AREA_STYLE.bg} color={AREA_STYLE.color} />
               )}
@@ -125,11 +127,10 @@ export default function CatchCards({ records }: Props) {
             </div>
 
             {/* Divider */}
-            <div style={{ height: 1, background: 'var(--border)', marginBottom: 12 }} />
+            <div style={{ height: 1, background: 'var(--border)', marginBottom: 16 }} />
 
             {/* Stats */}
             {r.catch_details.length > 0 ? (() => {
-              // species_name でグループ集計
               const map = new Map<string, { min: number; max: number; unit: string; size_text: string | null }>()
               for (const d of r.catch_details) {
                 if (d.count === null) continue
@@ -142,37 +143,35 @@ export default function CatchCards({ records }: Props) {
               }
               const agg = [...map.entries()].map(([name, v]) => ({ name, ...v }))
               return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {agg.map(({ name, min, max, unit, size_text }) => {
-                  return (
-                  <div key={name} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                    <span style={{ fontSize: 12, color: '#94a3b8', minWidth: 56, flexShrink: 0 }}>
-                      {name}
-                    </span>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums' }}>
-                      {min === max ? `${max}` : `${min}〜${max}`}
-                    </span>
-                    {size_text && (
-                      <span style={{ fontSize: 14, fontWeight: 500, color: '#e2e8f0', fontVariantNumeric: 'tabular-nums' }}>
-                        {normalizeSizeText(size_text)}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {agg.map(({ name, min, max, unit, size_text }) => (
+                    <div key={name} style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)', minWidth: 56, flexShrink: 0, letterSpacing: '0.02em' }}>
+                        {name}
                       </span>
-                    )}
-                  </div>
-                  )
-                })}
-              </div>
+                      <span style={{ fontSize: 16, fontWeight: 700, color: '#00F5FF', fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>
+                        {min === max ? `${max}` : `${min}〜${max}`}
+                      </span>
+                      {size_text && (
+                        <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-sub)', fontVariantNumeric: 'tabular-nums' }}>
+                          {normalizeSizeText(size_text)}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )
             })() : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                  <span style={{ fontSize: 11, color: '#64748b', minWidth: 44 }}>釣果</span>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#93c5fd', fontVariantNumeric: 'tabular-nums' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)', minWidth: 44, letterSpacing: '0.02em' }}>釣果</span>
+                  <span style={{ fontSize: 17, fontWeight: 700, color: '#00F5FF', fontVariantNumeric: 'tabular-nums' }}>
                     {formatCatch(r.count_min, r.count_max)}
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                  <span style={{ fontSize: 11, color: '#64748b', minWidth: 44 }}>サイズ</span>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: '#e2e8f0', fontVariantNumeric: 'tabular-nums' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)', minWidth: 44, letterSpacing: '0.02em' }}>サイズ</span>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-sub)', fontVariantNumeric: 'tabular-nums' }}>
                     {formatSize(r.size_min_cm, r.size_max_cm)}
                   </span>
                 </div>
@@ -182,14 +181,14 @@ export default function CatchCards({ records }: Props) {
             {/* 船長コメント */}
             {condText && (
               <div style={{
-                marginTop: 12,
-                background: '#0f1a2e',
-                border: '1px solid #2d3748',
-                borderRadius: 6,
-                padding: '8px 10px',
+                marginTop: 16,
+                background: 'rgba(0,245,255,0.04)',
+                border: '1px solid rgba(0,245,255,0.12)',
+                borderRadius: 'var(--radius-md)',
+                padding: '10px 12px',
               }}>
-                <p style={{ fontSize: 10, color: '#64748b', marginBottom: 4 }}>💬 船長コメント</p>
-                <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.55 }}>
+                <p style={{ fontSize: 10, color: 'rgba(0,245,255,0.5)', marginBottom: 5, letterSpacing: '0.06em' }}>💬 船長コメント</p>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.65 }}>
                   {condText}
                 </p>
               </div>
@@ -198,7 +197,7 @@ export default function CatchCards({ records }: Props) {
             {/* 記事リンク */}
             {r.source_url && (
               <a href={r.source_url} target="_blank" rel="noopener noreferrer"
-                style={{ display: 'block', textAlign: 'right', fontSize: 11, color: '#3b82f6', marginTop: 10 }}>
+                style={{ display: 'block', textAlign: 'right', fontSize: 11, color: 'rgba(0,245,255,0.7)', marginTop: 14, letterSpacing: '0.03em' }}>
                 記事を見る ↗
               </a>
             )}

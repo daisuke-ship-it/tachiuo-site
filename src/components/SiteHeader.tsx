@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
+import { Home, Map, Fish, TrendingUp, Anchor, ChevronDown, Circle } from 'lucide-react'
 
 const AREAS = [
   { label: '東京湾', href: '/area/tokyo' },
@@ -30,12 +31,13 @@ function NavLink({ href, active, children }: { href: string; active: boolean; ch
       href={href}
       style={{
         fontSize: 13,
-        fontWeight: active ? 700 : 400,
-        color: active ? 'white' : 'rgba(255,255,255,0.6)',
-        padding: '5px 10px',
-        borderRadius: 'var(--radius-sm)',
-        background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+        fontWeight: active ? 600 : 400,
+        color: active ? '#00F5FF' : 'rgba(240,244,255,0.55)',
+        padding: '6px 12px',
+        borderRadius: 'var(--radius-pill)',
+        background: active ? 'rgba(0,245,255,0.08)' : 'transparent',
         whiteSpace: 'nowrap',
+        letterSpacing: '0.02em',
       }}
     >
       {children}
@@ -58,43 +60,44 @@ function DropdownNav({
       <div style={{
         display: 'flex', alignItems: 'center', gap: 3,
         fontSize: 13,
-        fontWeight: active ? 700 : 400,
-        color: active ? 'white' : 'rgba(255,255,255,0.6)',
-        padding: '5px 10px',
-        borderRadius: 'var(--radius-sm)',
-        background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+        fontWeight: active ? 600 : 400,
+        color: active ? '#00F5FF' : 'rgba(240,244,255,0.55)',
+        padding: '6px 12px',
+        borderRadius: 'var(--radius-pill)',
+        background: active ? 'rgba(0,245,255,0.08)' : 'transparent',
         cursor: 'default',
         whiteSpace: 'nowrap',
+        letterSpacing: '0.02em',
       }}>
         {label}
-        <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
-          <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <ChevronDown size={12} strokeWidth={1.5} style={{ opacity: 0.6 }} />
       </div>
       {open && (
         <div style={{
           position: 'absolute',
-          top: 'calc(100% + 4px)',
+          top: 'calc(100% + 8px)',
           left: 0,
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
+          background: 'rgba(10, 26, 50, 0.92)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.10)',
           borderRadius: 'var(--radius-md)',
           overflow: 'hidden',
-          minWidth: 110,
-          boxShadow: 'var(--shadow-md)',
+          minWidth: 120,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
           zIndex: 200,
         }}>
-          {items.map((item, i) => (
+          {items.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={onClose}
               style={{
                 display: 'block',
-                padding: '9px 16px',
+                padding: '10px 18px',
                 fontSize: 13,
-                color: 'var(--text-main)',
-                borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none',
+                color: 'rgba(240,244,255,0.8)',
+                letterSpacing: '0.02em',
               }}
             >
               {item.label}
@@ -113,37 +116,49 @@ export default function SiteHeader({ updatedAt, subtitle = '関東圏' }: Props)
   return (
     <header style={{
       position: 'sticky', top: 0, zIndex: 100,
-      background: 'var(--primary)',
-      boxShadow: '0 2px 12px rgba(15,39,71,0.25)',
+      background: 'rgba(5, 10, 24, 0.80)',
+      backdropFilter: 'blur(24px)',
+      WebkitBackdropFilter: 'blur(24px)',
+      borderBottom: '1px solid rgba(255,255,255,0.06)',
+      boxShadow: '0 4px 32px rgba(0,0,0,0.4)',
     }}>
-      <div className="page-container" style={{ display: 'flex', alignItems: 'center', height: 58, gap: 16 }}>
+      <div className="page-container" style={{ display: 'flex', alignItems: 'center', height: 62, gap: 20 }}>
 
         {/* Logo */}
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
           <div style={{
-            width: 34, height: 34, borderRadius: 8,
-            background: 'var(--accent)',
+            width: 36, height: 36, borderRadius: 'var(--radius-md)',
+            background: 'linear-gradient(135deg, rgba(0,245,255,0.2) 0%, rgba(0,245,255,0.08) 100%)',
+            border: '1px solid rgba(0,245,255,0.35)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            boxShadow: '0 0 16px rgba(0,245,255,0.20)',
           }}>
             <svg width="20" height="20" viewBox="0 0 32 20" fill="none">
-              <path d="M4 10 L10 3 L10 17 Z" fill="white" opacity="0.85" />
-              <ellipse cx="19" cy="10" rx="11" ry="7" fill="white" opacity="0.92" />
-              <path d="M14 3 Q19 1 24 4 L22 7 Q19 5 14 7 Z" fill="white" opacity="0.5" />
-              <circle cx="27" cy="9" r="1.5" fill="var(--accent)" />
-              <circle cx="27.5" cy="8.5" r="0.4" fill="rgba(255,255,255,0.7)" />
+              <path d="M4 10 L10 3 L10 17 Z" fill="#00F5FF" opacity="0.9" />
+              <ellipse cx="19" cy="10" rx="11" ry="7" fill="#00F5FF" opacity="0.85" />
+              <path d="M14 3 Q19 1 24 4 L22 7 Q19 5 14 7 Z" fill="white" opacity="0.4" />
+              <circle cx="27" cy="9" r="1.5" fill="white" />
             </svg>
           </div>
           <div>
-            <span style={{ fontSize: 19, fontWeight: 800, color: 'white', letterSpacing: '-0.01em' }}>
-              釣果情報<span style={{ color: 'var(--accent)' }}>.com</span>
+            <span style={{
+              fontSize: 18, fontWeight: 700, color: 'white',
+              letterSpacing: '0.04em',
+              fontFamily: 'var(--font-serif)',
+            }}>
+              釣果情報<span style={{ color: '#00F5FF' }}>.com</span>
             </span>
-            <span style={{ display: 'block', fontSize: 10, color: 'rgba(255,255,255,0.45)', lineHeight: 1, marginTop: 1, letterSpacing: '0.04em' }}>
+            <span style={{
+              display: 'block', fontSize: 10,
+              color: 'rgba(240,244,255,0.35)', lineHeight: 1, marginTop: 2,
+              letterSpacing: '0.08em',
+            }}>
               {subtitle}
             </span>
           </div>
         </Link>
 
-        {/* PC Nav: hidden on mobile, flex on md+ */}
+        {/* PC Nav */}
         <nav className="hidden md:flex" style={{ alignItems: 'center', gap: 2 }}>
           <NavLink href="/" active={pathname === '/'}>ホーム</NavLink>
           <DropdownNav
@@ -166,10 +181,19 @@ export default function SiteHeader({ updatedAt, subtitle = '関東圏' }: Props)
           <NavLink href="/analysis" active={pathname.startsWith('/analysis')}>分析</NavLink>
         </nav>
 
-        {/* Updated at: auto margin pushes it to the right */}
+        {/* Updated at */}
         {updatedAt && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.45)', marginLeft: 'auto', flexShrink: 0 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block', boxShadow: '0 0 6px var(--accent)' }} />
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            fontSize: 11, color: 'rgba(240,244,255,0.35)',
+            marginLeft: 'auto', flexShrink: 0,
+            letterSpacing: '0.03em',
+          }}>
+            <span style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: '#00F5FF', display: 'inline-block',
+              boxShadow: '0 0 8px rgba(0,245,255,0.8)',
+            }} />
             <span>更新: {updatedAt}</span>
           </div>
         )}

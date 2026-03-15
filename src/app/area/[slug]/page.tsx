@@ -246,8 +246,7 @@ export default async function AreaPage({ params }: { params: PageParams }) {
       {/* ── Hero ────────────────────────────────────────────────── */}
       <div style={{
         background: 'var(--primary)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        paddingTop: 20, paddingBottom: 24,
+        paddingTop: 40, paddingBottom: 44,
       }}>
         <div className="page-container">
 
@@ -263,7 +262,7 @@ export default async function AreaPage({ params }: { params: PageParams }) {
               FISHING REPORT — DAILY UPDATE
             </span>
           </div>
-          <h1 style={{ fontSize: 'clamp(18px, 3.5vw, 26px)', fontWeight: 700, color: 'white', letterSpacing: '-0.02em', lineHeight: 1.25, marginBottom: 6 }}>
+          <h1 style={{ fontSize: 'clamp(18px, 3.5vw, 26px)', fontWeight: 700, color: 'white', fontFamily: 'var(--font-serif)', letterSpacing: '0.04em', lineHeight: 1.25, marginBottom: 6 }}>
             {config.name}の船釣り釣果まとめ
           </h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', maxWidth: 480, lineHeight: 1.6 }}>
@@ -297,7 +296,7 @@ export default async function AreaPage({ params }: { params: PageParams }) {
       </div>
 
       {/* ── Main ─────────────────────────────────────────────────── */}
-      <main style={{ padding: '24px 0 80px' }}>
+      <main style={{ padding: '40px 0 100px' }}>
         <div className="page-container">
           {records.length === 0 ? (
             <div style={{
@@ -324,7 +323,7 @@ export default async function AreaPage({ params }: { params: PageParams }) {
       </main>
 
       {/* ── Footer ─────────────────────────────────────────────── */}
-      <footer style={{ borderTop: '1px solid var(--border)', background: 'var(--surface)', padding: '22px 0' }}>
+      <footer style={{ borderTop: '1px solid var(--border)', background: 'var(--surface)', padding: '32px 0' }}>
         <div className="page-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             © {new Date().getFullYear()} 釣果情報.com — {config.name} 船釣り釣果情報

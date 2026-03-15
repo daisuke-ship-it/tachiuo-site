@@ -3,12 +3,18 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
+import { Home, MapPin, Fish, BarChart2, MoreHorizontal, Anchor, Mail, X } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { label: 'ホーム', icon: '🏠', href: '/',             match: (p: string) => p === '/' },
-  { label: 'エリア', icon: '🗺',  href: '/area/tokyo',   match: (p: string) => p.startsWith('/area') },
-  { label: '魚種',   icon: '🐟', href: '/fish/tachiuo',  match: (p: string) => p.startsWith('/fish') },
-  { label: '分析',   icon: '📊', href: '/analysis',      match: (p: string) => p.startsWith('/analysis') },
+  { label: 'ホーム', Icon: Home,     href: '/',            match: (p: string) => p === '/' },
+  { label: 'エリア', Icon: MapPin,   href: '/area/tokyo',  match: (p: string) => p.startsWith('/area') },
+  { label: '魚種',   Icon: Fish,     href: '/fish/tachiuo',match: (p: string) => p.startsWith('/fish') },
+  { label: '分析',   Icon: BarChart2,href: '/analysis',    match: (p: string) => p.startsWith('/analysis') },
+]
+
+const MORE_ITEMS = [
+  { label: '船宿', Icon: Anchor, href: '/yado' },
+  { label: 'お問い合わせ', Icon: Mail, href: '/contact' },
 ]
 
 export default function BottomNav() {
@@ -18,56 +24,50 @@ export default function BottomNav() {
   const moreActive = pathname.startsWith('/yado') || pathname.startsWith('/contact')
 
   return (
-    // md:hidden = hidden on desktop (768px+), visible on mobile
     <div className="md:hidden">
 
-      {/* Overlay to close "その他" menu */}
+      {/* Overlay */}
       {moreOpen && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 199 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 199, background: 'rgba(5,10,24,0.5)', backdropFilter: 'blur(4px)' }}
           onClick={() => setMoreOpen(false)}
         />
       )}
 
-      {/* "その他" popup menu */}
+      {/* "その他" popup */}
       {moreOpen && (
         <div style={{
           position: 'fixed',
-          bottom: 60,
-          right: 8,
+          bottom: 72,
+          right: 12,
           zIndex: 210,
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-md)',
+          background: 'rgba(10, 22, 44, 0.95)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.10)',
+          borderRadius: 'var(--radius-lg)',
           overflow: 'hidden',
-          minWidth: 160,
-          boxShadow: 'var(--shadow-lg)',
+          minWidth: 168,
+          boxShadow: '0 8px 40px rgba(0,0,0,0.7)',
         }}>
-          <Link
-            href="/yado"
-            onClick={() => setMoreOpen(false)}
-            style={{
-              display: 'block',
-              padding: '13px 20px',
-              fontSize: 14,
-              color: 'var(--text-main)',
-              borderBottom: '1px solid var(--border)',
-            }}
-          >
-            船宿
-          </Link>
-          <Link
-            href="/contact"
-            onClick={() => setMoreOpen(false)}
-            style={{
-              display: 'block',
-              padding: '13px 20px',
-              fontSize: 14,
-              color: 'var(--text-main)',
-            }}
-          >
-            お問い合わせ
-          </Link>
+          {MORE_ITEMS.map((item, i) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMoreOpen(false)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '14px 20px',
+                fontSize: 14, fontWeight: 500,
+                color: 'rgba(240,244,255,0.85)',
+                borderBottom: i < MORE_ITEMS.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                letterSpacing: '0.02em',
+              }}
+            >
+              <item.Icon size={16} strokeWidth={1.5} style={{ color: 'rgba(240,244,255,0.5)' }} />
+              {item.label}
+            </Link>
+          ))}
         </div>
       )}
 
@@ -76,31 +76,44 @@ export default function BottomNav() {
         position: 'fixed',
         bottom: 0, left: 0, right: 0,
         zIndex: 200,
-        height: 56,
+        height: 60,
         display: 'flex',
         alignItems: 'stretch',
-        background: 'var(--primary)',
-        borderTop: '1px solid rgba(255,255,255,0.08)',
+        background: 'rgba(5, 10, 24, 0.90)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderTop: '1px solid rgba(255,255,255,0.07)',
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.4)',
       }}>
-        {NAV_ITEMS.map(item => {
-          const active = item.match(pathname)
+        {NAV_ITEMS.map(({ href, label, Icon, match }) => {
+          const active = match(pathname)
           return (
             <Link
-              key={item.href}
-              href={item.href}
+              key={href}
+              href={href}
               style={{
                 flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 2,
-                color: active ? 'var(--accent)' : 'rgba(255,255,255,0.45)',
-                borderTop: active ? '2px solid var(--accent)' : '2px solid transparent',
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                gap: 3,
+                color: active ? '#00F5FF' : 'rgba(240,244,255,0.35)',
+                paddingTop: active ? 0 : 2,
+                borderTop: active ? '2px solid #00F5FF' : '2px solid transparent',
+                position: 'relative',
               }}
             >
-              <span style={{ fontSize: 18, lineHeight: 1 }}>{item.icon}</span>
-              <span style={{ fontSize: 10, fontWeight: active ? 700 : 400, lineHeight: 1 }}>{item.label}</span>
+              {active && (
+                <span style={{
+                  position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)',
+                  width: 28, height: 2, borderRadius: '0 0 4px 4px',
+                  background: '#00F5FF',
+                  boxShadow: '0 0 10px rgba(0,245,255,0.8)',
+                }} />
+              )}
+              <Icon size={20} strokeWidth={active ? 2 : 1.5} />
+              <span style={{ fontSize: 9, fontWeight: active ? 600 : 400, letterSpacing: '0.05em' }}>
+                {label}
+              </span>
             </Link>
           )
         })}
@@ -110,20 +123,22 @@ export default function BottomNav() {
           onClick={() => setMoreOpen(!moreOpen)}
           style={{
             flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 2,
-            background: 'none',
-            border: 'none',
-            borderTop: (moreActive || moreOpen) ? '2px solid var(--accent)' : '2px solid transparent',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            gap: 3,
+            background: 'none', border: 'none',
+            borderTop: (moreActive || moreOpen) ? '2px solid #00F5FF' : '2px solid transparent',
             cursor: 'pointer',
-            color: (moreActive || moreOpen) ? 'var(--accent)' : 'rgba(255,255,255,0.45)',
+            color: (moreActive || moreOpen) ? '#00F5FF' : 'rgba(240,244,255,0.35)',
           }}
         >
-          <span style={{ fontSize: 18, lineHeight: 1 }}>☰</span>
-          <span style={{ fontSize: 10, fontWeight: (moreActive || moreOpen) ? 700 : 400, lineHeight: 1 }}>その他</span>
+          {moreOpen
+            ? <X size={20} strokeWidth={1.5} />
+            : <MoreHorizontal size={20} strokeWidth={1.5} />
+          }
+          <span style={{ fontSize: 9, fontWeight: (moreActive || moreOpen) ? 600 : 400, letterSpacing: '0.05em' }}>
+            その他
+          </span>
         </button>
       </nav>
 
