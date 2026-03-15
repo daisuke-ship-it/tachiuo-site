@@ -165,9 +165,28 @@ export async function generateMetadata({ params }: { params: PageParams }): Prom
   const { slug } = await params
   const content = fishContents[slug]
   if (!content) return {}
+
+  const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.chokainfo.com'
+  const today = new Date().toISOString().slice(0, 10)
+  const ogImage = `${BASE_URL}/api/og?area=${encodeURIComponent('東京湾')}&fish=${encodeURIComponent(content.name)}&date=${today}`
+
   return {
     title: content.metaTitle,
     description: content.metaDescription,
+    openGraph: {
+      title: content.metaTitle,
+      description: content.metaDescription,
+      siteName: '釣果情報.com',
+      type: 'website',
+      locale: 'ja_JP',
+      images: [{ url: ogImage, width: 1200, height: 630, alt: `${content.name} 釣果情報` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: content.metaTitle,
+      description: content.metaDescription,
+      images: [ogImage],
+    },
   }
 }
 
