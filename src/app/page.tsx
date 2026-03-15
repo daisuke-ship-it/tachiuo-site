@@ -1,39 +1,13 @@
-import { supabase, CatchRecord } from '@/lib/supabase'
-import CatchDashboard from '@/components/CatchDashboard'
+import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 import SiteHeader from '@/components/SiteHeader'
 
-// ── 型定義 ────────────────────────────────────────────────────
-type RawCatchDetail = {
-  id: number
-  species_name: string | null
-  count: number | null
-  unit: string | null
-  size_text: string | null
-}
-
-type RawCatch = {
-  id: number
-  created_at: string
-  sail_date: string | null
-  boat_name: string | null
-  count_min: number | null
-  count_max: number | null
-  size_min_cm: number | null
-  size_max_cm: number | null
-  source_url: string | null
-  condition_text: string | null
-  shipyards: { name: string; areas: { name: string } | null; ports: { name: string } | null } | null
-  fish_species: { name: string } | null
-  fishing_methods: { name: string; method_group: string | null } | null
-  catch_details: RawCatchDetail[]
-}
-
+// ── 型定義（他コンポーネントが import するため export 必須） ──────
 export type EnvData = {
   weather: string | null
   wind_speed_ms: number | null
   tide_type: string | null
 }
-
 export type EnvDataMap = Record<string, EnvData>
 
 export type AISummaryRecord = {
@@ -53,90 +27,95 @@ export type FishRecord = {
   name: string
 }
 
-// species_name → そのグループに属する全 species_name[]
-// 例: 'サワラ' → ['サワラ', 'イナダ', 'ワラサ', 'ブリ', '青物', ...]
+// species_name → 同グループの全 species_name[]
 export type SpeciesGroupMap = Record<string, string[]>
 
+// ── エリア定義 ────────────────────────────────────────────────
+type AreaSlug = 'tokyo' | 'sagami' | 'sotobo' | 'minamibo'
+
+const AREA_CONFIG: { slug: AreaSlug; name: string; description: string }[] = [
+  { slug: 'tokyo',    name: '東京湾', description: '金沢八景・横浜・走水など' },
+  { slug: 'sagami',   name: '相模湾', description: '茅ケ崎・平塚・小田原など' },
+  { slug: 'sotobo',   name: '外房',   description: '勝浦・大原・一宮など' },
+  { slug: 'minamibo', name: '南房',   description: '館山・白浜など' },
+]
+
+// ── 型 ────────────────────────────────────────────────────────
+type AreaStat = {
+  areaName: string
+  slug: AreaSlug
+  description: string
+  totalRecords: number
+  todayRecords: number
+  topSpecies: { name: string; avgMax: number }[]
+  aiSummary: string | null
+}
+
 // ── データ取得 ─────────────────────────────────────────────────
-async function getCatchData(): Promise<CatchRecord[]> {
-  const { data, error } = await supabase
+type RawRow = {
+  sail_date: string | null
+  count_max: number | null
+  shipyards: { areas: { name: string } | null } | null
+  catch_details: { species_name: string | null; count: number | null }[]
+}
+
+async function getAreaStats(): Promise<AreaStat[]> {
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - 30)
+  const cutoffStr = cutoff.toISOString().slice(0, 10)
+  const today = new Date().toISOString().slice(0, 10)
+
+  const { data } = await supabase
     .from('catches')
     .select(`
-      id,
-      created_at,
       sail_date,
-      boat_name,
-      count_min,
       count_max,
-      size_min_cm,
-      size_max_cm,
-      source_url,
-      condition_text,
-      shipyards ( name, areas ( name ), ports ( name ) ),
-      fish_species ( name ),
-      fishing_methods ( name, method_group ),
-      catch_details (*)
+      shipyards ( areas ( name ) ),
+      catch_details ( species_name, count )
     `)
+    .gte('sail_date', cutoffStr)
     .order('sail_date', { ascending: false })
-    .order('created_at', { ascending: false })
 
-  if (error) {
-    console.error('Supabase fetch error:', error)
-    return []
-  }
+  const rows = (data ?? []) as unknown as RawRow[]
 
-  const rawRows = (data ?? []) as unknown as RawCatch[]
-  console.log(`[getCatchData] raw count: ${rawRows.length}`)
+  return AREA_CONFIG.map(({ slug, name, description }) => {
+    const areaRows = rows.filter((r) => r.shipyards?.areas?.name === name)
+    const todayRows = areaRows.filter((r) => r.sail_date === today)
 
-  const mapped: CatchRecord[] = rawRows.map((row) => ({
-    id:             row.id,
-    created_at:     row.created_at,
-    date:           row.sail_date,
-    boat_name:      row.boat_name ?? null,
-    fish_name:      row.fish_species?.name ?? null,
-    size_min_cm:    row.size_min_cm,
-    size_max_cm:    row.size_max_cm,
-    count_min:      row.count_min,
-    count_max:      row.count_max,
-    source_url:     row.source_url,
-    shipyard_name:  row.shipyards?.name ?? null,
-    shipyard_area:  row.shipyards?.areas?.name ?? null,
-    port_name:      row.shipyards?.ports?.name ?? null,
-    fishing_method: row.fishing_methods?.name ?? null,
-    method_group:   row.fishing_methods?.method_group ?? null,
-    condition_text: row.condition_text ?? null,
-    catch_details:  (row.catch_details ?? []).map((d) => ({
-      id:           d.id,
-      species_name: d.species_name ?? null,
-      count:        d.count ?? null,
-      unit:         d.unit ?? null,
-      size_text:    d.size_text ?? null,
-    })),
-  }))
+    // 直近30日の魚種別集計（catch_details から）
+    const speciesMap = new Map<string, { total: number; count: number }>()
+    for (const row of areaRows) {
+      for (const d of row.catch_details) {
+        if (!d.species_name || d.count === null) continue
+        const cur = speciesMap.get(d.species_name) ?? { total: 0, count: 0 }
+        speciesMap.set(d.species_name, { total: cur.total + d.count, count: cur.count + 1 })
+      }
+    }
+    const topSpecies = [...speciesMap.entries()]
+      .map(([name, v]) => ({ name, avgMax: Math.round(v.total / v.count) }))
+      .sort((a, b) => b.avgMax - a.avgMax)
+      .slice(0, 3)
 
-  // ── フロント側デデュープ ──────────────────────────────────────
-  const seen = new Set<string>()
-  const deduped = mapped.filter((r) => {
-    const key = [
-      r.shipyard_name ?? '',
-      r.date          ?? '',
-      r.fish_name     ?? '',
-      r.count_min     ?? '',
-      r.count_max     ?? '',
-    ].join('|')
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
+    return {
+      areaName: name,
+      slug,
+      description,
+      totalRecords: areaRows.length,
+      todayRecords: todayRows.length,
+      topSpecies,
+      aiSummary: null,
+    }
   })
+}
 
-  if (mapped.length !== deduped.length) {
-    console.warn(
-      `[getCatchData] dedup: ${mapped.length} → ${deduped.length} 件 ` +
-      `(${mapped.length - deduped.length} 件の重複を除去)`
-    )
-  }
-
-  return deduped
+async function getAISummariesForAreas(): Promise<AISummaryRecord[]> {
+  const { data } = await supabase
+    .from('ai_summaries')
+    .select('summary_type, target_id, target_date, summary_text')
+    .eq('summary_type', 'area')
+    .order('target_date', { ascending: false })
+    .limit(20)
+  return (data ?? []) as AISummaryRecord[]
 }
 
 async function getLatestUpdatedAt(): Promise<string | null> {
@@ -149,7 +128,8 @@ async function getLatestUpdatedAt(): Promise<string | null> {
   return data?.created_at ?? null
 }
 
-async function getEnvDataMap(): Promise<EnvDataMap> {
+// ── 下位ページで使う汎用データ取得関数（他ページが直接 import できるように export） ──
+export async function fetchEnvDataMap(): Promise<EnvDataMap> {
   const { data } = await supabase
     .from('environment_data')
     .select('date, weather, wind_speed_ms, tide_type')
@@ -165,72 +145,28 @@ async function getEnvDataMap(): Promise<EnvDataMap> {
   )
 }
 
-async function getAreas(): Promise<AreaRecord[]> {
-  const { data } = await supabase
-    .from('areas')
-    .select('id, name')
-    .order('id')
-  return (data ?? []) as AreaRecord[]
-}
-
-async function getFishSpecies(): Promise<FishRecord[]> {
-  const { data } = await supabase
-    .from('fish_species')
-    .select('id, name')
-    .order('id')
-  return (data ?? []) as FishRecord[]
-}
-
-async function getSpeciesGroupMap(): Promise<SpeciesGroupMap> {
-  const { data } = await supabase
-    .from('species_groups')
-    .select('species_name, group_name')
-  if (!data || data.length === 0) return {}
-
-  // group_name → species_name[] を構築
-  const byGroup: Record<string, string[]> = {}
-  for (const row of data) {
-    if (!byGroup[row.group_name]) byGroup[row.group_name] = []
-    byGroup[row.group_name].push(row.species_name)
-  }
-
-  // species_name → 同グループの全 species_name[] にマッピング
-  const result: SpeciesGroupMap = {}
-  for (const row of data) {
-    result[row.species_name] = byGroup[row.group_name]
-  }
-  return result
-}
-
-async function getAISummaries(): Promise<AISummaryRecord[]> {
-  const { data } = await supabase
-    .from('ai_summaries')
-    .select('summary_type, target_id, target_date, summary_text')
-    .order('target_date', { ascending: false })
-    .limit(200)
-  return (data ?? []) as AISummaryRecord[]
-}
-
 export const revalidate = 300
 
+// ── Page ───────────────────────────────────────────────────────
 export default async function Home() {
-  const [records, envData, latestAt, areas, fishSpeciesList, aiSummaries, speciesGroupMap] = await Promise.all([
-    getCatchData(),
-    getEnvDataMap(),
+  const [areaStats, aiSummaries, latestAt] = await Promise.all([
+    getAreaStats(),
+    getAISummariesForAreas(),
     getLatestUpdatedAt(),
-    getAreas(),
-    getFishSpecies(),
-    getAISummaries(),
-    getSpeciesGroupMap(),
   ])
 
-  // catches テーブルの最新 created_at を JST で表示（なければ現在時刻）
+  // エリアAIサマリーをマージ
+  const statsWithSummary = areaStats.map((s) => {
+    const summary = aiSummaries.find((a) => {
+      const areaId = AREA_CONFIG.findIndex((c) => c.name === s.areaName) + 1
+      return a.target_id === areaId
+    })
+    return { ...s, aiSummary: summary?.summary_text ?? null }
+  })
+
   const nowStr = new Date(latestAt ?? Date.now()).toLocaleString('ja-JP', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+    year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
     timeZone: 'Asia/Tokyo',
   })
 
@@ -241,69 +177,79 @@ export default async function Home() {
       <SiteHeader updatedAt={nowStr} />
 
       {/* ── Hero ────────────────────────────────────────────────── */}
-      <div
-        style={{
-          background: 'var(--primary)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-          paddingTop: 24,
-          paddingBottom: 28,
-        }}
-      >
+      <div style={{
+        background: 'var(--primary)',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        paddingTop: 24, paddingBottom: 28,
+      }}>
         <div className="page-container">
           <div style={{ marginBottom: 6 }}>
             <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'var(--accent)', textTransform: 'uppercase' }}>
               FISHING REPORT — DAILY UPDATE
             </span>
           </div>
-          <h1
-            style={{
-              fontSize: 'clamp(18px, 3.5vw, 26px)',
-              fontWeight: 700, color: 'white',
-              letterSpacing: '-0.02em', lineHeight: 1.25, marginBottom: 6,
-            }}
-          >
+          <h1 style={{
+            fontSize: 'clamp(18px, 3.5vw, 26px)', fontWeight: 700, color: 'white',
+            letterSpacing: '-0.02em', lineHeight: 1.25, marginBottom: 6,
+          }}>
             関東圏の船釣り釣果まとめ
           </h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', maxWidth: 480, lineHeight: 1.6 }}>
-            関東圏の複数船宿から釣果データを毎日自動収集。エリア・魚種・釣り方で絞り込み、今日の釣果を素早く確認・分析できます。
+            関東圏の複数船宿から釣果データを毎日自動収集。エリアを選んで最新の釣果情報を確認できます。
           </p>
         </div>
       </div>
 
-      {/* ── Main content ─────────────────────────────────────────── */}
-      <main style={{ padding: '24px 0 80px' }}>
+      {/* ── Main ─────────────────────────────────────────────────── */}
+      <main style={{ padding: '28px 0 80px' }}>
         <div className="page-container">
-          {records.length === 0 ? (
-            <div
-              style={{
-                textAlign: 'center', padding: '80px 20px',
-                background: 'var(--surface)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--border)',
-              }}
-            >
-              <p style={{ fontSize: 32, marginBottom: 10 }}>🎣</p>
-              <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>現在、釣果データがありません</p>
+
+          {/* エリアカード 2×2グリッド */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: 16,
+            marginBottom: 40,
+          }}>
+            {statsWithSummary.map((stat) => (
+              <AreaCard key={stat.slug} stat={stat} />
+            ))}
+          </div>
+
+          {/* 使い方ガイド */}
+          <div style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '20px 24px',
+          }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 10, letterSpacing: '0.08em' }}>
+              ご利用方法
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {[
+                'エリアカードをタップして詳細な釣果一覧を確認',
+                '魚種・釣り方・期間でフィルタリングして比較',
+                '船長コメントや釣果グラフで傾向を分析',
+              ].map((text, i) => (
+                <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: 20, height: 20, borderRadius: '50%',
+                    background: 'rgba(212,160,23,0.15)', color: 'var(--accent)',
+                    fontSize: 11, fontWeight: 700, flexShrink: 0, marginTop: 1,
+                  }}>{i + 1}</span>
+                  <span style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>{text}</span>
+                </div>
+              ))}
             </div>
-          ) : (
-            <CatchDashboard
-              records={records}
-              envData={envData}
-              areas={areas}
-              fishSpeciesList={fishSpeciesList}
-              aiSummaries={aiSummaries}
-              speciesGroupMap={speciesGroupMap}
-            />
-          )}
+          </div>
         </div>
       </main>
 
       {/* ── Footer ─────────────────────────────────────────────── */}
       <footer style={{ borderTop: '1px solid var(--border)', background: 'var(--surface)', padding: '22px 0' }}>
-        <div
-          className="page-container"
-          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}
-        >
+        <div className="page-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             © {new Date().getFullYear()} 釣果情報.com — 関東圏 船釣り釣果情報
           </span>
@@ -313,5 +259,106 @@ export default async function Home() {
         </div>
       </footer>
     </div>
+  )
+}
+
+// ── AreaCard コンポーネント ────────────────────────────────────
+function AreaCard({ stat }: { stat: AreaStat }) {
+  const { slug, areaName, description, totalRecords, todayRecords, topSpecies, aiSummary } = stat
+  const hasData = totalRecords > 0
+
+  return (
+    <Link href={`/area/${slug}`} style={{ textDecoration: 'none' }}>
+      <div style={{
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '20px',
+        cursor: 'pointer',
+        transition: 'border-color 0.15s',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0,
+      }}>
+        {/* エリア名 + 説明 */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+              {areaName}
+            </h2>
+            {todayRecords > 0 && (
+              <span style={{
+                fontSize: 10, fontWeight: 700, padding: '2px 8px',
+                borderRadius: 'var(--radius-pill)',
+                background: 'rgba(212,160,23,0.15)', color: 'var(--accent)',
+                border: '1px solid rgba(212,160,23,0.3)',
+              }}>
+                本日{todayRecords}件
+              </span>
+            )}
+          </div>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{description}</p>
+        </div>
+
+        {/* 区切り線 */}
+        <div style={{ height: 1, background: 'var(--border)', marginBottom: 14 }} />
+
+        {hasData ? (
+          <>
+            {/* 直近30日の注目魚種 */}
+            {topSpecies.length > 0 && (
+              <div style={{ marginBottom: 14 }}>
+                <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600, letterSpacing: '0.06em' }}>
+                  直近30日の注目魚種
+                </p>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {topSpecies.map((sp) => (
+                    <span key={sp.name} style={{
+                      fontSize: 12, padding: '3px 10px',
+                      borderRadius: 'var(--radius-pill)',
+                      background: 'rgba(30,58,95,0.6)', color: '#93c5fd',
+                      border: '1px solid rgba(147,197,253,0.15)',
+                    }}>
+                      {sp.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* AIサマリー */}
+            {aiSummary && (
+              <div style={{
+                background: '#0f1a2e',
+                border: '1px solid #2d3748',
+                borderRadius: 6,
+                padding: '8px 10px',
+                marginBottom: 14,
+              }}>
+                <p style={{ fontSize: 10, color: '#64748b', marginBottom: 3 }}>✦ AIサマリー</p>
+                <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.55, margin: 0 }}>
+                  {aiSummary.length > 120 ? aiSummary.slice(0, 120) + '…' : aiSummary}
+                </p>
+              </div>
+            )}
+          </>
+        ) : (
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>
+            データ収集準備中
+          </p>
+        )}
+
+        {/* 詳細リンク */}
+        <div style={{ marginTop: 'auto', paddingTop: 12 }}>
+          <span style={{
+            fontSize: 13, fontWeight: 600, color: 'var(--accent)',
+            display: 'flex', alignItems: 'center', gap: 4,
+          }}>
+            釣果一覧を見る →
+          </span>
+        </div>
+      </div>
+    </Link>
   )
 }

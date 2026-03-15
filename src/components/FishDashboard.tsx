@@ -212,10 +212,11 @@ interface Props {
   areas: AreaRecord[]
   fishId: number | null
   content: FishContent
+  initialArea?: Area | null
 }
 
-export default function FishDashboard({ records, envData, aiSummaries, fishId, content }: Props) {
-  const [area,      setArea]      = useState<Area | null>('東京湾')
+export default function FishDashboard({ records, envData, aiSummaries, fishId, content, initialArea }: Props) {
+  const [area,      setArea]      = useState<Area | null>(initialArea !== undefined ? initialArea : '東京湾')
   const [period,    setPeriod]    = useState<string>(defaultDateStr())
   const [sortField, setSortField] = useState<SortField>(null)
 
