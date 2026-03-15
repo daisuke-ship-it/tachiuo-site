@@ -8,11 +8,11 @@ import CatchTable, { SortField } from './CatchTable'
 import CatchCards from './CatchCards'
 import CatchChart from './CatchChart'
 
-type Area = '東京湾' | '相模湾'
+type Area = '東京湾' | '相模湾' | '外房' | '南房'
 type Tab  = '一覧' | 'グラフ'
 // Period は 'yyyy-MM-dd' の日付文字列 or '直近7日' | '直近30日'
 
-const AREAS: Area[] = ['東京湾', '相模湾']
+const AREAS: Area[] = ['東京湾', '相模湾', '外房', '南房']
 const TABS:  Tab[]  = ['一覧', 'グラフ']
 
 // 釣り方グループ ソート優先順位
@@ -385,7 +385,7 @@ export default function CatchDashboard({
   const [sortField, setSortField] = useState<SortField>(null)
   const dateInputRef = useRef<HTMLInputElement>(null)
 
-  const toggleArea   = (a: Area) => { if (a === '相模湾') return; setArea((p) => (p === a ? null : a)) }
+  const toggleArea   = (a: Area) => { setArea((p) => (p === a ? null : a)) }
   const handleFishClick = (f: Fish) => setFish((p) => (p === f ? null : f))
 
   // Filtered data
@@ -445,8 +445,8 @@ export default function CatchDashboard({
           <FilterLabel text="エリア" />
           <div style={{ display: 'flex', gap: 6 }}>
             {AREAS.map((a) => (
-              <FilterPill key={a} active={area === a} disabled={a === '相模湾'} onClick={() => toggleArea(a)}>
-                {a === '相模湾' ? '相模湾（準備中）' : a}
+              <FilterPill key={a} active={area === a} onClick={() => toggleArea(a)}>
+                {a}
               </FilterPill>
             ))}
           </div>
