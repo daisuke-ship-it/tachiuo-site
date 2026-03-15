@@ -8,14 +8,14 @@ const NAV_ITEMS = [
   { label: 'ホーム', icon: '🏠', href: '/',             match: (p: string) => p === '/' },
   { label: 'エリア', icon: '🗺',  href: '/area/tokyo',   match: (p: string) => p.startsWith('/area') },
   { label: '魚種',   icon: '🐟', href: '/fish/tachiuo',  match: (p: string) => p.startsWith('/fish') },
-  { label: '船宿',   icon: '🚢', href: '/yado',          match: (p: string) => p.startsWith('/yado') },
+  { label: '分析',   icon: '📊', href: '/analysis',      match: (p: string) => p.startsWith('/analysis') },
 ]
 
 export default function BottomNav() {
   const pathname = usePathname()
   const [moreOpen, setMoreOpen] = useState(false)
 
-  const moreActive = pathname.startsWith('/analysis') || pathname.startsWith('/contact')
+  const moreActive = pathname.startsWith('/yado') || pathname.startsWith('/contact')
 
   return (
     // md:hidden = hidden on desktop (768px+), visible on mobile
@@ -44,7 +44,7 @@ export default function BottomNav() {
           boxShadow: 'var(--shadow-lg)',
         }}>
           <Link
-            href="/analysis"
+            href="/yado"
             onClick={() => setMoreOpen(false)}
             style={{
               display: 'block',
@@ -54,7 +54,7 @@ export default function BottomNav() {
               borderBottom: '1px solid var(--border)',
             }}
           >
-            分析
+            船宿
           </Link>
           <Link
             href="/contact"
