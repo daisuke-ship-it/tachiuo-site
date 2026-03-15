@@ -3,6 +3,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { supabase, CatchRecord } from '@/lib/supabase'
 import { fishContents } from '@/lib/fishContent'
+import { fishAreaContents, FishAreaContent } from '@/lib/fishAreaContent'
 import { EnvDataMap, AISummaryRecord, AreaRecord } from '@/app/page'
 import FishDashboard from '@/components/FishDashboard'
 import SiteHeader from '@/components/SiteHeader'
@@ -228,6 +229,8 @@ export default async function FishAreaPage({ params }: { params: PageParams }) {
     ? (areaConfig.name as FishArea)
     : null
 
+  const areaContent = fishAreaContents[`${slug}/${area}`] ?? null
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
 
@@ -311,7 +314,7 @@ export default async function FishAreaPage({ params }: { params: PageParams }) {
 
       {/* ── Main ─────────────────────────────────────────── */}
       <main style={{ padding: '24px 0 80px' }}>
-        <div className="page-container">
+        <div className="page-container" style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
           <FishDashboard
             records={records}
             envData={envData}
@@ -321,10 +324,17 @@ export default async function FishAreaPage({ params }: { params: PageParams }) {
             content={content}
             initialArea={initialArea}
           />
+
+          {/* ── 攻略コンテンツ ─────────────────────────── */}
+          {areaContent ? (
+            <GuideSection content={areaContent} fishName={content.name} areaName={areaConfig.name} />
+          ) : (
+            <PlaceholderSection fishName={content.name} areaName={areaConfig.name} />
+          )}
         </div>
       </main>
 
-      {/* ── Footer ───────────────────────────────────────── */}
+      {/* ── Footer ──────────────────────────────────────── */}
       <footer style={{ borderTop: '1px solid var(--border)', background: 'var(--surface)', padding: '22px 0' }}>
         <div className="page-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
@@ -337,4 +347,181 @@ export default async function FishAreaPage({ params }: { params: PageParams }) {
       </footer>
     </div>
   )
+}
+
+// ── 攻略コンテンツ（コンテンツあり） ─────────────────────────────
+function GuideSection({
+  content,
+  fishName,
+  areaName,
+}: {
+  content: FishAreaContent
+  fishName: string
+  areaName: string
+}) {
+  return (
+    <section>
+      {/* セクションヘッダー */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 6 }}>
+          FISHING GUIDE
+        </div>
+        <h2 style={{ fontSize: 'clamp(16px, 2.5vw, 20px)', fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>
+          {content.heading}
+        </h2>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.75, maxWidth: 640 }}>
+          {content.intro}
+        </p>
+      </div>
+
+      {/* 釣り方カード */}
+      <div style={{ marginBottom: 32 }}>
+        <h3 style={subHeadStyle}>釣り方の種類</h3>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+          gap: 14,
+        }}>
+          {content.methods.map((m) => (
+            <div key={m.name} style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '18px 18px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+            }}>
+              {/* カードヘッダー */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 24, lineHeight: 1 }}>{m.icon}</span>
+                <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{m.name}</span>
+              </div>
+
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
+                {m.summary}
+              </p>
+
+              {/* 詳細リスト */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {m.details.map((d) => (
+                  <div key={d.label} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, color: 'var(--accent)',
+                      background: 'rgba(212,160,23,0.12)',
+                      border: '1px solid rgba(212,160,23,0.25)',
+                      borderRadius: 4,
+                      padding: '1px 6px',
+                      flexShrink: 0,
+                      marginTop: 1,
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {d.label}
+                    </span>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.55 }}>
+                      {d.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* コツ */}
+              <div style={{
+                background: '#0f1a2e',
+                border: '1px solid #2d3748',
+                borderRadius: 6,
+                padding: '7px 10px',
+                marginTop: 2,
+              }}>
+                <span style={{ fontSize: 10, color: '#64748b' }}>💡 コツ　</span>
+                <span style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.55 }}>{m.tip}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 季節カレンダー */}
+      <div style={{ marginBottom: 32 }}>
+        <h3 style={subHeadStyle}>季節カレンダー</h3>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+          gap: 10,
+        }}>
+          {content.seasons.map((s) => (
+            <div key={s.period} style={{
+              background: 'var(--surface)',
+              border: `1px solid ${s.color}33`,
+              borderTop: `3px solid ${s.color}`,
+              borderRadius: 'var(--radius-md)',
+              padding: '14px 14px 12px',
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: s.color, marginBottom: 3 }}>
+                {s.period}
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
+                {s.label}
+              </div>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
+                {s.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 主なポイント */}
+      <div>
+        <h3 style={subHeadStyle}>主なポイント</h3>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {content.spots.map((spot) => (
+            <span key={spot} style={{
+              fontSize: 13, padding: '5px 14px',
+              borderRadius: 'var(--radius-pill)',
+              background: 'rgba(30,58,95,0.6)',
+              color: '#93c5fd',
+              border: '1px solid rgba(147,197,253,0.2)',
+            }}>
+              📍 {spot}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ── コンテンツ準備中プレースホルダー ─────────────────────────────
+function PlaceholderSection({ fishName, areaName }: { fishName: string; areaName: string }) {
+  return (
+    <section>
+      <div style={{
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '40px 24px',
+        textAlign: 'center',
+      }}>
+        <p style={{ fontSize: 28, marginBottom: 10 }}>🎣</p>
+        <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>
+          {areaName}の{fishName}攻略ガイド
+        </p>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.65 }}>
+          釣り方・季節カレンダー・ポイント情報などのコンテンツを準備中です。<br />
+          最新の釣果データは上のダッシュボードでご確認ください。
+        </p>
+      </div>
+    </section>
+  )
+}
+
+// ── スタイル定数 ──────────────────────────────────────────────
+const subHeadStyle: React.CSSProperties = {
+  fontSize: 14,
+  fontWeight: 700,
+  color: 'var(--text)',
+  marginBottom: 12,
+  paddingBottom: 8,
+  borderBottom: '1px solid var(--border)',
 }
