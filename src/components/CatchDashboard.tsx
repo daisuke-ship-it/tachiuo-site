@@ -29,6 +29,7 @@ interface Props {
   fishSpeciesList: FishRecord[]
   aiSummaries: AISummaryRecord[]
   speciesGroupMap: SpeciesGroupMap
+  initialArea?: Area
 }
 
 // JST 日付を YYYY-MM-DD で返す（サーバー[UTC]・ブラウザ[JST]両対応）
@@ -376,9 +377,9 @@ function SummaryCard({ records, envData, period, sizeUnit = 'cm', fishAliases = 
 
 /* ── Main ────────────────────────────────────────────────────── */
 export default function CatchDashboard({
-  records, envData, areas, fishSpeciesList, aiSummaries, speciesGroupMap,
+  records, envData, areas, fishSpeciesList, aiSummaries, speciesGroupMap, initialArea,
 }: Props) {
-  const [area,      setArea]      = useState<Area | null>('東京湾')
+  const [area,      setArea]      = useState<Area | null>(initialArea ?? '東京湾')
   const [fish,      setFish]      = useState<Fish | null>('タチウオ')
   const [period,    setPeriod]    = useState<string>(defaultDateStr())
   const [tab,       setTab]       = useState<Tab>('一覧')
