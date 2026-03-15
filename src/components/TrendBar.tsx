@@ -3,9 +3,9 @@
 import Link from 'next/link'
 import { CatchRecord } from '@/lib/supabase'
 
-export type Fish = 'タチウオ' | 'アジ' | 'シーバス' | 'サワラ' | 'トラフグ' | 'マダイ' | 'ヒラメ' | 'シロギス'
+export type Fish = 'タチウオ' | 'アジ' | 'シーバス' | 'サワラ' | 'トラフグ' | 'マダイ' | 'ヒラメ' | 'シロギス' | '青物'
 
-export const FISH_LIST: Fish[] = ['タチウオ', 'アジ', 'シーバス', 'サワラ', 'トラフグ', 'マダイ', 'ヒラメ', 'シロギス']
+export const FISH_LIST: Fish[] = ['タチウオ', 'アジ', 'シーバス', 'サワラ', 'トラフグ', 'マダイ', 'ヒラメ', 'シロギス', '青物']
 
 const FISH_SLUGS: Record<Fish, string> = {
   'タチウオ': 'tachiuo',
@@ -16,6 +16,7 @@ const FISH_SLUGS: Record<Fish, string> = {
   'マダイ':   'madai',
   'ヒラメ':   'hirame',
   'シロギス': 'shirogisu',
+  '青物':     'aomono',
 }
 
 export const FISH_ALIASES: Record<Fish, string[]> = {
@@ -27,6 +28,25 @@ export const FISH_ALIASES: Record<Fish, string[]> = {
   'マダイ':   ['マダイ', '真鯛'],
   'ヒラメ':   ['ヒラメ'],
   'シロギス': ['シロギス', 'キス'],
+  // イナダ系（関東）・ワラサ・ブリ成長段階 + 地方名 + ヒラマサ・カンパチ系
+  '青物': [
+    '青物',
+    'イナダ', 'ワラサ', 'ブリ', '鰤',
+    'ヒラマサ', '平政',
+    'カンパチ', '間八',
+    'ショゴ',                       // カンパチ幼魚（関東）
+    'サンパク',                     // ワラサ別名（関東一部）
+    'ハマチ',                       // ブリ幼魚（関西）
+    'メジロ',                       // ブリ幼魚（関西）
+    'ガンド', 'ガンジ',             // ブリ幼魚（北陸・日本海）
+    'フクラギ',                     // ブリ幼魚（富山）
+    'ツバス',                       // ブリ幼魚（関西）
+    'ヤズ',                         // ブリ幼魚（九州・瀬戸内）
+    'サゴシ',                       // サワラ幼魚（関西）を青物扱いする場合あり
+    'シオ', 'シオゴ',               // カンパチ幼魚（九州）
+    'ネリゴ',                       // カンパチ幼魚（九州）
+    'アオモノ',
+  ],
 }
 
 type Trend = { icon: string; label: string; color: string }
