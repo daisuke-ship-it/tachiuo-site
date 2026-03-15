@@ -179,7 +179,7 @@ export default function CatchChart({ records, fishAliases, envData, period }: Pr
 
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <ComposedChart data={data} margin={{ top: 4, right: 8, left: -22, bottom: 20 }}>
+      <ComposedChart data={data} margin={{ top: 4, right: 24, left: -22, bottom: 20 }}>
         <defs>
           <linearGradient id="rangeGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%"   stopColor="#3b82f6" stopOpacity={0.22} />
