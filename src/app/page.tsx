@@ -206,7 +206,7 @@ async function getAISummaries(): Promise<AISummaryRecord[]> {
     .from('ai_summaries')
     .select('summary_type, target_id, target_date, summary_text')
     .order('target_date', { ascending: false })
-    .limit(50)
+    .limit(200)
   return (data ?? []) as AISummaryRecord[]
 }
 

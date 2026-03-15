@@ -427,7 +427,7 @@ export default function CatchDashboard({
   const areaId         = findAreaId(area, areas)
   const fishId         = findFishId(fish, fishSpeciesList)
   const areaSummaryRaw = lookupSummary(aiSummaries, 'area', areaId, summaryDate)
-  const fishSummary    = lookupSummary(aiSummaries, 'fish_species', fishId, summaryDate)
+  const fishSummary    = lookupSummary(aiSummaries, areaId !== null ? `fish_species_${areaId}` : 'fish_species', fishId, summaryDate)
   const areaSummary    = areaSummaryRaw && summaryDate
     ? addDatePrefix(areaSummaryRaw, summaryDate)
     : areaSummaryRaw
