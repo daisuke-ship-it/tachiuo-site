@@ -114,10 +114,7 @@ export default function CatchCards({ records }: Props) {
             {/* Badges: エリア → 港 → 魚種 → 釣り方 */}
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 12 }}>
               {r.shipyard_area && (
-                <Badge label={r.shipyard_area} bg={AREA_STYLE.bg} color={AREA_STYLE.color} />
-              )}
-              {r.port_name && (
-                <Badge label={r.port_name} bg={PORT_STYLE.bg} color={PORT_STYLE.color} />
+                <Badge label={r.port_name ? `${r.shipyard_area}　${r.port_name}` : r.shipyard_area} bg={AREA_STYLE.bg} color={AREA_STYLE.color} />
               )}
               {r.fish_name && (
                 <Badge label={r.fish_name} bg={FISH_STYLE.bg} color={FISH_STYLE.color} />
