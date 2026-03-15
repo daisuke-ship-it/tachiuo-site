@@ -420,6 +420,7 @@ export default function CatchDashboard({
   }, [areaFishFiltered, period, sortField])
 
   const sizeUnit: 'cm' | 'kg' = fish === 'トラフグ' ? 'kg' : 'cm'
+  const fishAliases: string[] | null = fish ? (speciesGroupMap[fish] ?? FISH_ALIASES[fish]) : null
 
   // AI summary lookup
   const summaryDate    = getPeriodDate(period)
@@ -519,7 +520,7 @@ export default function CatchDashboard({
       )}
 
       {/* ── 5. 釣果サマリーカード ────────────────────────────────── */}
-      <SummaryCard records={filtered} envData={envData} period={period} sizeUnit={sizeUnit} fishAliases={fish ? (speciesGroupMap[fish] ?? FISH_ALIASES[fish]) : null} />
+      <SummaryCard records={filtered} envData={envData} period={period} sizeUnit={sizeUnit} fishAliases={fishAliases} />
 
       {/* ── 6. 釣果一覧 / グラフ タブ ───────────────────────────── */}
       <div style={{
@@ -571,7 +572,7 @@ export default function CatchDashboard({
             <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 14 }}>
               直近30日の釣果平均トレンド
             </p>
-            <CatchChart records={areaFishFiltered} />
+            <CatchChart records={areaFishFiltered} fishAliases={fishAliases} envData={envData} period={period} />
           </div>
         )}
       </div>

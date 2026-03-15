@@ -1,8 +1,9 @@
 'use client'
 
 import {
-  AreaChart,
+  ComposedChart,
   Area,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -10,100 +11,235 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { CatchRecord } from '@/lib/supabase'
+import { EnvDataMap } from '@/app/page'
 
-type Props = { records: CatchRecord[] }
-
-type TooltipPayload = {
-  active?: boolean
-  payload?: { value: number }[]
-  label?: string
+export type Props = {
+  records: CatchRecord[]
+  fishAliases: string[] | null
+  envData: EnvDataMap
+  period: string
 }
 
-function CustomTooltip({ active, payload, label }: TooltipPayload) {
+type ChartPoint = {
+  date: string       // 'M/D' 表示用
+  fullDate: string   // 'YYYY-MM-DD' envData ルックアップ用
+  min: number | null
+  band: number | null  // max - min（min の上に積み上げてレンジ帯を描く）
+  avg: number | null
+  max: number | null   // ツールチップ表示用
+  ships: number
+  tide: string | null
+}
+
+// ── 潮汐設定 ────────────────────────────────────────────────
+const TIDE_CONFIG: Record<string, { symbol: string; color: string }> = {
+  '大潮': { symbol: '🌕', color: '#3b82f6' },
+  '中潮': { symbol: '🌔', color: '#7c3aed' },
+  '小潮': { symbol: '🌒', color: '#6b7280' },
+  '長潮': { symbol: '〜',  color: '#4b5563' },
+  '若潮': { symbol: '↑',  color: '#06b6d4' },
+}
+
+// ── ユーティリティ ────────────────────────────────────────────
+function toJSTDateStr(d: Date): string {
+  const jst = new Date(d.getTime() + 9 * 60 * 60 * 1000)
+  const y   = jst.getUTCFullYear()
+  const m   = String(jst.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(jst.getUTCDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function buildChartDays(period: string): string[] {
+  const isSpecificDate = /^\d{4}-\d{2}-\d{2}$/.test(period)
+  const days = period === '直近7日' ? 7 : 30
+  const base = new Date()
+  base.setHours(0, 0, 0, 0)
+
+  // 特定日指定の場合はその日を末尾にして30日表示
+  const endDate = isSpecificDate ? new Date(period + 'T00:00:00') : base
+
+  const result: string[] = []
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(endDate)
+    d.setDate(endDate.getDate() - i)
+    result.push(toJSTDateStr(d))
+  }
+  return result
+}
+
+function buildChartData(
+  records: CatchRecord[],
+  fishAliases: string[] | null,
+  envData: EnvDataMap,
+  period: string,
+): ChartPoint[] {
+  const dates = buildChartDays(period)
+
+  type Acc = { counts: number[]; ships: number }
+  const byDate = new Map<string, Acc>()
+  for (const d of dates) byDate.set(d, { counts: [], ships: 0 })
+
+  for (const r of records) {
+    if (!r.date) continue
+    const key = r.date.split('T')[0]
+    if (!byDate.has(key)) continue
+    const acc = byDate.get(key)!
+    acc.ships++
+
+    if (fishAliases) {
+      const dc = r.catch_details
+        .filter((d) => d.count !== null && d.species_name && fishAliases.some((a) => d.species_name!.includes(a)))
+        .map((d) => d.count!)
+      if (dc.length > 0) {
+        acc.counts.push(...dc)
+        if (r.count_min !== null) acc.counts.push(r.count_min)
+      }
+    } else {
+      const hi = r.count_max ?? r.count_min
+      if (hi !== null) acc.counts.push(hi)
+      if (r.count_min !== null) acc.counts.push(r.count_min)
+    }
+  }
+
+  return dates.map((fullDate) => {
+    const { counts, ships } = byDate.get(fullDate)!
+    const [, m, d] = fullDate.split('-').map(Number)
+    const tide = envData[fullDate]?.tide_type ?? null
+
+    if (counts.length === 0) {
+      return { date: `${m}/${d}`, fullDate, min: null, band: null, avg: null, max: null, ships, tide }
+    }
+
+    const min  = Math.min(...counts)
+    const max  = Math.max(...counts)
+    const avg  = Math.round(counts.reduce((a, b) => a + b, 0) / counts.length * 10) / 10
+    return { date: `${m}/${d}`, fullDate, min, band: max - min, avg, max, ships, tide }
+  })
+}
+
+// ── カスタムツールチップ ──────────────────────────────────────
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: { payload: ChartPoint }[] }) {
   if (!active || !payload?.length) return null
+  const d = payload[0].payload
   return (
-    <div
-      style={{
-        background: 'var(--primary)',
-        border: 'none',
-        borderRadius: 8,
-        padding: '8px 14px',
-        boxShadow: 'var(--shadow-md)',
-      }}
-    >
-      <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, marginBottom: 3 }}>{label}</p>
-      <p style={{ color: 'white', fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>
-        {payload[0].value}
-      </p>
+    <div style={{
+      background: 'var(--primary)', borderRadius: 8,
+      padding: '8px 14px', boxShadow: 'var(--shadow-md)',
+    }}>
+      <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, marginBottom: 4 }}>{d.date}</p>
+      {d.avg !== null ? (
+        <>
+          <p style={{ color: 'white', fontWeight: 700, fontSize: 15 }}>平均 {d.avg}</p>
+          <p style={{ color: '#93c5fd', fontSize: 12, marginTop: 2 }}>{d.min}〜{d.max}</p>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 4 }}>
+            出船 {d.ships}件{d.tide ? `　${d.tide}` : ''}
+          </p>
+        </>
+      ) : (
+        <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>データなし</p>
+      )}
     </div>
   )
 }
 
-export default function CatchChart({ records }: Props) {
-  const today = new Date()
-  const dateMap: Record<string, { sum: number; cnt: number }> = {}
+// ── カスタム X 軸ティック（日付 + 潮汐アイコン） ────────────────
+function XAxisTick({
+  x, y, payload, dateTideMap,
+}: {
+  x: number | string; y: number | string
+  payload: { value: string }
+  dateTideMap: Record<string, string | null>
+}) {
+  const nx = Number(x), ny = Number(y)
+  const tide = dateTideMap[payload.value] ?? null
+  const tideConf = tide ? (TIDE_CONFIG[tide] ?? null) : null
+  return (
+    <g transform={`translate(${nx},${ny})`}>
+      <text x={0} y={0} dy={12} textAnchor="middle" fill="var(--text-muted)" fontSize={10}>
+        {payload.value}
+      </text>
+      {tideConf && (
+        <text x={0} y={0} dy={25} textAnchor="middle" fontSize={11} fill={tideConf.color}>
+          {tideConf.symbol}
+        </text>
+      )}
+    </g>
+  )
+}
 
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(today)
-    d.setDate(today.getDate() - i)
-    dateMap[d.toISOString().split('T')[0]] = { sum: 0, cnt: 0 }
-  }
+// ── メインコンポーネント ────────────────────────────────────────
+export default function CatchChart({ records, fishAliases, envData, period }: Props) {
+  const data = buildChartData(records, fishAliases, envData, period)
+  const maxVal = Math.max(...data.map((d) => d.max ?? 0), 1)
+  const interval = period === '直近7日' ? 0 : 4
 
-  records.forEach((r) => {
-    if (!r.date) return
-    const key = r.date.split('T')[0]
-    if (!(key in dateMap)) return
-    const v = r.count_max ?? r.count_min
-    if (v === null || v === undefined) return
-    dateMap[key].sum += v
-    dateMap[key].cnt++
-  })
-
-  const data = Object.entries(dateMap).map(([date, { sum, cnt }]) => ({
-    date: date.slice(5).replace('-', '/'),
-    avg:  cnt > 0 ? Math.round((sum / cnt) * 10) / 10 : 0,
-  }))
-
-  const maxVal = Math.max(...data.map((d) => d.avg), 1)
+  // date('M/D') → tide_type のマップ（XAxisTick で使用）
+  const dateTideMap: Record<string, string | null> = {}
+  for (const d of data) dateTideMap[d.date] = d.tide
 
   return (
-    <ResponsiveContainer width="100%" height={200}>
-      <AreaChart data={data} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
+    <ResponsiveContainer width="100%" height={220}>
+      <ComposedChart data={data} margin={{ top: 4, right: 8, left: -22, bottom: 20 }}>
         <defs>
-          <linearGradient id="oceanGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#1A5276" stopOpacity={0.18} />
-            <stop offset="100%" stopColor="#1A5276" stopOpacity={0}    />
+          <linearGradient id="rangeGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor="#3b82f6" stopOpacity={0.22} />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.05} />
           </linearGradient>
         </defs>
+
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+
         <XAxis
           dataKey="date"
-          tick={{ fill: 'var(--text-muted)', fontSize: 10 }}
+          tick={(props) => <XAxisTick {...props} dateTideMap={dateTideMap} />}
           tickLine={false}
           axisLine={false}
-          interval={4}
+          interval={interval}
+          height={42}
         />
         <YAxis
           tick={{ fill: 'var(--text-muted)', fontSize: 10 }}
           tickLine={false}
           axisLine={false}
-          domain={[0, maxVal + 1]}
+          domain={[0, maxVal + 2]}
           allowDecimals={false}
         />
-        <Tooltip
-          content={<CustomTooltip />}
-          cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '4 2' }}
+
+        <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '4 2' }} />
+
+        {/* レンジ帯: min を透明ベースラインとして積み上げ、band を色付きで表示 */}
+        <Area
+          type="monotone"
+          dataKey="min"
+          stackId="range"
+          stroke="none"
+          fill="transparent"
+          connectNulls={false}
+          isAnimationActive={false}
+          legendType="none"
         />
         <Area
           type="monotone"
-          dataKey="avg"
-          stroke="#1A5276"
-          strokeWidth={2}
-          fill="url(#oceanGradient)"
-          dot={false}
-          activeDot={{ r: 4, fill: 'var(--secondary)', stroke: 'white', strokeWidth: 2 }}
+          dataKey="band"
+          stackId="range"
+          stroke="none"
+          fill="url(#rangeGrad)"
+          connectNulls={false}
+          isAnimationActive={false}
+          legendType="none"
         />
-      </AreaChart>
+
+        {/* 平均値折れ線 */}
+        <Line
+          type="monotone"
+          dataKey="avg"
+          stroke="#3b82f6"
+          strokeWidth={2}
+          dot={false}
+          activeDot={{ r: 4, fill: '#3b82f6', stroke: 'white', strokeWidth: 2 }}
+          connectNulls={false}
+        />
+      </ComposedChart>
     </ResponsiveContainer>
   )
 }

@@ -304,7 +304,7 @@ export default function FishDashboard({ records, envData, aiSummaries, fishId, c
         <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>
           直近30日の釣果平均トレンド
         </p>
-        <CatchChart records={areaFiltered} />
+        <CatchChart records={areaFiltered} fishAliases={null} envData={envData} period={period} />
       </div>
 
       {/* ── 船宿別釣果一覧 ───────────────────────────────── */}
