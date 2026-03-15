@@ -1,5 +1,6 @@
 import { supabase, CatchRecord } from '@/lib/supabase'
 import CatchDashboard from '@/components/CatchDashboard'
+import SiteHeader from '@/components/SiteHeader'
 
 // ── 型定義 ────────────────────────────────────────────────────
 type RawCatchDetail = {
@@ -237,65 +238,7 @@ export default async function Home() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
 
       {/* ── Header ─────────────────────────────────────────────── */}
-      <header
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 100,
-          background: 'var(--primary)',
-          boxShadow: '0 2px 12px rgba(15,39,71,0.25)',
-        }}
-      >
-        <div
-          className="page-container"
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 58 }}
-        >
-          {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 34, height: 34, borderRadius: 8,
-                background: 'var(--accent)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 32 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 10 L10 3 L10 17 Z" fill="white" opacity="0.85" />
-                <ellipse cx="19" cy="10" rx="11" ry="7" fill="white" opacity="0.92" />
-                <path d="M14 3 Q19 1 24 4 L22 7 Q19 5 14 7 Z" fill="white" opacity="0.5" />
-                <circle cx="27" cy="9" r="1.5" fill="var(--accent)" />
-                <circle cx="27.5" cy="8.5" r="0.4" fill="rgba(255,255,255,0.7)" />
-              </svg>
-            </div>
-            <div>
-              <span style={{ fontSize: 19, fontWeight: 800, color: 'white', letterSpacing: '-0.01em' }}>
-                釣果情報<span style={{ color: 'var(--accent)' }}>.com</span>
-              </span>
-              <span
-                style={{
-                  display: 'block', fontSize: 10,
-                  color: 'rgba(255,255,255,0.45)',
-                  lineHeight: 1, marginTop: 1, letterSpacing: '0.04em',
-                }}
-              >
-                関東圏
-              </span>
-            </div>
-          </div>
-
-          {/* Last updated */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>
-            <span
-              style={{
-                width: 6, height: 6, borderRadius: '50%',
-                background: 'var(--accent)', display: 'inline-block',
-                boxShadow: '0 0 6px var(--accent)',
-              }}
-            />
-            <span>更新: {nowStr}</span>
-          </div>
-        </div>
-      </header>
+      <SiteHeader updatedAt={nowStr} />
 
       {/* ── Hero ────────────────────────────────────────────────── */}
       <div

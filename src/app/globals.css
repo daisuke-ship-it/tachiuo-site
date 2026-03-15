@@ -102,3 +102,8 @@ input[type="date"] {
 ::-webkit-scrollbar-track { background: var(--surface-2); }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--secondary); }
+
+/* ─── Bottom nav spacing (mobile only) ─────────────────── */
+@media (max-width: 767px) {
+  body { padding-bottom: 64px; }
+}
