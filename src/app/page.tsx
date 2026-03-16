@@ -436,7 +436,7 @@ function AreaCard({ stat }: { stat: AreaStat }) {
                 marginBottom: 14,
               }}>
                 <p style={{ fontSize: 10, color: '#00d4c8', marginBottom: 4, fontWeight: 600, opacity: 0.8 }}>
-                  ✦ {aiSummaryDate ? `${aiSummaryDate.replace(/-/g, '/')}のAIサマリー` : 'AIサマリー'}
+                  ✦ {aiSummaryDate ? `${aiSummaryDate.replace(/-/g, '/')}の状況` : '状況'}
                 </p>
                 <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.65, margin: 0 }}>
                   {aiSummary}
