@@ -102,11 +102,6 @@ export default function CatchCards({ records }: Props) {
                 <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-main)', lineHeight: 1.3, letterSpacing: '0.02em' }}>
                   {r.shipyard_name ?? '—'}
                 </p>
-                {r.boat_name && (
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3, letterSpacing: '0.02em' }}>
-                    {r.boat_name}
-                  </p>
-                )}
               </div>
               <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0, paddingTop: 1, letterSpacing: '0.03em' }}>
                 {formatDate(r.date)}
@@ -116,7 +111,13 @@ export default function CatchCards({ records }: Props) {
             {/* Badges */}
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
               {r.shipyard_area && (
-                <Badge label={r.port_name ? `${r.shipyard_area}　${r.port_name}` : r.shipyard_area} bg={AREA_STYLE.bg} color={AREA_STYLE.color} />
+                <Badge label={r.shipyard_area} bg={AREA_STYLE.bg} color={AREA_STYLE.color} />
+              )}
+              {r.port_name && (
+                <Badge label={r.port_name} bg={AREA_STYLE.bg} color={AREA_STYLE.color} />
+              )}
+              {r.boat_name && (
+                <Badge label={r.boat_name} bg="rgba(255,255,255,0.06)" color="rgba(200,220,240,0.65)" />
               )}
               {r.fish_name && (
                 <Badge label={r.fish_name} bg={FISH_STYLE.bg} color={FISH_STYLE.color} />
