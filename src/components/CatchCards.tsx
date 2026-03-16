@@ -144,13 +144,17 @@ export default function CatchCards({ records }: Props) {
               const agg = [...map.entries()].map(([name, v]) => ({ name, ...v }))
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {agg.map(({ name, min, max, unit, size_text }) => (
+                  {agg.map(({ name, min, max, unit, size_text }) => {
+                    // catch_detailsは1種1レコード(count=max値のみ)が多いため、
+                    // 親レコードのcount_minをレンジ下限として補完する
+                    const lo = (r.count_min !== null && r.count_min < max) ? r.count_min : min
+                    return (
                     <div key={name} style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                       <span style={{ fontSize: 12, color: 'var(--text-muted)', minWidth: 56, flexShrink: 0, letterSpacing: '0.02em' }}>
                         {name}
                       </span>
                       <span style={{ fontSize: 16, fontWeight: 700, color: '#00F5FF', fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>
-                        {min === max ? `${max}` : `${min}〜${max}`}
+                        {lo === max ? `${max}` : `${lo}〜${max}`}
                       </span>
                       {size_text && (
                         <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-sub)', fontVariantNumeric: 'tabular-nums' }}>
@@ -158,7 +162,8 @@ export default function CatchCards({ records }: Props) {
                         </span>
                       )}
                     </div>
-                  ))}
+                  )})}
+
                 </div>
               )
             })() : (

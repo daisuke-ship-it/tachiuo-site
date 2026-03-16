@@ -64,7 +64,8 @@ function formatDetailsLines(details: CatchDetail[], countMin: number | null): st
   if (agg.length === 0) return ['—']
   return agg.map(({ name, max }) => {
     const lo = countMin ?? max
-    return agg.length > 1 ? `${name} ${lo}〜${max}` : `${lo}〜${max}`
+    const rangeStr = lo === max ? `${max}` : `${lo}〜${max}`
+    return agg.length > 1 ? `${name} ${rangeStr}` : rangeStr
   })
 }
 
