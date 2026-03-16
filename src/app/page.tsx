@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Fish } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import SiteHeader from '@/components/SiteHeader'
 
@@ -41,13 +42,19 @@ const AREA_CONFIG: { slug: AreaSlug; name: string; description: string }[] = [
 ]
 
 // ── 型 ────────────────────────────────────────────────────────
+type SpeciesStat = {
+  name: string
+  avgMax: number       // 直近7日の平均釣果
+  shipCount: number    // 直近7日の出船数
+  trend: 'up' | 'flat' | 'down'
+}
+
 type AreaStat = {
   areaName: string
   slug: AreaSlug
   description: string
-  totalRecords: number
-  todayRecords: number
-  topSpecies: { name: string; avgMax: number }[]
+  weekRecords: number  // 直近7日の件数
+  topSpecies: SpeciesStat[]
   aiSummary: string | null
 }
 
@@ -59,11 +66,18 @@ type RawRow = {
   catch_details: { species_name: string | null; count: number | null }[]
 }
 
+function jstDateStr(d: Date): string {
+  const jst = new Date(d.getTime() + 9 * 60 * 60 * 1000)
+  return jst.toISOString().slice(0, 10)
+}
+
 async function getAreaStats(): Promise<AreaStat[]> {
-  const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - 30)
-  const cutoffStr = cutoff.toISOString().slice(0, 10)
-  const today = new Date().toISOString().slice(0, 10)
+  const now = new Date()
+  const cutoff14 = new Date(now); cutoff14.setDate(now.getDate() - 14)
+  const cutoff7  = new Date(now); cutoff7.setDate(now.getDate() - 7)
+
+  const cutoff14Str = jstDateStr(cutoff14)
+  const cutoff7Str  = jstDateStr(cutoff7)
 
   const { data } = await supabase
     .from('catches')
@@ -73,35 +87,63 @@ async function getAreaStats(): Promise<AreaStat[]> {
       shipyards ( areas ( name ) ),
       catch_details ( species_name, count )
     `)
-    .gte('sail_date', cutoffStr)
+    .gte('sail_date', cutoff14Str)
     .order('sail_date', { ascending: false })
 
   const rows = (data ?? []) as unknown as RawRow[]
 
   return AREA_CONFIG.map(({ slug, name, description }) => {
     const areaRows = rows.filter((r) => r.shipyards?.areas?.name === name)
-    const todayRows = areaRows.filter((r) => r.sail_date === today)
+    const recentRows = areaRows.filter((r) => r.sail_date && r.sail_date >= cutoff7Str)
+    const prevRows   = areaRows.filter((r) => r.sail_date && r.sail_date < cutoff7Str)
 
-    // 直近30日の魚種別集計（catch_details から）
-    const speciesMap = new Map<string, { total: number; count: number }>()
-    for (const row of areaRows) {
-      for (const d of row.catch_details) {
-        if (!d.species_name || d.count === null) continue
-        const cur = speciesMap.get(d.species_name) ?? { total: 0, count: 0 }
-        speciesMap.set(d.species_name, { total: cur.total + d.count, count: cur.count + 1 })
-      }
+    // 集計ヘルパー: species_name → { total, count }
+    function buildMap(rs: RawRow[]) {
+      const m = new Map<string, { total: number; count: number; ships: Set<string> }>()
+      rs.forEach((row, i) => {
+        for (const d of row.catch_details) {
+          if (!d.species_name || d.count === null) continue
+          const cur = m.get(d.species_name) ?? { total: 0, count: 0, ships: new Set() }
+          cur.total += d.count
+          cur.count += 1
+          cur.ships.add(String(i)) // row index as proxy for distinct records
+          m.set(d.species_name, cur)
+        }
+      })
+      return m
     }
-    const topSpecies = [...speciesMap.entries()]
-      .map(([name, v]) => ({ name, avgMax: Math.round(v.total / v.count) }))
+
+    const recentMap = buildMap(recentRows)
+    const prevMap   = buildMap(prevRows)
+
+    const topSpecies: SpeciesStat[] = [...recentMap.entries()]
+      .map(([speciesName, v]) => {
+        const recentAvg = v.total / v.count
+        const prev = prevMap.get(speciesName)
+        const prevAvg = prev ? prev.total / prev.count : 0
+        let trend: 'up' | 'flat' | 'down' = 'flat'
+        if (prevAvg === 0) {
+          trend = recentAvg > 0 ? 'up' : 'flat'
+        } else {
+          const ratio = recentAvg / prevAvg
+          if (ratio >= 1.1) trend = 'up'
+          else if (ratio <= 0.9) trend = 'down'
+        }
+        return {
+          name: speciesName,
+          avgMax: Math.round(recentAvg),
+          shipCount: v.ships.size,
+          trend,
+        }
+      })
       .sort((a, b) => b.avgMax - a.avgMax)
-      .slice(0, 3)
+      .slice(0, 5)
 
     return {
       areaName: name,
       slug,
       description,
-      totalRecords: areaRows.length,
-      todayRecords: todayRows.length,
+      weekRecords: recentRows.length,
       topSpecies,
       aiSummary: null,
     }
@@ -155,7 +197,6 @@ export default async function Home() {
     getLatestUpdatedAt(),
   ])
 
-  // エリアAIサマリーをマージ
   const statsWithSummary = areaStats.map((s) => {
     const summary = aiSummaries.find((a) => {
       const areaId = AREA_CONFIG.findIndex((c) => c.name === s.areaName) + 1
@@ -178,36 +219,47 @@ export default async function Home() {
 
       {/* ── Hero ────────────────────────────────────────────────── */}
       <div style={{
-        background: 'var(--primary)',
-        paddingTop: 40, paddingBottom: 44,
+        background: 'linear-gradient(160deg, #0a1a3a 0%, #050d20 60%, #020610 100%)',
+        paddingTop: 48, paddingBottom: 52,
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
       }}>
         <div className="page-container">
-          <div style={{ marginBottom: 6 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'var(--accent)', textTransform: 'uppercase' }}>
-              FISHING REPORT — DAILY UPDATE
-            </span>
-          </div>
+          <p style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: '0.16em',
+            color: '#00d4c8', textTransform: 'uppercase', marginBottom: 12,
+          }}>
+            FISHING REPORT — DAILY UPDATE
+          </p>
           <h1 style={{
-            fontSize: 'clamp(18px, 3.5vw, 26px)', fontWeight: 700, color: 'white',
-            letterSpacing: '0.04em', lineHeight: 1.25, marginBottom: 6,
-            fontFamily: 'var(--font-serif)',
+            fontSize: 'clamp(26px, 5vw, 40px)', fontWeight: 700, color: '#f0f4ff',
+            fontFamily: 'var(--font-serif)', letterSpacing: '0.05em',
+            lineHeight: 1.2, marginBottom: 12,
           }}>
             関東圏の船釣り釣果まとめ
           </h1>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', maxWidth: 480, lineHeight: 1.6 }}>
+          <p style={{
+            fontSize: 16, fontWeight: 500, color: '#00d4c8',
+            marginBottom: 10, letterSpacing: '0.04em',
+          }}>
+            今日どこに行けば釣れる？
+          </p>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', maxWidth: 480, lineHeight: 1.65 }}>
             関東圏の複数船宿から釣果データを毎日自動収集。エリアを選んで最新の釣果情報を確認できます。
+          </p>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 16 }}>
+            最終更新：{nowStr}
           </p>
         </div>
       </div>
 
       {/* ── Main ─────────────────────────────────────────────────── */}
-      <main style={{ padding: '40px 0 100px' }}>
+      <main style={{ padding: '32px 0 100px' }}>
         <div className="page-container">
 
           {/* エリアカード 2×2グリッド */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
             gap: 20,
             marginBottom: 40,
           }}>
@@ -218,9 +270,12 @@ export default async function Home() {
 
           {/* 使い方ガイド */}
           <div style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-lg)',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderTop: '1px solid rgba(255,255,255,0.20)',
+            border: '1px solid rgba(255,255,255,0.10)',
+            borderRadius: 20,
             padding: '20px 24px',
           }}>
             <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 10, letterSpacing: '0.08em' }}>
@@ -236,7 +291,7 @@ export default async function Home() {
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     width: 20, height: 20, borderRadius: '50%',
-                    background: 'rgba(212,160,23,0.15)', color: 'var(--accent)',
+                    background: 'rgba(0,212,200,0.15)', color: '#00d4c8',
                     fontSize: 11, fontWeight: 700, flexShrink: 0, marginTop: 1,
                   }}>{i + 1}</span>
                   <span style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>{text}</span>
@@ -262,85 +317,111 @@ export default async function Home() {
   )
 }
 
+// ── トレンドインジケーター ────────────────────────────────────
+const TREND = {
+  up:   { icon: '↑', color: '#22c55e' },
+  flat: { icon: '→', color: '#6b7280' },
+  down: { icon: '↓', color: '#ef4444' },
+}
+
 // ── AreaCard コンポーネント ────────────────────────────────────
 function AreaCard({ stat }: { stat: AreaStat }) {
-  const { slug, areaName, description, totalRecords, todayRecords, topSpecies, aiSummary } = stat
-  const hasData = totalRecords > 0
+  const { slug, areaName, description, weekRecords, topSpecies, aiSummary } = stat
+  const hasData = weekRecords > 0 || topSpecies.length > 0
 
   return (
     <Link href={`/area/${slug}`} style={{ textDecoration: 'none' }}>
       <div style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-lg)',
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(255,255,255,0.20)',
+        border: '1px solid rgba(255,255,255,0.10)',
+        borderRadius: 20,
         padding: '24px',
         cursor: 'pointer',
-        transition: 'border-color 0.15s',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
         gap: 0,
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        transition: 'border-color 0.15s, box-shadow 0.15s',
       }}>
-        {/* エリア名 + 説明 */}
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', margin: 0 }}>
-              {areaName}
-            </h2>
-            {todayRecords > 0 && (
-              <span style={{
-                fontSize: 10, fontWeight: 700, padding: '2px 8px',
-                borderRadius: 'var(--radius-pill)',
-                background: 'rgba(212,160,23,0.15)', color: 'var(--accent)',
-                border: '1px solid rgba(212,160,23,0.3)',
-              }}>
-                本日{todayRecords}件
-              </span>
-            )}
-          </div>
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{description}</p>
+
+        {/* カードヘッダー */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+          <h2 style={{
+            fontSize: 22, fontWeight: 700, color: '#f0f4ff', margin: 0,
+            fontFamily: 'var(--font-serif)', letterSpacing: '0.04em',
+          }}>
+            {areaName}
+          </h2>
+          {weekRecords > 0 && (
+            <span style={{
+              fontSize: 10, fontWeight: 700, padding: '3px 9px',
+              borderRadius: 'var(--radius-pill)',
+              background: 'rgba(0,212,200,0.12)', color: '#00d4c8',
+              border: '1px solid rgba(0,212,200,0.35)',
+              whiteSpace: 'nowrap', flexShrink: 0, marginLeft: 8,
+            }}>
+              今週{weekRecords}件
+            </span>
+          )}
         </div>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>{description}</p>
 
         {/* 区切り線 */}
-        <div style={{ height: 1, background: 'var(--border)', marginBottom: 14 }} />
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', marginBottom: 16 }} />
 
         {hasData ? (
           <>
-            {/* 直近30日の注目魚種 */}
+            {/* 今週の注目魚種 */}
             {topSpecies.length > 0 && (
-              <div style={{ marginBottom: 14 }}>
-                <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600, letterSpacing: '0.06em' }}>
-                  直近30日の注目魚種
+              <div style={{ marginBottom: 16 }}>
+                <p style={{ fontSize: 10, color: '#8899bb', marginBottom: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  今週の注目魚種
                 </p>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {topSpecies.map((sp) => (
-                    <span key={sp.name} style={{
-                      fontSize: 12, padding: '3px 10px',
-                      borderRadius: 'var(--radius-pill)',
-                      background: 'rgba(30,58,95,0.6)', color: '#93c5fd',
-                      border: '1px solid rgba(147,197,253,0.15)',
-                    }}>
-                      {sp.name}
-                    </span>
-                  ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {topSpecies.map((sp) => {
+                    const t = TREND[sp.trend]
+                    return (
+                      <div key={sp.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {/* Lucide Fish icon */}
+                        <Fish size={14} strokeWidth={1.5} style={{ color: '#00d4c8', flexShrink: 0 }} />
+                        {/* 魚種名 */}
+                        <span style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0', flex: 1 }}>
+                          {sp.name}
+                        </span>
+                        {/* トレンド */}
+                        <span style={{ fontSize: 13, fontWeight: 700, color: t.color, minWidth: 14, textAlign: 'center' }}>
+                          {t.icon}
+                        </span>
+                        {/* 平均釣果 */}
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#f0f4ff', minWidth: 30, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                          {sp.avgMax}
+                        </span>
+                        {/* 出船数 */}
+                        <span style={{ fontSize: 10, color: '#8899bb', minWidth: 36 }}>
+                          {sp.shipCount}船
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
 
-            {/* AIサマリー */}
+            {/* AIサマリー（全文） */}
             {aiSummary && (
               <div style={{
-                background: 'rgba(0,245,255,0.03)',
-                border: '1px solid rgba(0,245,255,0.10)',
-                borderRadius: 6,
-                padding: '8px 10px',
+                background: 'rgba(0,212,200,0.04)',
+                border: '1px solid rgba(0,212,200,0.15)',
+                borderRadius: 10,
+                padding: '10px 12px',
                 marginBottom: 14,
               }}>
-                <p style={{ fontSize: 10, color: '#64748b', marginBottom: 3 }}>✦ AIサマリー</p>
-                <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.55, margin: 0 }}>
-                  {aiSummary.length > 120 ? aiSummary.slice(0, 120) + '…' : aiSummary}
+                <p style={{ fontSize: 10, color: '#00d4c8', marginBottom: 4, fontWeight: 600, opacity: 0.8 }}>✦ AIサマリー</p>
+                <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.65, margin: 0 }}>
+                  {aiSummary}
                 </p>
               </div>
             )}
@@ -354,7 +435,7 @@ function AreaCard({ stat }: { stat: AreaStat }) {
         {/* 詳細リンク */}
         <div style={{ marginTop: 'auto', paddingTop: 12 }}>
           <span style={{
-            fontSize: 13, fontWeight: 600, color: 'var(--accent)',
+            fontSize: 13, fontWeight: 600, color: '#00d4c8',
             display: 'flex', alignItems: 'center', gap: 4,
           }}>
             釣果一覧を見る →
