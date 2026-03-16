@@ -56,6 +56,7 @@ type AreaStat = {
   weekRecords: number  // 直近7日の件数
   topSpecies: SpeciesStat[]
   aiSummary: string | null
+  aiSummaryDate: string | null
 }
 
 // ── データ取得 ─────────────────────────────────────────────────
@@ -137,7 +138,6 @@ async function getAreaStats(): Promise<AreaStat[]> {
         }
       })
       .sort((a, b) => b.avgMax - a.avgMax)
-      .slice(0, 5)
 
     return {
       areaName: name,
@@ -146,6 +146,7 @@ async function getAreaStats(): Promise<AreaStat[]> {
       weekRecords: recentRows.length,
       topSpecies,
       aiSummary: null,
+      aiSummaryDate: null,
     }
   })
 }
@@ -202,7 +203,7 @@ export default async function Home() {
       const areaId = AREA_CONFIG.findIndex((c) => c.name === s.areaName) + 1
       return a.target_id === areaId
     })
-    return { ...s, aiSummary: summary?.summary_text ?? null }
+    return { ...s, aiSummary: summary?.summary_text ?? null, aiSummaryDate: summary?.target_date ?? null }
   })
 
   const nowStr = new Date(latestAt ?? Date.now()).toLocaleString('ja-JP', {
@@ -218,37 +219,52 @@ export default async function Home() {
       <SiteHeader updatedAt={nowStr} />
 
       {/* ── Hero ────────────────────────────────────────────────── */}
-      <div style={{
-        background: 'linear-gradient(160deg, #0a1a3a 0%, #050d20 60%, #020610 100%)',
-        paddingTop: 48, paddingBottom: 52,
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <div className="page-container">
-          <p style={{
-            fontSize: 10, fontWeight: 700, letterSpacing: '0.16em',
-            color: '#00d4c8', textTransform: 'uppercase', marginBottom: 12,
-          }}>
-            FISHING REPORT — DAILY UPDATE
-          </p>
-          <h1 style={{
-            fontSize: 'clamp(26px, 5vw, 40px)', fontWeight: 700, color: '#f0f4ff',
-            fontFamily: 'var(--font-serif)', letterSpacing: '0.05em',
-            lineHeight: 1.2, marginBottom: 12,
-          }}>
-            関東圏の船釣り釣果まとめ
-          </h1>
-          <p style={{
-            fontSize: 16, fontWeight: 500, color: '#00d4c8',
-            marginBottom: 10, letterSpacing: '0.04em',
-          }}>
-            今日どこに行けば釣れる？
-          </p>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', maxWidth: 480, lineHeight: 1.65 }}>
-            関東圏の複数船宿から釣果データを毎日自動収集。エリアを選んで最新の釣果情報を確認できます。
-          </p>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 16 }}>
-            最終更新：{nowStr}
-          </p>
+      <div style={{ position: 'relative', overflow: 'hidden', minHeight: 300 }}>
+        {/* 背景画像 */}
+        <img
+          src="https://images.unsplash.com/photo-1578632292335-df3abbb0d586?w=1920&q=80"
+          alt="海釣り"
+          style={{
+            position: 'absolute', inset: 0,
+            width: '100%', height: '100%',
+            objectFit: 'cover',
+            filter: 'brightness(0.5)',
+          }}
+        />
+        {/* 下部フェード */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, transparent 30%, var(--bg-deep-sea) 100%)',
+        }} />
+        {/* コンテンツ */}
+        <div style={{ position: 'relative', paddingTop: 48, paddingBottom: 56 }}>
+          <div className="page-container">
+            <p style={{
+              fontSize: 10, fontWeight: 700, letterSpacing: '0.16em',
+              color: '#00d4c8', textTransform: 'uppercase', marginBottom: 12,
+            }}>
+              FISHING REPORT — DAILY UPDATE
+            </p>
+            <h1 style={{
+              fontSize: 'clamp(26px, 5vw, 40px)', fontWeight: 700, color: '#f0f4ff',
+              fontFamily: 'var(--font-serif)', letterSpacing: '0.05em',
+              lineHeight: 1.2, marginBottom: 12,
+            }}>
+              関東圏の船釣り釣果まとめ
+            </h1>
+            <p style={{
+              fontSize: 16, fontWeight: 500, color: '#00d4c8',
+              marginBottom: 10, letterSpacing: '0.04em',
+            }}>
+              今日どこに行けば釣れる？
+            </p>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', maxWidth: 480, lineHeight: 1.65 }}>
+              関東圏の複数船宿から釣果データを毎日自動収集。エリアを選んで最新の釣果情報を確認できます。
+            </p>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 16 }}>
+              最終更新：{nowStr}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -326,7 +342,7 @@ const TREND = {
 
 // ── AreaCard コンポーネント ────────────────────────────────────
 function AreaCard({ stat }: { stat: AreaStat }) {
-  const { slug, areaName, description, weekRecords, topSpecies, aiSummary } = stat
+  const { slug, areaName, description, weekRecords, topSpecies, aiSummary, aiSummaryDate } = stat
   const hasData = weekRecords > 0 || topSpecies.length > 0
 
   return (
@@ -419,7 +435,9 @@ function AreaCard({ stat }: { stat: AreaStat }) {
                 padding: '10px 12px',
                 marginBottom: 14,
               }}>
-                <p style={{ fontSize: 10, color: '#00d4c8', marginBottom: 4, fontWeight: 600, opacity: 0.8 }}>✦ AIサマリー</p>
+                <p style={{ fontSize: 10, color: '#00d4c8', marginBottom: 4, fontWeight: 600, opacity: 0.8 }}>
+                  ✦ {aiSummaryDate ? `${aiSummaryDate.replace(/-/g, '/')}のAIサマリー` : 'AIサマリー'}
+                </p>
                 <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.65, margin: 0 }}>
                   {aiSummary}
                 </p>
