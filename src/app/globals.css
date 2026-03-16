@@ -1,51 +1,60 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
 /* ─── Design Tokens ─────────────────────────────────────────── */
 :root {
-  /* Brand */
-  --primary:       #0A1A32;
-  --secondary:     #00d4c8;
-  --accent:        #00d4c8;
-  --accent-light:  rgba(0, 212, 200, 0.10);
-  --accent-mid:    rgba(0, 212, 200, 0.22);
-  --accent-dim:    rgba(0, 212, 200, 0.15);
-  --gold:          #00d4c8;
+  /* Brand — Deep Crystal Blue */
+  --primary:       #050d1e;
+  --secondary:     #4a9eff;
+  --accent:        #4a9eff;
+  --accent-light:  rgba(74, 158, 255, 0.10);
+  --accent-mid:    rgba(74, 158, 255, 0.22);
+  --accent-dim:    rgba(74, 158, 255, 0.15);
+  --gold:          #4a9eff;
+
+  /* Crystal / Silver */
+  --crystal-silver:   rgba(200, 220, 255, 0.65);
+  --crystal-platinum: rgba(220, 235, 255, 0.90);
 
   /* Deep backgrounds */
-  --bg-deep:       #05080f;
-  --bg-surface:    #0a1628;
+  --bg-deep:       #020610;
+  --bg-surface:    #060f28;
 
-  /* Backgrounds */
-  --bg:            #05080f;
-  --surface:       rgba(255, 255, 255, 0.04);
-  --surface-2:     rgba(255, 255, 255, 0.07);
-  --surface-3:     rgba(255, 255, 255, 0.10);
+  /* Backgrounds — ultra-transparent for crystal glass effect */
+  --bg:            #020610;
+  --surface:       rgba(8, 18, 55, 0.28);
+  --surface-2:     rgba(8, 18, 55, 0.45);
+  --surface-3:     rgba(8, 18, 55, 0.60);
 
   /* Glass */
-  --glass-bg:      rgba(255, 255, 255, 0.04);
-  --glass-border:  rgba(255, 255, 255, 0.08);
+  --glass-bg:      rgba(8, 18, 55, 0.25);
+  --glass-border:  rgba(180, 210, 255, 0.15);
 
   /* Text */
-  --text:          #f0f4ff;
-  --text-main:     #f0f4ff;
-  --text-primary:  #f0f4ff;
-  --text-sub:      rgba(240, 244, 255, 0.65);
-  --text-secondary: #8899bb;
-  --text-muted:    rgba(240, 244, 255, 0.40);
-  --text-dim:      #4a5a7a;
-  --text-inverse:  #05080f;
+  --text:          #eef4ff;
+  --text-main:     #eef4ff;
+  --text-primary:  #eef4ff;
+  --text-sub:      rgba(200, 220, 255, 0.70);
+  --text-secondary: #7090bb;
+  --text-muted:    rgba(160, 185, 220, 0.50);
+  --text-dim:      #3a4a6a;
+  --text-inverse:  #020610;
 
-  /* Borders — extremely subtle (glass effect) */
-  --border:        rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --border-accent: rgba(0, 212, 200, 0.30);
+  /* Borders — crystal silver-blue */
+  --border:        rgba(180, 210, 255, 0.12);
+  --border-strong: rgba(200, 225, 255, 0.22);
+  --border-accent: rgba(74, 158, 255, 0.40);
 
-  /* Shadows */
-  --shadow-xs: 0 1px 4px rgba(0, 0, 0, 0.50);
-  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.55);
-  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.60), 0 0 1px rgba(255,255,255,0.06);
-  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.70), 0 0 1px rgba(255,255,255,0.07);
+  /* Shadows — deep with crystal micro-glow */
+  --shadow-xs: 0 1px 4px rgba(0, 0, 0, 0.60);
+  --shadow-sm: 0 2px 16px rgba(0, 0, 0, 0.65);
+  --shadow-md: 0 4px 32px rgba(0, 0, 0, 0.70),
+               0 0 0 0.5px rgba(255, 255, 255, 0.07),
+               inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.80),
+               0 0 0 0.5px rgba(255, 255, 255, 0.06),
+               inset 0 1px 0 rgba(255, 255, 255, 0.12),
+               0 0 60px rgba(74, 158, 255, 0.04);
 
   /* Radii */
   --radius-sm:   12px;
@@ -55,7 +64,8 @@
   --radius-pill: 999px;
 
   /* Typography */
-  --font-serif: "Noto Serif JP", "Hiragino Mincho ProN", "Hiragino Mincho Pro", "YuMincho", "Yu Mincho", "游明朝", Georgia, serif;
+  --font-serif: "Noto Serif JP", "Yu Mincho", "游明朝", Georgia, serif;
+  --font-label: "Inter", system-ui, sans-serif;
 }
 
 /* ─── Reset & Base ──────────────────────────────────────────── */
@@ -67,7 +77,7 @@ html {
 }
 
 body {
-  background: radial-gradient(ellipse at top, #0d1f3c 0%, #05080f 60%);
+  background: radial-gradient(ellipse at 20% 0%, #0d1f50 0%, #050d20 45%, #020610 85%);
   background-attachment: fixed;
   min-height: 100vh;
   color: var(--text-main);
@@ -90,28 +100,36 @@ a, button { transition: all 0.2s ease-out; }
   border-radius: 4px;
 }
 
-/* ─── Glass card utility ─────────────────────────────────────── */
+/* ─── Crystal Glass utilities ────────────────────────────────── */
 .glass {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(48px) saturate(220%) brightness(1.05);
+  -webkit-backdrop-filter: blur(48px) saturate(220%) brightness(1.05);
+  border: 0.5px solid rgba(200, 225, 255, 0.18);
   box-shadow: var(--shadow-md);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: var(--shadow-md);
+  background: rgba(8, 18, 55, 0.28);
+  backdrop-filter: blur(48px) saturate(220%) brightness(1.05);
+  -webkit-backdrop-filter: blur(48px) saturate(220%) brightness(1.05);
+  border: 0.5px solid rgba(200, 225, 255, 0.18);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.55),
+    0 0 0 0.5px rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.15);
   transition: transform 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 
 .glass-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(0, 212, 200, 0.25);
-  box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 212, 200, 0.08);
+  border-color: rgba(74, 158, 255, 0.30);
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.65),
+    0 0 0 0.5px rgba(255, 255, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 40px rgba(74, 158, 255, 0.08);
 }
 
 /* ─── Serif heading utility ─────────────────────────────────── */
@@ -148,7 +166,7 @@ input[type="date"] {
 /* ─── Scrollbar ─────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(180, 210, 255, 0.15); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
 /* ─── Bottom nav spacing (mobile only) ─────────────────────── */
@@ -156,7 +174,7 @@ input[type="date"] {
   body { padding-bottom: 64px; }
 }
 
-/* ─── Glow effect for accent elements ─────────────────────── */
+/* ─── Crystal glow effect ───────────────────────────────────── */
 .accent-glow {
-  box-shadow: 0 0 12px rgba(0, 212, 200, 0.35);
+  box-shadow: 0 0 12px rgba(74, 158, 255, 0.40), 0 0 24px rgba(74, 158, 255, 0.15);
 }

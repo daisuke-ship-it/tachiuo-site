@@ -32,10 +32,10 @@ function NavLink({ href, active, children }: { href: string; active: boolean; ch
       style={{
         fontSize: 13,
         fontWeight: active ? 600 : 400,
-        color: active ? '#00d4c8' : 'rgba(240,244,255,0.55)',
+        color: active ? '#4a9eff' : 'rgba(240,244,255,0.55)',
         padding: '6px 12px',
         borderRadius: 'var(--radius-pill)',
-        background: active ? 'rgba(0,245,255,0.08)' : 'transparent',
+        background: active ? 'rgba(74,158,255,0.10)' : 'transparent',
         whiteSpace: 'nowrap',
         letterSpacing: '0.02em',
       }}
@@ -61,10 +61,10 @@ function DropdownNav({
         display: 'flex', alignItems: 'center', gap: 3,
         fontSize: 13,
         fontWeight: active ? 600 : 400,
-        color: active ? '#00d4c8' : 'rgba(240,244,255,0.55)',
+        color: active ? '#4a9eff' : 'rgba(240,244,255,0.55)',
         padding: '6px 12px',
         borderRadius: 'var(--radius-pill)',
-        background: active ? 'rgba(0,245,255,0.08)' : 'transparent',
+        background: active ? 'rgba(74,158,255,0.10)' : 'transparent',
         cursor: 'default',
         whiteSpace: 'nowrap',
         letterSpacing: '0.02em',
@@ -128,14 +128,14 @@ export default function SiteHeader({ updatedAt, subtitle = '関東圏' }: Props)
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
           <div style={{
             width: 36, height: 36, borderRadius: 'var(--radius-md)',
-            background: 'linear-gradient(135deg, rgba(0,245,255,0.2) 0%, rgba(0,245,255,0.08) 100%)',
-            border: '1px solid rgba(0,245,255,0.35)',
+            background: 'linear-gradient(135deg, rgba(74,158,255,0.20) 0%, rgba(74,158,255,0.10) 100%)',
+            border: '1px solid rgba(74,158,255,0.40)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             boxShadow: '0 0 16px rgba(0,245,255,0.20)',
           }}>
             <svg width="20" height="20" viewBox="0 0 32 20" fill="none">
-              <path d="M4 10 L10 3 L10 17 Z" fill="#00d4c8" opacity="0.9" />
-              <ellipse cx="19" cy="10" rx="11" ry="7" fill="#00d4c8" opacity="0.85" />
+              <path d="M4 10 L10 3 L10 17 Z" fill="#4a9eff" opacity="0.9" />
+              <ellipse cx="19" cy="10" rx="11" ry="7" fill="#4a9eff" opacity="0.85" />
               <path d="M14 3 Q19 1 24 4 L22 7 Q19 5 14 7 Z" fill="white" opacity="0.4" />
               <circle cx="27" cy="9" r="1.5" fill="white" />
             </svg>
@@ -146,7 +146,7 @@ export default function SiteHeader({ updatedAt, subtitle = '関東圏' }: Props)
               letterSpacing: '0.04em',
               fontFamily: 'var(--font-serif)',
             }}>
-              釣果情報<span style={{ color: '#00d4c8' }}>.com</span>
+              釣果情報<span style={{ color: '#4a9eff' }}>.com</span>
             </span>
             <span style={{
               display: 'block', fontSize: 10,
@@ -191,8 +191,8 @@ export default function SiteHeader({ updatedAt, subtitle = '関東圏' }: Props)
           }}>
             <span style={{
               width: 6, height: 6, borderRadius: '50%',
-              background: '#00d4c8', display: 'inline-block',
-              boxShadow: '0 0 8px rgba(0,245,255,0.8)',
+              background: '#4a9eff', display: 'inline-block',
+              boxShadow: '0 0 8px rgba(74,158,255,0.80)',
             }} />
             <span>更新: {updatedAt}</span>
           </div>
