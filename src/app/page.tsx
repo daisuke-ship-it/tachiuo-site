@@ -31,6 +31,20 @@ export type FishRecord = {
 // species_name → 同グループの全 species_name[]
 export type SpeciesGroupMap = Record<string, string[]>
 
+// ── エリア・魚種スラッグ ──────────────────────────────────────
+const FISH_SLUGS: Record<string, string> = {
+  'タチウオ': 'tachiuo',
+  'アジ':     'aji',
+  'サワラ':   'sawara',
+  'シーバス': 'seabass',
+}
+const AREA_SLUGS: Record<string, string> = {
+  '東京湾': 'tokyo',
+  '相模湾': 'sagami',
+  '外房':   'sotobo',
+  '南房':   'minamibo',
+}
+
 // ── エリア定義 ────────────────────────────────────────────────
 type AreaSlug = 'tokyo' | 'sagami' | 'sotobo' | 'minamibo'
 
@@ -40,6 +54,17 @@ const AREA_CONFIG: { slug: AreaSlug; name: string; description: string }[] = [
   { slug: 'sotobo',   name: '外房',   description: '勝浦・大原・一宮など' },
   { slug: 'minamibo', name: '南房',   description: '館山・白浜など' },
 ]
+
+// ── おすすめ型 ────────────────────────────────────────────────
+type Recommendation = {
+  area: string
+  fish: string
+  score: number
+  avgCount: number
+  wowPercent: number | null
+  shipCount: number
+  rank: 1 | 2 | 3
+}
 
 // ── 型 ────────────────────────────────────────────────────────
 type SpeciesStat = {
@@ -151,6 +176,77 @@ async function getAreaStats(): Promise<AreaStat[]> {
   })
 }
 
+async function getRecommendations(): Promise<Recommendation[]> {
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 14)
+  const cutoffStr = cutoff.toISOString().slice(0, 10)
+
+  const { data } = await supabase
+    .from('catches')
+    .select('sail_date, shipyards ( name, areas ( name ) ), catch_details ( species_name, count )')
+    .gte('sail_date', cutoffStr)
+    .order('sail_date', { ascending: false })
+
+  type RawRec = {
+    sail_date: string | null
+    shipyards: { name: string; areas: { name: string } | null } | null
+    catch_details: { species_name: string | null; count: number | null }[]
+  }
+  const rows = (data ?? []) as unknown as RawRec[]
+
+  const today = new Date()
+  const last7Str = new Date(today); last7Str.setDate(today.getDate() - 7)
+  const prev7Str = new Date(today); prev7Str.setDate(today.getDate() - 14)
+  const last7StrISO = last7Str.toISOString().slice(0, 10)
+  const prev7StrISO = prev7Str.toISOString().slice(0, 10)
+
+  type PairAgg = { sumCount: number; nEntries: number; shipyards: Set<string> }
+  const last7 = new Map<string, PairAgg>()
+  const prev7 = new Map<string, PairAgg>()
+
+  for (const row of rows) {
+    const area = row.shipyards?.areas?.name
+    const yard = row.shipyards?.name
+    const date = row.sail_date
+    if (!area || !date) continue
+    const isLast7 = date >= last7StrISO
+    const isPrev7 = date >= prev7StrISO && date < last7StrISO
+    const target = isLast7 ? last7 : isPrev7 ? prev7 : null
+    if (!target) continue
+    for (const d of row.catch_details) {
+      if (!d.species_name || d.count === null || d.count <= 0) continue
+      const key = `${area}|${d.species_name}`
+      const cur = target.get(key) ?? { sumCount: 0, nEntries: 0, shipyards: new Set<string>() }
+      cur.sumCount += d.count
+      cur.nEntries += 1
+      if (yard) cur.shipyards.add(yard)
+      target.set(key, cur)
+    }
+  }
+
+  const results: Recommendation[] = []
+  for (const [key, l7] of last7.entries()) {
+    if (l7.nEntries < 3) continue
+    const [area, fish] = key.split('|')
+    const avgCount = l7.sumCount / l7.nEntries
+    if (avgCount < 3) continue
+    const shipCount = l7.shipyards.size
+    const p7 = prev7.get(key)
+    let wowPercent: number | null = null
+    if (p7 && p7.nEntries > 0) {
+      const prevAvg = p7.sumCount / p7.nEntries
+      if (prevAvg > 0) wowPercent = Math.round((avgCount - prevAvg) / prevAvg * 100)
+    }
+    const countScore = Math.min(avgCount / 40 * 60, 60)
+    const wowScore   = wowPercent !== null && wowPercent > 0 ? Math.min(wowPercent / 60 * 25, 25) : 0
+    const shipScore  = Math.min(shipCount / 5 * 15, 15)
+    const score      = Math.round(countScore + wowScore + shipScore)
+    results.push({ area, fish, score, avgCount: Math.round(avgCount), wowPercent, shipCount, rank: 1 })
+  }
+
+  results.sort((a, b) => b.score - a.score)
+  return results.slice(0, 3).map((r, i) => ({ ...r, rank: (i + 1) as 1 | 2 | 3 }))
+}
+
 async function getAISummariesForAreas(): Promise<AISummaryRecord[]> {
   const { data } = await supabase
     .from('ai_summaries')
@@ -192,10 +288,11 @@ export const revalidate = 300
 
 // ── Page ───────────────────────────────────────────────────────
 export default async function Home() {
-  const [areaStats, aiSummaries, latestAt] = await Promise.all([
+  const [areaStats, aiSummaries, latestAt, recommendations] = await Promise.all([
     getAreaStats(),
     getAISummariesForAreas(),
     getLatestUpdatedAt(),
+    getRecommendations(),
   ])
 
   const statsWithSummary = areaStats.map((s) => {
@@ -273,6 +370,25 @@ export default async function Home() {
       <main style={{ padding: '32px 0 100px' }}>
         <div className="page-container">
 
+          {/* 今週末のおすすめ */}
+          {recommendations.length > 0 && (
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <h2 style={{ fontSize: 15, fontWeight: 700, color: '#f0f4ff', fontFamily: 'var(--font-serif)', letterSpacing: '0.04em' }}>
+                  今週末のおすすめ
+                </h2>
+                <Link href="/analysis" style={{ fontSize: 11, color: '#00d4c8', opacity: 0.8 }}>
+                  詳細分析 →
+                </Link>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {recommendations.map((rec) => (
+                  <TopRecommendationCard key={`${rec.area}-${rec.fish}`} rec={rec} />
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* エリアカード 2×2グリッド */}
           <div style={{
             display: 'grid',
@@ -331,6 +447,62 @@ export default async function Home() {
         </div>
       </footer>
     </div>
+  )
+}
+
+// ── TopRecommendationCard ─────────────────────────────────────
+const RANK_MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
+
+function TopRecommendationCard({ rec }: { rec: Recommendation }) {
+  const areaSlug = AREA_SLUGS[rec.area] ?? 'tokyo'
+  const fishSlug = FISH_SLUGS[rec.fish]
+  const href     = fishSlug ? `/fish/${fishSlug}/${areaSlug}` : `/area/${areaSlug}`
+  const scoreColor =
+    rec.score >= 70 ? '#4ade80' :
+    rec.score >= 40 ? '#facc15' : '#94a3b8'
+
+  return (
+    <Link href={href} style={{ textDecoration: 'none' }}>
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(255,255,255,0.20)',
+        border: '1px solid rgba(255,255,255,0.10)',
+        borderRadius: 16,
+        padding: '14px 18px',
+        display: 'flex', alignItems: 'center', gap: 14,
+        cursor: 'pointer',
+      }}>
+        <span style={{ fontSize: 24, flexShrink: 0 }}>{RANK_MEDAL[rec.rank]}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ fontSize: 15, fontWeight: 700, color: '#f0f4ff' }}>
+            {rec.area} × {rec.fish}
+          </span>
+          <div style={{ display: 'flex', gap: 14, marginTop: 4, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 11, color: '#8899bb' }}>
+              平均 <span style={{ color: '#f0f4ff', fontWeight: 600 }}>{rec.avgCount}尾</span>
+            </span>
+            {rec.wowPercent !== null && (
+              <span style={{ fontSize: 11, color: '#8899bb' }}>
+                前週比 <span style={{ color: rec.wowPercent >= 0 ? '#4ade80' : '#f87171', fontWeight: 600 }}>
+                  {rec.wowPercent >= 0 ? '+' : ''}{rec.wowPercent}%
+                </span>
+              </span>
+            )}
+            <span style={{ fontSize: 11, color: '#8899bb' }}>
+              <span style={{ color: '#f0f4ff', fontWeight: 600 }}>{rec.shipCount}</span>船宿
+            </span>
+          </div>
+        </div>
+        <div style={{ textAlign: 'center', flexShrink: 0 }}>
+          <div style={{ fontSize: 20, fontWeight: 700, color: scoreColor, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+            {rec.score}
+          </div>
+          <div style={{ fontSize: 9, color: '#8899bb', marginTop: 2 }}>スコア</div>
+        </div>
+      </div>
+    </Link>
   )
 }
 
