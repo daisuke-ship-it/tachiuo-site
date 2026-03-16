@@ -567,7 +567,7 @@ function AreaCard({ stat }: { stat: AreaStat }) {
             {topSpecies.length > 0 && (
               <div style={{ marginBottom: 16 }}>
                 <p style={{ fontSize: 10, color: '#8899bb', marginBottom: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                  今週の注目魚種
+                  今週の釣果報告
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {topSpecies.map((sp) => {
