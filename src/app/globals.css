@@ -1,67 +1,76 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Serif+JP:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
 /* ─── Design Tokens ─────────────────────────────────────────── */
 :root {
-  /* Brand — Deep Crystal Blue */
-  --primary:       #050d1e;
-  --secondary:     #4a9eff;
-  --accent:        #4a9eff;
-  --accent-light:  rgba(74, 158, 255, 0.10);
-  --accent-mid:    rgba(74, 158, 255, 0.22);
-  --accent-dim:    rgba(74, 158, 255, 0.15);
-  --gold:          #4a9eff;
+  /* --- Backgrounds & Depths --- */
+  --bg-deep-sea:      #050A18;
+  --bg-gradient-top:  #0A1A32;
+  --bg-card-glass:    rgba(255, 255, 255, 0.03);
+
+  /* --- Accents & Highlights --- */
+  --color-neon-turquoise: #00F5FF;
+  --color-text-primary:   #FFFFFF;
+  --color-text-secondary: #96AAB4;
+
+  /* --- Radii & Blur --- */
+  --border-radius-card: 24px;
+  --border-radius-tag:  100px;
+  --glass-blur:         blur(20px);
+
+  /* ── Legacy aliases (kept for component compatibility) ────── */
+  --primary:        #050A18;
+  --accent:         #00F5FF;
+  --accent-light:   rgba(0, 245, 255, 0.10);
+  --accent-mid:     rgba(0, 245, 255, 0.22);
+  --accent-dim:     rgba(0, 245, 255, 0.15);
+  --gold:           #00F5FF;
 
   /* Crystal / Silver */
-  --crystal-silver:   rgba(200, 220, 255, 0.65);
-  --crystal-platinum: rgba(220, 235, 255, 0.90);
+  --crystal-silver:   rgba(200, 230, 240, 0.65);
+  --crystal-platinum: rgba(220, 240, 245, 0.90);
 
-  /* Deep backgrounds */
-  --bg-deep:       #020610;
-  --bg-surface:    #060f28;
-
-  /* Backgrounds — ultra-transparent for crystal glass effect */
-  --bg:            #020610;
-  --surface:       rgba(8, 18, 55, 0.28);
-  --surface-2:     rgba(8, 18, 55, 0.45);
-  --surface-3:     rgba(8, 18, 55, 0.60);
+  /* Backgrounds */
+  --bg:         var(--bg-deep-sea);
+  --surface:    rgba(10, 26, 50, 0.35);
+  --surface-2:  rgba(10, 26, 50, 0.55);
+  --surface-3:  rgba(10, 26, 50, 0.70);
 
   /* Glass */
-  --glass-bg:      rgba(8, 18, 55, 0.25);
-  --glass-border:  rgba(180, 210, 255, 0.15);
+  --glass-bg:     var(--bg-card-glass);
+  --glass-border: rgba(255, 255, 255, 0.05);
 
   /* Text */
-  --text:          #eef4ff;
-  --text-main:     #eef4ff;
-  --text-primary:  #eef4ff;
-  --text-sub:      rgba(200, 220, 255, 0.70);
-  --text-secondary: #7090bb;
-  --text-muted:    rgba(160, 185, 220, 0.50);
-  --text-dim:      #3a4a6a;
-  --text-inverse:  #020610;
+  --text:           var(--color-text-primary);
+  --text-main:      var(--color-text-primary);
+  --text-primary:   var(--color-text-primary);
+  --text-sub:       rgba(200, 225, 240, 0.75);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted:     rgba(150, 170, 180, 0.55);
+  --text-dim:       #3a4a5a;
+  --text-inverse:   #050A18;
 
-  /* Borders — crystal silver-blue */
-  --border:        rgba(180, 210, 255, 0.12);
-  --border-strong: rgba(200, 225, 255, 0.22);
-  --border-accent: rgba(74, 158, 255, 0.40);
+  /* Borders */
+  --border:        rgba(255, 255, 255, 0.05);
+  --border-strong: rgba(255, 255, 255, 0.10);
+  --border-accent: rgba(0, 245, 255, 0.45);
 
-  /* Shadows — deep with crystal micro-glow */
+  /* Shadows */
   --shadow-xs: 0 1px 4px rgba(0, 0, 0, 0.60);
   --shadow-sm: 0 2px 16px rgba(0, 0, 0, 0.65);
   --shadow-md: 0 4px 32px rgba(0, 0, 0, 0.70),
-               0 0 0 0.5px rgba(255, 255, 255, 0.07),
-               inset 0 1px 0 rgba(255, 255, 255, 0.10);
-  --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.80),
-               0 0 0 0.5px rgba(255, 255, 255, 0.06),
-               inset 0 1px 0 rgba(255, 255, 255, 0.12),
-               0 0 60px rgba(74, 158, 255, 0.04);
+               0 0 0 0.5px rgba(255, 255, 255, 0.05),
+               inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.50),
+               0 0 0 0.5px rgba(255, 255, 255, 0.05),
+               inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
-  /* Radii */
+  /* Radii (legacy) */
   --radius-sm:   12px;
   --radius-md:   16px;
-  --radius-lg:   24px;
+  --radius-lg:   var(--border-radius-card);
   --radius-xl:   32px;
-  --radius-pill: 999px;
+  --radius-pill: var(--border-radius-tag);
 
   /* Typography */
   --font-serif: "Noto Serif JP", "Yu Mincho", "游明朝", Georgia, serif;
@@ -77,11 +86,11 @@ html {
 }
 
 body {
-  background: radial-gradient(ellipse at 20% 0%, #0d1f50 0%, #050d20 45%, #020610 85%);
+  background: radial-gradient(circle at top, var(--bg-gradient-top), var(--bg-deep-sea) 70%);
   background-attachment: fixed;
   min-height: 100vh;
-  color: var(--text-main);
-  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
+  color: var(--color-text-primary);
+  font-family: 'Inter', 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.65;
@@ -100,42 +109,53 @@ a, button { transition: all 0.2s ease-out; }
   border-radius: 4px;
 }
 
-/* ─── Crystal Glass utilities ────────────────────────────────── */
-.glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(48px) saturate(220%) brightness(1.05);
-  -webkit-backdrop-filter: blur(48px) saturate(220%) brightness(1.05);
-  border: 0.5px solid rgba(200, 225, 255, 0.18);
-  box-shadow: var(--shadow-md);
+/* ─── Typography ─────────────────────────────────────────────── */
+h1, .premium-title {
+  font-family: 'Yu Mincho', 'Noto Serif JP', serif;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--color-text-primary);
 }
 
-.glass-card {
-  background: rgba(8, 18, 55, 0.28);
-  backdrop-filter: blur(48px) saturate(220%) brightness(1.05);
-  -webkit-backdrop-filter: blur(48px) saturate(220%) brightness(1.05);
-  border: 0.5px solid rgba(200, 225, 255, 0.18);
-  box-shadow:
-    0 8px 40px rgba(0, 0, 0, 0.55),
-    0 0 0 0.5px rgba(255, 255, 255, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+.data-label, .date-display {
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+/* ─── Glass card ─────────────────────────────────────────────── */
+.glass, .glass-card {
+  background: var(--bg-card-glass);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--border-radius-card);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.30);
+  padding: 24px;
   transition: transform 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 
 .glass-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(74, 158, 255, 0.30);
-  box-shadow:
-    0 12px 48px rgba(0, 0, 0, 0.65),
-    0 0 0 0.5px rgba(255, 255, 255, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    0 0 40px rgba(74, 158, 255, 0.08);
+  border-color: rgba(0, 245, 255, 0.25);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.40),
+              0 0 20px rgba(0, 245, 255, 0.06);
+}
+
+/* ─── Active tag / pill ──────────────────────────────────────── */
+.active-tag {
+  color: var(--color-neon-turquoise);
+  border: 1px solid var(--color-neon-turquoise);
+  border-radius: var(--border-radius-tag);
+  box-shadow: 0 0 10px rgba(0, 245, 255, 0.50);
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
 }
 
 /* ─── Serif heading utility ─────────────────────────────────── */
 .serif {
   font-family: var(--font-serif);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
 }
 
 /* ─── Layout util ───────────────────────────────────────────── */
@@ -166,7 +186,7 @@ input[type="date"] {
 /* ─── Scrollbar ─────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(180, 210, 255, 0.15); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(0, 245, 255, 0.20); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
 /* ─── Bottom nav spacing (mobile only) ─────────────────────── */
@@ -174,7 +194,8 @@ input[type="date"] {
   body { padding-bottom: 64px; }
 }
 
-/* ─── Crystal glow effect ───────────────────────────────────── */
+/* ─── Neon glow utility ─────────────────────────────────────── */
 .accent-glow {
-  box-shadow: 0 0 12px rgba(74, 158, 255, 0.40), 0 0 24px rgba(74, 158, 255, 0.15);
+  box-shadow: 0 0 10px rgba(0, 245, 255, 0.50),
+              0 0 24px rgba(0, 245, 255, 0.20);
 }

@@ -96,9 +96,9 @@ export default function BottomNav() {
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center', justifyContent: 'center',
                 gap: 3,
-                color: active ? '#4a9eff' : 'rgba(200,220,255,0.35)',
+                color: active ? '#00F5FF' : 'rgba(200,220,255,0.35)',
                 paddingTop: active ? 0 : 2,
-                borderTop: active ? '2px solid #4a9eff' : '2px solid transparent',
+                borderTop: active ? '2px solid #00F5FF' : '2px solid transparent',
                 position: 'relative',
               }}
             >
@@ -106,8 +106,8 @@ export default function BottomNav() {
                 <span style={{
                   position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)',
                   width: 28, height: 2, borderRadius: '0 0 4px 4px',
-                  background: '#4a9eff',
-                  boxShadow: '0 0 12px rgba(74,158,255,0.9), 0 0 24px rgba(74,158,255,0.4)',
+                  background: '#00F5FF',
+                  boxShadow: '0 0 12px rgba(0,245,255,0.9), 0 0 24px rgba(0,245,255,0.4)',
                 }} />
               )}
               <Icon size={20} strokeWidth={active ? 2 : 1.5} />
@@ -127,9 +127,9 @@ export default function BottomNav() {
             alignItems: 'center', justifyContent: 'center',
             gap: 3,
             background: 'none', border: 'none',
-            borderTop: (moreActive || moreOpen) ? '2px solid #4a9eff' : '2px solid transparent',
+            borderTop: (moreActive || moreOpen) ? '2px solid #00F5FF' : '2px solid transparent',
             cursor: 'pointer',
-            color: (moreActive || moreOpen) ? '#4a9eff' : 'rgba(200,220,255,0.35)',
+            color: (moreActive || moreOpen) ? '#00F5FF' : 'rgba(200,220,255,0.35)',
           }}
         >
           {moreOpen

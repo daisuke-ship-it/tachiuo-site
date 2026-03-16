@@ -181,7 +181,7 @@ function FilterPill({
         fontWeight: active ? 600 : 400,
         cursor: disabled ? 'not-allowed' : 'pointer',
         border: active ? '1.5px solid var(--accent)' : '1px solid rgba(255,255,255,0.15)',
-        background: disabled ? 'var(--surface-2)' : active ? 'rgba(74,158,255,0.12)' : 'rgba(255,255,255,0.04)',
+        background: disabled ? 'var(--surface-2)' : active ? 'rgba(0,245,255,0.12)' : 'rgba(255,255,255,0.04)',
         color: disabled ? 'var(--text-muted)' : active ? 'var(--accent)' : 'var(--text-sub)',
         transition: 'all 0.15s',
         whiteSpace: 'nowrap' as const,
@@ -207,9 +207,9 @@ function AISummaryCard({ variant, label, text }: {
   variant: 'area' | 'fish'; label: string; text: string
 }) {
   const isArea    = variant === 'area'
-  const bg        = 'rgba(74,158,255,0.06)'
+  const bg        = 'rgba(0,245,255,0.06)'
   const leftColor = 'var(--accent)'
-  const sideColor = 'rgba(74,158,255,0.22)'
+  const sideColor = 'rgba(0,245,255,0.22)'
   const textColor = isArea ? '#7ee8e4' : '#a0efec'
 
   return (
@@ -362,7 +362,7 @@ function SummaryCard({ records, envData, period, sizeUnit = 'cm', fishAliases = 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 8px' }}>
         {stats.map(({ Icon, label, value, highlight }) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Icon size={22} strokeWidth={1.5} style={{ color: highlight ? 'var(--accent)' : 'rgba(74,158,255,0.60)', flexShrink: 0 }} />
+            <Icon size={22} strokeWidth={1.5} style={{ color: highlight ? 'var(--accent)' : 'rgba(0,245,255,0.60)', flexShrink: 0 }} />
             <div>
               <p style={{ fontSize: 9, color: 'rgba(160,185,220,0.65)', marginBottom: 2, letterSpacing: '0.06em', fontFamily: "'Inter', system-ui, sans-serif", fontWeight: 300 }}>{label}</p>
               <p style={{ fontSize: 22, fontWeight: 700, color: highlight ? 'var(--accent)' : 'var(--text)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>

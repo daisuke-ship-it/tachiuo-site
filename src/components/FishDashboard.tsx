@@ -87,7 +87,7 @@ function FilterPill({
         padding: '6px 16px', borderRadius: 'var(--radius-pill)', fontSize: 12,
         fontWeight: active ? 600 : 400, cursor: disabled ? 'not-allowed' : 'pointer',
         border: active ? '1.5px solid var(--accent)' : '1px solid rgba(255,255,255,0.15)',
-        background: disabled ? 'var(--surface-2)' : active ? 'rgba(74,158,255,0.12)' : 'rgba(255,255,255,0.04)',
+        background: disabled ? 'var(--surface-2)' : active ? 'rgba(0,245,255,0.12)' : 'rgba(255,255,255,0.04)',
         color: disabled ? 'var(--text-muted)' : active ? 'var(--accent)' : 'var(--text-sub)',
         transition: 'all 0.15s', whiteSpace: 'nowrap' as const, opacity: disabled ? 0.5 : 1, flexShrink: 0,
       }}
@@ -108,11 +108,11 @@ function FilterLabel({ text }: { text: string }) {
 function AISummaryCard({ text, fishName }: { text: string; fishName: string }) {
   return (
     <div style={{
-      background: 'rgba(74,158,255,0.06)',
+      background: 'rgba(0,245,255,0.06)',
       borderLeft: '4px solid var(--accent)',
-      borderRight: '1px solid rgba(74,158,255,0.22)',
-      borderTop: '1px solid rgba(74,158,255,0.22)',
-      borderBottom: '1px solid rgba(74,158,255,0.22)',
+      borderRight: '1px solid rgba(0,245,255,0.22)',
+      borderTop: '1px solid rgba(0,245,255,0.22)',
+      borderBottom: '1px solid rgba(0,245,255,0.22)',
       borderRadius: 8, padding: '10px 14px',
     }}>
       <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 5, opacity: 0.8 }}>
@@ -171,7 +171,7 @@ function StatsCard({ records, envData, period }: {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 8px' }}>
         {stats.map(({ Icon, label, value, highlight }) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Icon size={22} strokeWidth={1.5} style={{ color: highlight ? 'var(--accent)' : 'rgba(74,158,255,0.60)', flexShrink: 0 }} />
+            <Icon size={22} strokeWidth={1.5} style={{ color: highlight ? 'var(--accent)' : 'rgba(0,245,255,0.60)', flexShrink: 0 }} />
             <div>
               <p style={{ fontSize: 9, color: 'rgba(160,185,220,0.65)', marginBottom: 2, letterSpacing: '0.06em', fontFamily: "'Inter', system-ui, sans-serif", fontWeight: 300 }}>{label}</p>
               <p style={{ fontSize: 22, fontWeight: 700, color: highlight ? 'var(--accent)' : 'var(--text)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
