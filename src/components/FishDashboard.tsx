@@ -280,7 +280,7 @@ export default function FishDashboard({ records, envData, aiSummaries, fishId, c
         {/* 期間 */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <FilterLabel text="期間" />
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1, minWidth: 0 }}>
             {presets.map(({ label, value }) => (
               <FilterPill key={value} active={period === value} onClick={() => setPeriod(value)}>
                 {label}

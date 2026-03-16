@@ -470,7 +470,7 @@ export default function CatchDashboard({
         {/* 魚種 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <FilterLabel text="魚種" />
-          <div className="scroll-x" style={{ display: 'flex', gap: 6 }}>
+          <div className="scroll-x" style={{ display: 'flex', gap: 6, flex: 1, minWidth: 0 }}>
             {FISH_LIST.map((f) => (
               <FilterPill key={f} active={fish === f} onClick={() => handleFishClick(f)}>
                 {f}
@@ -484,7 +484,7 @@ export default function CatchDashboard({
         {/* 期間：今日/昨日/一昨日 + 直近7日/直近30日 + 📅 カレンダー */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <FilterLabel text="期間" />
-          <div className="scroll-x" style={{ display: 'flex', gap: 6, flexWrap: 'nowrap' }}>
+          <div className="scroll-x" style={{ display: 'flex', gap: 6, flexWrap: 'nowrap', flex: 1, minWidth: 0 }}>
             {buildPeriods().map(({ label, value }) => (
               <FilterPill key={value} active={period === value} onClick={() => setPeriod(value)}>
                 {label}
