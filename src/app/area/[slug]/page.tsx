@@ -243,34 +243,46 @@ export default async function AreaPage({ params }: { params: PageParams }) {
       {/* ── Header ─────────────────────────────────────────────── */}
       <SiteHeader updatedAt={nowStr} subtitle={config.name} />
 
-      {/* ── Hero ────────────────────────────────────────────────── */}
-      <div style={{
-        background: 'var(--primary)',
-        paddingTop: 40, paddingBottom: 44,
-      }}>
+      {/* ── Hero with background image ───────────────────────────── */}
+      <div style={{ position: 'relative', overflow: 'hidden', minHeight: 280, marginBottom: '-60px' }}>
+        <img
+          src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&q=80"
+          alt="東京湾夜景"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
+        />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, rgba(5,8,15,0.3) 0%, rgba(5,8,15,0.95) 100%)',
+        }} />
+        <div style={{ position: 'relative', paddingTop: 40, paddingBottom: 80 }}>
+          <div className="page-container">
+            {/* パンくずナビ */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 14 }}>
+              <Link href="/" style={{ color: 'rgba(255,255,255,0.55)' }}>トップ</Link>
+              <span>›</span>
+              <span style={{ color: 'rgba(255,255,255,0.75)' }}>{config.name}</span>
+            </div>
+            <h1 style={{
+              fontSize: 'clamp(26px, 5vw, 40px)',
+              fontWeight: 700, color: '#f0f4ff',
+              fontFamily: 'var(--font-serif)',
+              letterSpacing: '0.04em', lineHeight: 1.2, marginBottom: 12,
+            }}>
+              {config.name}の船釣り釣果まとめ
+            </h1>
+            <p style={{ fontSize: '0.9rem', color: '#8899bb', maxWidth: 480, lineHeight: 1.6 }}>
+              {config.description}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Main ─────────────────────────────────────────────────── */}
+      <main style={{ position: 'relative', padding: '20px 0 100px' }}>
         <div className="page-container">
-
-          {/* パンくずナビ */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 10 }}>
-            <Link href="/" style={{ color: 'rgba(255,255,255,0.55)' }}>トップ</Link>
-            <span>›</span>
-            <span style={{ color: 'rgba(255,255,255,0.75)' }}>{config.name}</span>
-          </div>
-
-          <div style={{ marginBottom: 6 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'var(--accent)', textTransform: 'uppercase' }}>
-              FISHING REPORT — DAILY UPDATE
-            </span>
-          </div>
-          <h1 style={{ fontSize: 'clamp(18px, 3.5vw, 26px)', fontWeight: 700, color: 'white', fontFamily: 'var(--font-serif)', letterSpacing: '0.04em', lineHeight: 1.25, marginBottom: 6 }}>
-            {config.name}の船釣り釣果まとめ
-          </h1>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', maxWidth: 480, lineHeight: 1.6 }}>
-            {config.description}
-          </p>
-
           {/* エリア切り替えタブ */}
-          <div style={{ display: 'flex', gap: 6, marginTop: 16, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginRight: 4 }}>エリア</span>
             {(Object.entries(AREA_CONFIG) as [AreaSlug, typeof AREA_CONFIG[AreaSlug]][]).map(([s, c]) => {
               const isActive = s === slug
               return (
@@ -278,13 +290,13 @@ export default async function AreaPage({ params }: { params: PageParams }) {
                   key={s}
                   href={`/area/${s}`}
                   style={{
-                    padding: '5px 16px',
+                    padding: '6px 16px',
                     borderRadius: 'var(--radius-pill)',
                     fontSize: 13, fontWeight: isActive ? 700 : 400,
-                    border: isActive ? '1.5px solid #d4a017' : '1px solid rgba(255,255,255,0.2)',
-                    background: isActive ? 'rgba(212,160,23,0.15)' : 'transparent',
-                    color: isActive ? '#d4a017' : 'rgba(255,255,255,0.6)',
-                    whiteSpace: 'nowrap',
+                    border: isActive ? '1.5px solid var(--accent)' : '1px solid rgba(255,255,255,0.15)',
+                    background: isActive ? 'rgba(0,212,200,0.12)' : 'rgba(255,255,255,0.04)',
+                    color: isActive ? 'var(--accent)' : 'rgba(255,255,255,0.6)',
+                    whiteSpace: 'nowrap', transition: 'all 0.15s',
                   }}
                 >
                   {c.name}
@@ -292,12 +304,6 @@ export default async function AreaPage({ params }: { params: PageParams }) {
               )
             })}
           </div>
-        </div>
-      </div>
-
-      {/* ── Main ─────────────────────────────────────────────────── */}
-      <main style={{ padding: '40px 0 100px' }}>
-        <div className="page-container">
           {records.length === 0 ? (
             <div style={{
               textAlign: 'center', padding: '80px 20px',

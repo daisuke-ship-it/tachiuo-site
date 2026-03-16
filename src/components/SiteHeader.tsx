@@ -32,7 +32,7 @@ function NavLink({ href, active, children }: { href: string; active: boolean; ch
       style={{
         fontSize: 13,
         fontWeight: active ? 600 : 400,
-        color: active ? '#00F5FF' : 'rgba(240,244,255,0.55)',
+        color: active ? '#00d4c8' : 'rgba(240,244,255,0.55)',
         padding: '6px 12px',
         borderRadius: 'var(--radius-pill)',
         background: active ? 'rgba(0,245,255,0.08)' : 'transparent',
@@ -61,7 +61,7 @@ function DropdownNav({
         display: 'flex', alignItems: 'center', gap: 3,
         fontSize: 13,
         fontWeight: active ? 600 : 400,
-        color: active ? '#00F5FF' : 'rgba(240,244,255,0.55)',
+        color: active ? '#00d4c8' : 'rgba(240,244,255,0.55)',
         padding: '6px 12px',
         borderRadius: 'var(--radius-pill)',
         background: active ? 'rgba(0,245,255,0.08)' : 'transparent',
@@ -134,8 +134,8 @@ export default function SiteHeader({ updatedAt, subtitle = '関東圏' }: Props)
             boxShadow: '0 0 16px rgba(0,245,255,0.20)',
           }}>
             <svg width="20" height="20" viewBox="0 0 32 20" fill="none">
-              <path d="M4 10 L10 3 L10 17 Z" fill="#00F5FF" opacity="0.9" />
-              <ellipse cx="19" cy="10" rx="11" ry="7" fill="#00F5FF" opacity="0.85" />
+              <path d="M4 10 L10 3 L10 17 Z" fill="#00d4c8" opacity="0.9" />
+              <ellipse cx="19" cy="10" rx="11" ry="7" fill="#00d4c8" opacity="0.85" />
               <path d="M14 3 Q19 1 24 4 L22 7 Q19 5 14 7 Z" fill="white" opacity="0.4" />
               <circle cx="27" cy="9" r="1.5" fill="white" />
             </svg>
@@ -146,7 +146,7 @@ export default function SiteHeader({ updatedAt, subtitle = '関東圏' }: Props)
               letterSpacing: '0.04em',
               fontFamily: 'var(--font-serif)',
             }}>
-              釣果情報<span style={{ color: '#00F5FF' }}>.com</span>
+              釣果情報<span style={{ color: '#00d4c8' }}>.com</span>
             </span>
             <span style={{
               display: 'block', fontSize: 10,
@@ -191,7 +191,7 @@ export default function SiteHeader({ updatedAt, subtitle = '関東圏' }: Props)
           }}>
             <span style={{
               width: 6, height: 6, borderRadius: '50%',
-              background: '#00F5FF', display: 'inline-block',
+              background: '#00d4c8', display: 'inline-block',
               boxShadow: '0 0 8px rgba(0,245,255,0.8)',
             }} />
             <span>更新: {updatedAt}</span>

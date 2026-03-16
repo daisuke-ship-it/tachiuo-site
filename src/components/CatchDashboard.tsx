@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef } from 'react'
+import { Cloud, Waves, Ship, Fish as FishIcon, Ruler } from 'lucide-react'
 import { CatchRecord } from '@/lib/supabase'
 import { EnvData, EnvDataMap, AISummaryRecord, AreaRecord, FishRecord, SpeciesGroupMap } from '@/app/page'
 import TrendBar, { Fish, FISH_LIST, FISH_ALIASES } from './TrendBar'
@@ -174,13 +175,13 @@ function FilterPill({
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
       style={{
-        padding: '5px 14px',
+        padding: '6px 16px',
         borderRadius: 'var(--radius-pill)',
         fontSize: 12,
         fontWeight: active ? 600 : 400,
         cursor: disabled ? 'not-allowed' : 'pointer',
-        border: active ? '1.5px solid var(--accent)' : '1px solid var(--border)',
-        background: disabled ? 'var(--surface-2)' : active ? 'var(--accent-light)' : 'transparent',
+        border: active ? '1.5px solid var(--accent)' : '1px solid rgba(255,255,255,0.15)',
+        background: disabled ? 'var(--surface-2)' : active ? 'rgba(0,212,200,0.12)' : 'rgba(255,255,255,0.04)',
         color: disabled ? 'var(--text-muted)' : active ? 'var(--accent)' : 'var(--text-sub)',
         transition: 'all 0.15s',
         whiteSpace: 'nowrap' as const,
@@ -336,38 +337,38 @@ function SummaryCard({ records, envData, period, sizeUnit = 'cm', fishAliases = 
 
   const weatherWord = envForPeriod?.weather ? envForPeriod.weather.split(' ')[0] : null
 
-  const stats: { label: string; value: string; highlight?: boolean }[] = [
-    { label: '天気',        value: weatherWord ?? '—' },
-    { label: '潮汐',        value: envForPeriod?.tide_type ?? '—' },
-    { label: '出船数',      value: records.length > 0 ? `${shipyardCount}` : '—' },
-    { label: '平均釣果',    value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
-    { label: '釣果',        value: catchRange },
-    { label: `サイズ（${sizeUnit}）`, value: sizeRange },
+  const stats: { Icon: React.ElementType; label: string; value: string; highlight?: boolean }[] = [
+    { Icon: Cloud,    label: 'Weather',      value: weatherWord ?? '—' },
+    { Icon: Waves,    label: 'Tide',         value: envForPeriod?.tide_type ?? '—' },
+    { Icon: Ship,     label: 'No. of Boats', value: shipyardCount > 0 ? String(shipyardCount) : '—' },
+    { Icon: FishIcon, label: 'Avg. Catch',   value: catchAvg !== null ? String(catchAvg) : '—', highlight: true },
+    { Icon: FishIcon, label: 'Max Catch',    value: catchRangeMax !== null ? String(catchRangeMax) : '—' },
+    { Icon: Ruler,    label: 'size',         value: sizeRange },
   ]
 
   return (
     <div style={{
-      background: 'var(--surface)',
+      background: 'rgba(10,22,44,0.85)',
+      backdropFilter: 'blur(20px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(20px) saturate(180%)',
       border: '1px solid var(--border)',
       borderRadius: 'var(--radius-lg)',
-      padding: '12px 14px',
-      boxShadow: 'var(--shadow-sm)',
+      padding: '20px 20px 16px',
+      boxShadow: 'var(--shadow-md)',
     }}>
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
-        {getSummaryLabel(period)}
+      <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 18, letterSpacing: '0.02em' }}>
+        釣果サマリー
       </p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
-        {stats.map(({ label, value, highlight }) => (
-          <div key={label} style={{
-            background: highlight ? 'rgba(0,212,200,0.12)' : 'var(--surface-2)',
-            border: `1px solid ${highlight ? 'rgba(0,212,200,0.35)' : 'var(--border)'}`,
-            borderRadius: 6, padding: '6px 8px',
-            display: 'flex', flexDirection: 'column', gap: 2,
-          }}>
-            <p style={{ fontSize: 9, color: 'var(--text-muted)', lineHeight: 1 }}>{label}</p>
-            <p style={{ fontSize: 15, fontWeight: 700, color: highlight ? 'var(--accent)' : 'var(--text-main)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
-              {value}
-            </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 8px' }}>
+        {stats.map(({ Icon, label, value, highlight }) => (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Icon size={22} strokeWidth={1.5} style={{ color: highlight ? 'var(--accent)' : 'rgba(0,212,200,0.55)', flexShrink: 0 }} />
+            <div>
+              <p style={{ fontSize: 9, color: '#8899bb', marginBottom: 2, letterSpacing: '0.04em' }}>{label}</p>
+              <p style={{ fontSize: 22, fontWeight: 700, color: highlight ? 'var(--accent)' : 'var(--text)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                {value}
+              </p>
+            </div>
           </div>
         ))}
       </div>

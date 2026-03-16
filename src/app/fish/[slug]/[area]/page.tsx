@@ -237,84 +237,84 @@ export default async function FishAreaPage({ params }: { params: PageParams }) {
       {/* ── Header ─────────────────────────────────────────── */}
       <SiteHeader updatedAt={nowStr} subtitle={`${areaConfig.name} · ${content.name}`} />
 
-      {/* ── Hero ────────────────────────────────────────────── */}
-      <div style={{ background: 'var(--primary)', paddingTop: 40, paddingBottom: 44 }}>
-        <div className="page-container">
-
-          {/* パンくずナビ */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 10, flexWrap: 'wrap' }}>
-            <Link href="/" style={{ color: 'rgba(255,255,255,0.55)' }}>トップ</Link>
-            <span>›</span>
-            <Link href={`/area/${area}`} style={{ color: 'rgba(255,255,255,0.55)' }}>{areaConfig.name}</Link>
-            <span>›</span>
-            <span style={{ color: 'rgba(255,255,255,0.75)' }}>{content.name}釣果</span>
-          </div>
-
-          <div style={{ marginBottom: 6 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'var(--accent)', textTransform: 'uppercase' }}>
-              FISHING REPORT — DAILY UPDATE
-            </span>
-          </div>
-          <h1 style={{ fontSize: 'clamp(16px, 3vw, 24px)', fontWeight: 700, color: 'white', fontFamily: 'var(--font-serif)', letterSpacing: '0.04em', lineHeight: 1.25, marginBottom: 6 }}>
-            {areaConfig.name} {content.name}釣果まとめ
-          </h1>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', maxWidth: 480, lineHeight: 1.6 }}>
-            {content.description}
-          </p>
-
-          {/* エリア切り替えタブ */}
-          <div style={{ display: 'flex', gap: 6, marginTop: 16, flexWrap: 'wrap' }}>
-            {(Object.entries(AREA_MAP) as [AreaSlug, typeof AREA_MAP[AreaSlug]][]).map(([s, c]) => {
-              const isActive = s === area
-              return (
-                <Link
-                  key={s}
-                  href={`/fish/${slug}/${s}`}
-                  style={{
-                    padding: '5px 16px',
-                    borderRadius: 'var(--radius-pill)',
-                    fontSize: 13, fontWeight: isActive ? 700 : 400,
-                    border: isActive ? '1.5px solid #d4a017' : '1px solid rgba(255,255,255,0.2)',
-                    background: isActive ? 'rgba(212,160,23,0.15)' : 'transparent',
-                    color: isActive ? '#d4a017' : 'rgba(255,255,255,0.6)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {c.name}
-                </Link>
-              )
-            })}
-          </div>
-
-          {/* 魚種切り替えタブ */}
-          <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
-            {Object.values(fishContents).map((fc) => {
-              const isActive = fc.slug === slug
-              return (
-                <Link
-                  key={fc.slug}
-                  href={`/fish/${fc.slug}/${area}`}
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 'var(--radius-pill)',
-                    fontSize: 12, fontWeight: isActive ? 700 : 400,
-                    border: isActive ? '1.5px solid rgba(147,197,253,0.6)' : '1px solid rgba(255,255,255,0.15)',
-                    background: isActive ? 'rgba(147,197,253,0.1)' : 'transparent',
-                    color: isActive ? '#93c5fd' : 'rgba(255,255,255,0.5)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {fc.name}
-                </Link>
-              )
-            })}
+      {/* ── Hero with background image ───────────────────────── */}
+      <div style={{ position: 'relative', overflow: 'hidden', minHeight: 280, marginBottom: '-60px' }}>
+        <img
+          src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&q=80"
+          alt="東京湾夜景"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
+        />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, rgba(5,8,15,0.3) 0%, rgba(5,8,15,0.95) 100%)',
+        }} />
+        <div style={{ position: 'relative', paddingTop: 40, paddingBottom: 80 }}>
+          <div className="page-container">
+            {/* パンくずナビ */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 14, flexWrap: 'wrap' }}>
+              <Link href="/" style={{ color: 'rgba(255,255,255,0.55)' }}>トップ</Link>
+              <span>›</span>
+              <Link href={`/area/${area}`} style={{ color: 'rgba(255,255,255,0.55)' }}>{areaConfig.name}</Link>
+              <span>›</span>
+              <span style={{ color: 'rgba(255,255,255,0.75)' }}>{content.name}釣果</span>
+            </div>
+            <h1 style={{
+              fontSize: 'clamp(26px, 5vw, 40px)',
+              fontWeight: 700, color: '#f0f4ff',
+              fontFamily: 'var(--font-serif)',
+              letterSpacing: '0.04em', lineHeight: 1.2, marginBottom: 12,
+            }}>
+              {areaConfig.name} {content.name}釣果まとめ
+            </h1>
+            <p style={{ fontSize: '0.9rem', color: '#8899bb', maxWidth: 480, lineHeight: 1.6 }}>
+              {content.description}
+            </p>
           </div>
         </div>
       </div>
 
       {/* ── Main ─────────────────────────────────────────── */}
-      <main style={{ padding: '40px 0 100px' }}>
+      <main style={{ position: 'relative', padding: '20px 0 100px' }}>
         <div className="page-container" style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+          {/* エリア・魚種切り替えタブ */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', minWidth: 36 }}>エリア</span>
+              {(Object.entries(AREA_MAP) as [AreaSlug, typeof AREA_MAP[AreaSlug]][]).map(([s, c]) => {
+                const isActive = s === area
+                return (
+                  <Link key={s} href={`/fish/${slug}/${s}`} style={{
+                    padding: '6px 16px', borderRadius: 'var(--radius-pill)',
+                    fontSize: 13, fontWeight: isActive ? 700 : 400,
+                    border: isActive ? '1.5px solid var(--accent)' : '1px solid rgba(255,255,255,0.15)',
+                    background: isActive ? 'rgba(0,212,200,0.12)' : 'rgba(255,255,255,0.04)',
+                    color: isActive ? 'var(--accent)' : 'rgba(255,255,255,0.6)',
+                    whiteSpace: 'nowrap', transition: 'all 0.15s',
+                  }}>
+                    {c.name}
+                  </Link>
+                )
+              })}
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', minWidth: 36 }}>魚種</span>
+              {Object.values(fishContents).map((fc) => {
+                const isActive = fc.slug === slug
+                return (
+                  <Link key={fc.slug} href={`/fish/${fc.slug}/${area}`} style={{
+                    padding: '6px 16px', borderRadius: 'var(--radius-pill)',
+                    fontSize: 13, fontWeight: isActive ? 700 : 400,
+                    border: isActive ? '1.5px solid var(--accent)' : '1px solid rgba(255,255,255,0.15)',
+                    background: isActive ? 'rgba(0,212,200,0.12)' : 'rgba(255,255,255,0.04)',
+                    color: isActive ? 'var(--accent)' : 'rgba(255,255,255,0.6)',
+                    whiteSpace: 'nowrap', transition: 'all 0.15s',
+                  }}>
+                    {fc.name}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
           <FishDashboard
             records={records}
             envData={envData}
