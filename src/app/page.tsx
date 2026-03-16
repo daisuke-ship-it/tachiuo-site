@@ -354,7 +354,7 @@ export default async function Home() {
               fontSize: 16, fontWeight: 500, color: '#00d4c8',
               marginBottom: 10, letterSpacing: '0.04em',
             }}>
-              今日どこに行けば釣れる？
+              釣果データで、海を見る。
             </p>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', maxWidth: 480, lineHeight: 1.65 }}>
               関東圏の複数船宿から釣果データを毎日自動収集。エリアを選んで最新の釣果情報を確認できます。
@@ -451,7 +451,11 @@ export default async function Home() {
 }
 
 // ── TopRecommendationCard ─────────────────────────────────────
-const RANK_MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
+const RANK_BADGE: Record<number, { bg: string; color: string }> = {
+  1: { bg: 'linear-gradient(135deg, #ffd700, #ffaa00)', color: '#0a1628' },
+  2: { bg: 'linear-gradient(135deg, #e0e0e0, #a0a0a0)', color: '#0a1628' },
+  3: { bg: 'linear-gradient(135deg, #cd7f32, #a05a20)', color: '#f0f4ff' },
+}
 
 function TopRecommendationCard({ rec }: { rec: Recommendation }) {
   const areaSlug = AREA_SLUGS[rec.area] ?? 'tokyo'
@@ -474,7 +478,13 @@ function TopRecommendationCard({ rec }: { rec: Recommendation }) {
         display: 'flex', alignItems: 'center', gap: 14,
         cursor: 'pointer',
       }}>
-        <span style={{ fontSize: 24, flexShrink: 0 }}>{RANK_MEDAL[rec.rank]}</span>
+        <div style={{
+          width: 28, height: 28, borderRadius: '50%',
+          background: RANK_BADGE[rec.rank].bg,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 12, fontWeight: 700, color: RANK_BADGE[rec.rank].color,
+          flexShrink: 0,
+        }}>{rec.rank}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <span style={{ fontSize: 15, fontWeight: 700, color: '#f0f4ff' }}>
             {rec.area} × {rec.fish}

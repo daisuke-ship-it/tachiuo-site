@@ -304,7 +304,11 @@ const LEVEL_STYLE: Record<number, { bg: string; color: string; border: string }>
   3: { bg: 'rgba(30,58,138,0.9)',  color: '#e0f2fe', border: 'rgba(224,242,254,0.25)' },
 }
 
-const RANK_MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
+const RANK_BADGE: Record<number, { bg: string; color: string }> = {
+  1: { bg: 'linear-gradient(135deg, #ffd700, #ffaa00)', color: '#0a1628' },
+  2: { bg: 'linear-gradient(135deg, #e0e0e0, #a0a0a0)', color: '#0a1628' },
+  3: { bg: 'linear-gradient(135deg, #cd7f32, #a05a20)', color: '#f0f4ff' },
+}
 
 // ── Page ───────────────────────────────────────────────────────
 export default async function AnalysisPage() {
@@ -525,8 +529,14 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
         display: 'flex', alignItems: 'center', gap: 16,
         cursor: 'pointer',
       }}>
-        {/* メダル */}
-        <span style={{ fontSize: 28, flexShrink: 0 }}>{RANK_MEDAL[rec.rank]}</span>
+        {/* ランクバッジ */}
+        <div style={{
+          width: 28, height: 28, borderRadius: '50%',
+          background: RANK_BADGE[rec.rank].bg,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 12, fontWeight: 700, color: RANK_BADGE[rec.rank].color,
+          flexShrink: 0,
+        }}>{rec.rank}</div>
 
         {/* エリア・魚種 */}
         <div style={{ flex: 1, minWidth: 0 }}>
