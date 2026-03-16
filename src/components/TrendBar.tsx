@@ -124,18 +124,8 @@ export default function TrendBar({ records, activeFish, onFishClick }: Props) {
             style={{
               padding: '10px 8px',
               borderRadius: 'var(--radius-md)',
-              borderTop:    isActive ? '1px solid rgba(0,245,255,0.50)' : '1px solid rgba(255,255,255,0.14)',
-              borderLeft:   isActive ? '1px solid rgba(0,245,255,0.35)' : '1px solid rgba(255,255,255,0.08)',
-              borderRight:  isActive ? '1px solid rgba(0,245,255,0.15)' : '1px solid rgba(255,255,255,0.03)',
-              borderBottom: isActive ? '1px solid rgba(0,245,255,0.10)' : '1px solid rgba(255,255,255,0.03)',
-              background: isActive
-                ? 'linear-gradient(145deg, rgba(0,245,255,0.14) 0%, rgba(0,245,255,0.05) 60%, rgba(0,245,255,0.02) 100%)'
-                : 'linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.01) 100%)',
-              backdropFilter: 'blur(16px) saturate(160%)',
-              WebkitBackdropFilter: 'blur(16px) saturate(160%)',
-              boxShadow: isActive
-                ? '0 4px 20px rgba(0,0,0,0.30), inset 0 1px 0 rgba(0,245,255,0.30)'
-                : '0 4px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.14)',
+              border: isActive ? '1.5px solid rgba(0,245,255,0.60)' : '0.5px solid rgba(180,210,255,0.12)',
+              background: isActive ? 'rgba(0,245,255,0.10)' : 'rgba(8,18,55,0.28)',
               cursor: 'pointer',
               textAlign: 'left',
               transition: 'all 0.15s',

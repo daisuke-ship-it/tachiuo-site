@@ -348,14 +348,13 @@ function SummaryCard({ records, envData, period, sizeUnit = 'cm', fishAliases = 
 
   return (
     <div style={{
-      background: 'linear-gradient(145deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 40%, rgba(0,245,255,0.02) 100%)',
-      backdropFilter: 'blur(20px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-      borderTop: '1px solid rgba(255,255,255,0.22)', borderLeft: '1px solid rgba(255,255,255,0.14)',
-      borderRight: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.04)',
+      background: 'rgba(8,18,55,0.30)',
+      backdropFilter: 'blur(48px) saturate(220%) brightness(1.05)',
+      WebkitBackdropFilter: 'blur(48px) saturate(220%) brightness(1.05)',
+      border: '0.5px solid rgba(200,225,255,0.18)',
       borderRadius: 'var(--radius-lg)',
       padding: '20px 20px 16px',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.20)',
+      boxShadow: 'var(--shadow-md)',
     }}>
       <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 18, letterSpacing: '0.02em' }}>
         釣果サマリー
@@ -440,14 +439,9 @@ export default function CatchDashboard({
 
       {/* ── 1. エリア選択 + Area AI サマリー ─────────────────────── */}
       <div style={{
-        background: 'linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 40%, rgba(255,255,255,0.01) 100%)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        borderTop: '1px solid rgba(255,255,255,0.20)', borderLeft: '1px solid rgba(255,255,255,0.12)',
-        borderRight: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)',
+        background: 'var(--surface)', border: '1px solid var(--border)',
         borderRadius: 'var(--radius-lg)', padding: '14px 16px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
-        display: 'flex', flexDirection: 'column', gap: 12,
+        boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', gap: 12,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <FilterLabel text="エリア" />
@@ -469,14 +463,9 @@ export default function CatchDashboard({
 
       {/* ── 3. 魚種・期間フィルター ──────────────────────────────── */}
       <div style={{
-        background: 'linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 40%, rgba(255,255,255,0.01) 100%)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        borderTop: '1px solid rgba(255,255,255,0.20)', borderLeft: '1px solid rgba(255,255,255,0.12)',
-        borderRight: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)',
+        background: 'var(--surface)', border: '1px solid var(--border)',
         borderRadius: 'var(--radius-lg)', padding: '14px 16px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
-        display: 'flex', flexDirection: 'column', gap: 10,
+        boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', gap: 10,
       }}>
         {/* 魚種 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -537,14 +526,8 @@ export default function CatchDashboard({
 
       {/* ── 6. 釣果一覧 / グラフ タブ ───────────────────────────── */}
       <div style={{
-        background: 'linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 40%, rgba(255,255,255,0.01) 100%)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        borderTop: '1px solid rgba(255,255,255,0.20)', borderLeft: '1px solid rgba(255,255,255,0.12)',
-        borderRight: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)',
-        borderRadius: 'var(--radius-lg)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
-        overflow: 'hidden',
+        background: 'var(--surface)', border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden',
       }}>
         {/* タブヘッダー */}
         <div style={{

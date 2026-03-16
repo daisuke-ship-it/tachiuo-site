@@ -87,13 +87,12 @@ export default function CatchCards({ records }: Props) {
 
         return (
           <div key={r.id} style={{
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.01) 100%)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            background: 'var(--surface)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             borderRadius: 'var(--radius-lg)',
-            borderTop: '1px solid rgba(255,255,255,0.20)', borderLeft: '1px solid rgba(255,255,255,0.12)',
-            borderRight: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-md)',
             padding: '20px 20px 16px',
             display: 'flex', flexDirection: 'column', gap: 0,
           }}>
