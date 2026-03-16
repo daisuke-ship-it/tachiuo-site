@@ -280,30 +280,6 @@ export default async function AreaPage({ params }: { params: PageParams }) {
       {/* ── Main ─────────────────────────────────────────────────── */}
       <main style={{ position: 'relative', padding: '20px 0 100px' }}>
         <div className="page-container">
-          {/* エリア切り替えタブ */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginRight: 4 }}>エリア</span>
-            {(Object.entries(AREA_CONFIG) as [AreaSlug, typeof AREA_CONFIG[AreaSlug]][]).map(([s, c]) => {
-              const isActive = s === slug
-              return (
-                <Link
-                  key={s}
-                  href={`/area/${s}`}
-                  style={{
-                    padding: '6px 16px',
-                    borderRadius: 'var(--radius-pill)',
-                    fontSize: 13, fontWeight: isActive ? 700 : 400,
-                    border: isActive ? '1.5px solid var(--accent)' : '1px solid rgba(255,255,255,0.15)',
-                    background: isActive ? 'rgba(0,245,255,0.12)' : 'rgba(255,255,255,0.04)',
-                    color: isActive ? 'var(--accent)' : 'rgba(255,255,255,0.6)',
-                    whiteSpace: 'nowrap', transition: 'all 0.15s',
-                  }}
-                >
-                  {c.name}
-                </Link>
-              )
-            })}
-          </div>
           {records.length === 0 ? (
             <div style={{
               textAlign: 'center', padding: '80px 20px',
