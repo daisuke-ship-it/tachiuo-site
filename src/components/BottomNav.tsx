@@ -96,8 +96,7 @@ export default function BottomNav() {
                 alignItems: 'center', justifyContent: 'center',
                 gap: 3,
                 color: active ? '#00F5FF' : 'rgba(200,220,255,0.35)',
-                paddingTop: active ? 0 : 2,
-                borderTop: active ? '2px solid #00F5FF' : '2px solid transparent',
+                paddingTop: 2,
                 position: 'relative',
               }}
             >
@@ -126,7 +125,6 @@ export default function BottomNav() {
             alignItems: 'center', justifyContent: 'center',
             gap: 3,
             background: 'none', border: 'none',
-            borderTop: (moreActive || moreOpen) ? '2px solid #00F5FF' : '2px solid transparent',
             cursor: 'pointer',
             color: (moreActive || moreOpen) ? '#00F5FF' : 'rgba(200,220,255,0.35)',
           }}

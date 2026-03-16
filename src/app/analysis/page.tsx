@@ -304,10 +304,10 @@ const LEVEL_STYLE: Record<number, { bg: string; color: string; border: string }>
   3: { bg: 'rgba(30,58,138,0.9)',  color: '#e0f2fe', border: 'rgba(224,242,254,0.25)' },
 }
 
-const RANK_BADGE: Record<number, { bg: string; color: string }> = {
-  1: { bg: 'linear-gradient(135deg, #ffd700, #ffaa00)', color: '#0a1628' },
-  2: { bg: 'linear-gradient(135deg, #e0e0e0, #a0a0a0)', color: '#0a1628' },
-  3: { bg: 'linear-gradient(135deg, #cd7f32, #a05a20)', color: '#f0f4ff' },
+const RANK_BADGE: Record<number, { bg: string; border: string; color: string }> = {
+  1: { bg: 'rgba(0,212,200,0.15)',   border: 'rgba(0,212,200,0.5)', color: '#00d4c8' },
+  2: { bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.2)', color: '#8899bb' },
+  3: { bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', color: '#4a5a7a' },
 }
 
 // ── Page ───────────────────────────────────────────────────────
@@ -531,10 +531,11 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
       }}>
         {/* ランクバッジ */}
         <div style={{
-          width: 28, height: 28, borderRadius: '50%',
+          width: 24, height: 24, borderRadius: 6,
           background: RANK_BADGE[rec.rank].bg,
+          border: `1px solid ${RANK_BADGE[rec.rank].border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 12, fontWeight: 700, color: RANK_BADGE[rec.rank].color,
+          fontSize: 11, fontWeight: 700, color: RANK_BADGE[rec.rank].color,
           flexShrink: 0,
         }}>{rec.rank}</div>
 
