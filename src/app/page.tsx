@@ -219,22 +219,23 @@ export default async function Home() {
       <SiteHeader updatedAt={nowStr} />
 
       {/* ── Hero ────────────────────────────────────────────────── */}
-      <div style={{ position: 'relative', overflow: 'hidden', minHeight: 300 }}>
+      <div style={{ position: 'relative', overflow: 'hidden', minHeight: 280 }}>
         {/* 背景画像 */}
         <img
-          src="https://images.unsplash.com/photo-1578632292335-df3abbb0d586?w=1920&q=80"
+          src="https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1920&q=80"
           alt="海釣り"
           style={{
             position: 'absolute', inset: 0,
             width: '100%', height: '100%',
             objectFit: 'cover',
-            filter: 'brightness(0.5)',
+            objectPosition: 'center',
+            filter: 'brightness(0.45)',
           }}
         />
         {/* 下部フェード */}
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(to bottom, transparent 30%, var(--bg-deep-sea) 100%)',
+          background: 'linear-gradient(to bottom, transparent 40%, var(--bg-surface) 100%)',
         }} />
         {/* コンテンツ */}
         <div style={{ position: 'relative', paddingTop: 48, paddingBottom: 56 }}>
