@@ -246,7 +246,7 @@ export default async function AreaPage({ params }: { params: PageParams }) {
       {/* ── Hero with background image ───────────────────────────── */}
       <div style={{ position: 'relative', overflow: 'hidden', minHeight: 280, marginBottom: '-60px' }}>
         <img
-          src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&q=80"
+          src="https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&q=80"
           alt="東京湾夜景"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
         />

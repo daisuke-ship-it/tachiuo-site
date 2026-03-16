@@ -269,8 +269,8 @@ export default function FishDashboard({ records, envData, aiSummaries, fishId, c
             <FilterPill active={area === '東京湾'} onClick={() => setArea((p) => (p === '東京湾' ? null : '東京湾'))}>
               東京湾
             </FilterPill>
-            <FilterPill active={false} disabled onClick={() => {}}>
-              相模湾（準備中）
+            <FilterPill active={area === '相模湾'} onClick={() => setArea((p) => (p === '相模湾' ? null : '相模湾'))}>
+              相模湾
             </FilterPill>
           </div>
         </div>
