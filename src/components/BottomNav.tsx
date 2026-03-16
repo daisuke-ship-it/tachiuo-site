@@ -82,7 +82,6 @@ export default function BottomNav() {
         background: 'rgba(5, 10, 30, 0.40)',
         backdropFilter: 'blur(48px) saturate(200%)',
         WebkitBackdropFilter: 'blur(48px) saturate(200%)',
-        borderTop: '1px solid rgba(255,255,255,0.07)',
         boxShadow: '0 -4px 24px rgba(0,0,0,0.4)',
       }}>
         {NAV_ITEMS.map(({ href, label, Icon, match }) => {
