@@ -86,9 +86,10 @@ function FilterPill({
       style={{
         padding: '6px 16px', borderRadius: 'var(--radius-pill)', fontSize: 12,
         fontWeight: active ? 600 : 400, cursor: disabled ? 'not-allowed' : 'pointer',
-        border: active ? '1.5px solid var(--accent)' : '1px solid rgba(255,255,255,0.15)',
-        background: disabled ? 'var(--surface-2)' : active ? 'rgba(0,245,255,0.12)' : 'rgba(255,255,255,0.04)',
-        color: disabled ? 'var(--text-muted)' : active ? 'var(--accent)' : 'var(--text-sub)',
+        border: active ? '1px solid #00d4c8' : '1px solid rgba(255,255,255,0.15)',
+        background: disabled ? 'var(--surface-2)' : active ? 'rgba(0,212,200,0.10)' : 'rgba(255,255,255,0.04)',
+        color: disabled ? 'var(--text-muted)' : active ? '#00d4c8' : 'var(--text-sub)',
+        boxShadow: active ? '0 0 12px rgba(0,212,200,0.30), inset 0 0 8px rgba(0,212,200,0.05)' : 'none',
         transition: 'all 0.15s', whiteSpace: 'nowrap' as const, opacity: disabled ? 0.5 : 1, flexShrink: 0,
       }}
     >
@@ -157,24 +158,23 @@ function StatsCard({ records, envData, period }: {
 
   return (
     <div style={{
-      background: 'rgba(8,18,55,0.30)',
-      backdropFilter: 'blur(48px) saturate(220%) brightness(1.05)',
-      WebkitBackdropFilter: 'blur(48px) saturate(220%) brightness(1.05)',
-      border: '0.5px solid rgba(200,225,255,0.18)',
-      borderRadius: 'var(--radius-lg)',
-      padding: '20px 20px 16px',
-      boxShadow: 'var(--shadow-md)',
+      background: 'rgba(15,25,50,0.70)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      border: '1px solid rgba(255,255,255,0.10)',
+      borderRadius: 20,
+      padding: '24px',
     }}>
-      <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 18, letterSpacing: '0.02em' }}>
+      <p style={{ fontSize: 16, fontWeight: 700, color: '#f0f4ff', marginBottom: 20, fontFamily: 'var(--font-serif)', letterSpacing: '0.04em' }}>
         釣果サマリー
       </p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '18px 8px' }}>
         {stats.map(({ Icon, label, value, highlight }) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Icon size={22} strokeWidth={1.5} style={{ color: highlight ? 'var(--accent)' : 'rgba(0,245,255,0.60)', flexShrink: 0 }} />
+            <Icon size={24} strokeWidth={1.5} style={{ color: '#00d4c8', flexShrink: 0 }} />
             <div>
-              <p style={{ fontSize: 9, color: 'rgba(160,185,220,0.65)', marginBottom: 2, letterSpacing: '0.06em', fontFamily: "'Inter', system-ui, sans-serif", fontWeight: 300 }}>{label}</p>
-              <p style={{ fontSize: 22, fontWeight: 700, color: highlight ? 'var(--accent)' : 'var(--text)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+              <p style={{ fontSize: 10, color: '#8899bb', marginBottom: 3, letterSpacing: '0.05em', fontFamily: "'Inter', system-ui, sans-serif", fontWeight: 400 }}>{label}</p>
+              <p style={{ fontSize: 22, fontWeight: 700, color: highlight ? '#00d4c8' : '#f0f4ff', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
                 {value}
               </p>
             </div>
@@ -260,12 +260,15 @@ export default function FishDashboard({ records, envData, aiSummaries, fishId, c
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-      {/* ── フィルター ────────────────────────────────────── */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '14px 16px', boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {/* エリア */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <FilterLabel text="エリア" />
-          <div style={{ display: 'flex', gap: 6 }}>
+      {/* ── フィルター（2カラム：エリア | 魚種） ──────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {/* エリアカード */}
+        <div style={{
+          background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(0,212,200,0.35)', borderRadius: 16, padding: '14px 16px',
+        }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.06em', marginBottom: 10 }}>エリア</p>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <FilterPill active={area === '東京湾'} onClick={() => setArea((p) => (p === '東京湾' ? null : '東京湾'))}>
               東京湾
             </FilterPill>
@@ -274,10 +277,28 @@ export default function FishDashboard({ records, envData, aiSummaries, fishId, c
             </FilterPill>
           </div>
         </div>
+        {/* 魚種カード（表示のみ） */}
+        <div style={{
+          background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(0,212,200,0.35)', borderRadius: 16, padding: '14px 16px',
+        }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.06em', marginBottom: 10 }}>魚種</p>
+          <span style={{
+            display: 'inline-block', padding: '6px 16px', fontSize: 12, fontWeight: 600,
+            borderRadius: 'var(--radius-pill)', background: 'rgba(0,212,200,0.10)',
+            border: '1px solid #00d4c8', color: '#00d4c8',
+            boxShadow: '0 0 12px rgba(0,212,200,0.30)',
+          }}>
+            {content.name}
+          </span>
+        </div>
+      </div>
 
-        <div style={{ height: 1, background: 'var(--border)' }} />
-
-        {/* 期間 */}
+      {/* 期間フィルター */}
+      <div style={{
+        background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(0,212,200,0.35)', borderRadius: 16, padding: '14px 16px',
+      }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <FilterLabel text="期間" />
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1, minWidth: 0 }}>
@@ -308,7 +329,7 @@ export default function FishDashboard({ records, envData, aiSummaries, fishId, c
       <StatsCard records={filtered} envData={envData} period={period} />
 
       {/* ── 釣果推移グラフ ───────────────────────────────── */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '16px 18px', boxShadow: 'var(--shadow-sm)' }}>
+      <div style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(0,212,200,0.35)', borderRadius: 16, padding: '16px 18px' }}>
         <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>
           直近30日の釣果平均トレンド
         </p>
@@ -316,7 +337,7 @@ export default function FishDashboard({ records, envData, aiSummaries, fishId, c
       </div>
 
       {/* ── 船宿別釣果一覧 ───────────────────────────────── */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
+      <div style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(0,212,200,0.35)', borderRadius: 16, overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', padding: '12px 16px' }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-main)' }}>船宿別釣果一覧</span>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{filtered.length}件</span>
