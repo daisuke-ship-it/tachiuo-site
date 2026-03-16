@@ -349,7 +349,7 @@ function SummaryCard({ records, envData, period, sizeUnit = 'cm', fishAliases = 
 
   return (
     <div style={{
-      background: 'rgba(15,25,50,0.70)',
+      background: 'rgba(255,255,255,0.05)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
       border: '1px solid rgba(255,255,255,0.10)',
@@ -439,7 +439,7 @@ export default function CatchDashboard({
 
       {/* ── 1. エリア選択 + Area AI サマリー ─────────────────────── */}
       <div style={{
-        background: 'rgba(255,255,255,0.06)',
+        background: 'rgba(255,255,255,0.05)',
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
         border: '1px solid rgba(0,212,200,0.35)',
         borderRadius: 16, padding: '14px 16px',
@@ -465,7 +465,7 @@ export default function CatchDashboard({
 
       {/* ── 3. 魚種・期間フィルター ──────────────────────────────── */}
       <div style={{
-        background: 'rgba(255,255,255,0.06)',
+        background: 'rgba(255,255,255,0.05)',
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
         border: '1px solid rgba(0,212,200,0.35)',
         borderRadius: 16, padding: '14px 16px',
@@ -530,7 +530,7 @@ export default function CatchDashboard({
 
       {/* ── 6. 釣果一覧 / グラフ タブ ───────────────────────────── */}
       <div style={{
-        background: 'rgba(255,255,255,0.06)',
+        background: 'rgba(255,255,255,0.05)',
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
         border: '1px solid rgba(0,212,200,0.35)',
         borderRadius: 16, overflow: 'hidden',

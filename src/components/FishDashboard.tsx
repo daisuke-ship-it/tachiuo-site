@@ -158,7 +158,7 @@ function StatsCard({ records, envData, period }: {
 
   return (
     <div style={{
-      background: 'rgba(15,25,50,0.70)',
+      background: 'rgba(255,255,255,0.05)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
       border: '1px solid rgba(255,255,255,0.10)',
@@ -264,7 +264,7 @@ export default function FishDashboard({ records, envData, aiSummaries, fishId, c
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         {/* エリアカード */}
         <div style={{
-          background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
           border: '1px solid rgba(0,212,200,0.35)', borderRadius: 16, padding: '14px 16px',
         }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.06em', marginBottom: 10 }}>エリア</p>
@@ -279,7 +279,7 @@ export default function FishDashboard({ records, envData, aiSummaries, fishId, c
         </div>
         {/* 魚種カード（表示のみ） */}
         <div style={{
-          background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
           border: '1px solid rgba(0,212,200,0.35)', borderRadius: 16, padding: '14px 16px',
         }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.06em', marginBottom: 10 }}>魚種</p>
@@ -296,7 +296,7 @@ export default function FishDashboard({ records, envData, aiSummaries, fishId, c
 
       {/* 期間フィルター */}
       <div style={{
-        background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+        background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
         border: '1px solid rgba(0,212,200,0.35)', borderRadius: 16, padding: '14px 16px',
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
@@ -329,7 +329,7 @@ export default function FishDashboard({ records, envData, aiSummaries, fishId, c
       <StatsCard records={filtered} envData={envData} period={period} />
 
       {/* ── 釣果推移グラフ ───────────────────────────────── */}
-      <div style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(0,212,200,0.35)', borderRadius: 16, padding: '16px 18px' }}>
+      <div style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(0,212,200,0.35)', borderRadius: 16, padding: '16px 18px' }}>
         <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>
           直近30日の釣果平均トレンド
         </p>
@@ -337,7 +337,7 @@ export default function FishDashboard({ records, envData, aiSummaries, fishId, c
       </div>
 
       {/* ── 船宿別釣果一覧 ───────────────────────────────── */}
-      <div style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(0,212,200,0.35)', borderRadius: 16, overflow: 'hidden' }}>
+      <div style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(0,212,200,0.35)', borderRadius: 16, overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', padding: '12px 16px' }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-main)' }}>船宿別釣果一覧</span>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{filtered.length}件</span>
