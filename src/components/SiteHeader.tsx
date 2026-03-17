@@ -185,7 +185,7 @@ export default function SiteHeader({ updatedAt, subtitle = '関東圏' }: Props)
         {updatedAt && (
           <div style={{
             display: 'flex', alignItems: 'center', gap: 6,
-            fontSize: '0.85rem', color: '#00d4c8',
+            fontSize: '0.75rem', color: '#00d4c8',
             marginLeft: 'auto', flexShrink: 0,
             letterSpacing: '0.03em',
           }}>
