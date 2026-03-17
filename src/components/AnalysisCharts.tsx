@@ -105,13 +105,23 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
   )
 }
 
-// ── 潮汐×釣果 棒グラフ ─────────────────────────────────────────
+// ── 潮汐×釣果 棒グラフ（横軸：魚種、バー：潮汐種別）──────────
+const TIDE_COLORS: Record<string, string> = {
+  '大潮': '#00d4c8',
+  '中潮': '#60a5fa',
+  '小潮': '#94a3b8',
+  '長潮': '#64748b',
+  '若潮': '#475569',
+}
+
 function TideChart({ data }: { data: TideBar[] }) {
+  const tideKeys = data.map((d) => d.tide as string)
   const fishKeys = data.length > 0
     ? Object.keys(data[0]).filter((k) => k !== 'tide')
     : []
 
-  if (fishKeys.length === 0 || data.every((d) => fishKeys.every((f) => d[f] === null))) {
+  const hasData = fishKeys.length > 0 && data.some((d) => fishKeys.some((f) => d[f] !== null))
+  if (!hasData) {
     return (
       <div style={{ padding: '40px 20px', textAlign: 'center', background: 'var(--surface)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)' }}>
         <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>潮汐データが不足しています</p>
@@ -119,13 +129,22 @@ function TideChart({ data }: { data: TideBar[] }) {
     )
   }
 
+  // ピボット: tide行 → fish行（各行に潮汐種別の値を持つ）
+  const pivoted = fishKeys.map((fish) => {
+    const row: Record<string, string | number | null> = { fish }
+    for (const d of data) {
+      row[d.tide as string] = d[fish] ?? null
+    }
+    return row
+  })
+
   return (
-    <ResponsiveContainer width="100%" height={220}>
-      <BarChart data={data} style={CHART_STYLE}
+    <ResponsiveContainer width="100%" height={240}>
+      <BarChart data={pivoted} style={CHART_STYLE}
         margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
         <XAxis
-          dataKey="tide"
+          dataKey="fish"
           tick={{ fill: '#64748b', fontSize: 11 }}
           tickLine={false}
           axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
@@ -144,13 +163,13 @@ function TideChart({ data }: { data: TideBar[] }) {
         <Legend
           wrapperStyle={{ fontSize: 11, color: '#94a3b8', paddingTop: 8 }}
         />
-        {fishKeys.map((fish, i) => (
+        {tideKeys.map((tide) => (
           <Bar
-            key={fish}
-            dataKey={fish}
-            fill={FISH_COLORS[fish] ?? DEFAULT_COLORS[i % DEFAULT_COLORS.length]}
+            key={tide}
+            dataKey={tide}
+            fill={TIDE_COLORS[tide] ?? '#94a3b8'}
             radius={[3, 3, 0, 0]}
-            maxBarSize={40}
+            maxBarSize={20}
           />
         ))}
       </BarChart>
