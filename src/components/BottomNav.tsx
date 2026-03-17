@@ -95,7 +95,7 @@ export default function BottomNav() {
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center', justifyContent: 'center',
                 gap: 3,
-                color: active ? '#00F5FF' : 'rgba(200,220,255,0.35)',
+                color: active ? '#00F5FF' : 'rgba(200,220,255,0.60)',
                 paddingTop: 2,
                 position: 'relative',
               }}
@@ -126,7 +126,7 @@ export default function BottomNav() {
             gap: 3,
             background: 'none', border: 'none',
             cursor: 'pointer',
-            color: (moreActive || moreOpen) ? '#00F5FF' : 'rgba(200,220,255,0.35)',
+            color: (moreActive || moreOpen) ? '#00F5FF' : 'rgba(200,220,255,0.60)',
           }}
         >
           {moreOpen
