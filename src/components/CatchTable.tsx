@@ -65,7 +65,7 @@ function formatDetailsLines(details: CatchDetail[], countMin: number | null): st
   return agg.map(({ name, max }) => {
     const lo = countMin ?? max
     const rangeStr = lo === max ? `${max}` : `${lo}〜${max}`
-    return agg.length > 1 ? `${name} ${rangeStr}` : rangeStr
+    return `${name} ${rangeStr}`
   })
 }
 
@@ -131,15 +131,15 @@ export default function CatchTable({ records, sortField, onSort, sizeUnit = 'cm'
     <div style={{ width: '100%', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
         <colgroup>
-          <col style={{ width: '45%' }} />
-          <col style={{ width: '30%' }} />
-          <col style={{ width: '25%' }} />
+          <col style={{ width: '43%' }} />
+          <col style={{ width: '33%' }} />
+          <col style={{ width: '24%' }} />
         </colgroup>
         <thead>
           <tr style={{ background: 'rgba(5,8,15,0.85)' }}>
             <th style={thBase}>船宿</th>
             <SortTh label="釣果" field="count" active={sortField === 'count'} onSort={onSort} />
-            <SortTh label={`サイズ（${sizeUnit}）`} field="size"  active={sortField === 'size'}  onSort={onSort} />
+            <SortTh label="サイズ" field="size"  active={sortField === 'size'}  onSort={onSort} />
           </tr>
         </thead>
         <tbody>
@@ -170,10 +170,14 @@ export default function CatchTable({ records, sortField, onSort, sizeUnit = 'cm'
                     {isTrophy && <span style={{ marginRight: 3 }}>🏆</span>}
                     {r.shipyard_name ?? '—'}
                   </div>
-                  {(dateStr || r.boat_name) && (
-                    <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', gap: 4 }}>
-                      {dateStr && <span style={{ color: '#64748b', flexShrink: 0 }}>{dateStr}</span>}
-                      {r.boat_name && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.boat_name}</span>}
+                  {dateStr && (
+                    <div style={{ fontSize: 10, color: '#64748b', marginTop: 2, whiteSpace: 'nowrap' }}>
+                      {dateStr}
+                    </div>
+                  )}
+                  {r.boat_name && (
+                    <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {r.boat_name}
                     </div>
                   )}
                   {r.fishing_method && (
