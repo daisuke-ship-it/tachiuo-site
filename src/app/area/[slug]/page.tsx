@@ -299,6 +299,7 @@ export default async function AreaPage({ params }: { params: PageParams }) {
               aiSummaries={aiSummaries}
               speciesGroupMap={speciesGroupMap}
               initialArea={config.name}
+              initialFish={null}
             />
           )}
         </div>
