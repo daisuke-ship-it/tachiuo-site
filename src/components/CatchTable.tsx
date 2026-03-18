@@ -131,9 +131,9 @@ export default function CatchTable({ records, sortField, onSort, sizeUnit = 'cm'
     <div style={{ width: '100%', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
         <colgroup>
-          <col style={{ width: '43%' }} />
-          <col style={{ width: '33%' }} />
-          <col style={{ width: '24%' }} />
+          <col style={{ width: '38%' }} />
+          <col style={{ width: '37%' }} />
+          <col style={{ width: '25%' }} />
         </colgroup>
         <thead>
           <tr style={{ background: 'rgba(5,8,15,0.85)' }}>
@@ -188,7 +188,7 @@ export default function CatchTable({ records, sortField, onSort, sizeUnit = 'cm'
                 </td>
 
                 {/* 釣果（複数魚種は改行） */}
-                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: 'var(--accent)', fontVariantNumeric: 'tabular-nums', fontSize: 12 }}>
+                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: 'var(--accent)', fontVariantNumeric: 'tabular-nums', fontSize: 12, whiteSpace: 'nowrap' }}>
                   {formatDetailsLines(r.catch_details, r.count_min).map((line, i) => (
                     <div key={i}>{line}</div>
                   ))}
