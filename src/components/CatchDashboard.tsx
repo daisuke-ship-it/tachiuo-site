@@ -158,10 +158,18 @@ function lookupSummary(
   targetId: number | null,
   targetDate: string | null,
 ): string | null {
-  if (targetId === null || targetDate === null) return null
-  return aiSummaries.find(
-    (s) => s.summary_type === type && s.target_id === targetId && s.target_date === targetDate
-  )?.summary_text ?? null
+  if (targetId === null) return null
+  const candidates = aiSummaries.filter(
+    (s) => s.summary_type === type && s.target_id === targetId
+  )
+  if (candidates.length === 0) return null
+  // targetDate が指定されている場合はその日付を優先、なければ最新日のサマリーを返す
+  if (targetDate !== null) {
+    const exact = candidates.find((s) => s.target_date === targetDate)
+    if (exact) return exact.summary_text
+  }
+  // フォールバック: 最新日のサマリー（aiSummaries は target_date 降順で取得済み）
+  return candidates[0].summary_text
 }
 
 /* ── Sub-components ──────────────────────────────────────────── */
@@ -429,7 +437,7 @@ export default function CatchDashboard({
   const areaId         = findAreaId(area, areas)
   const fishId         = findFishId(fish, fishSpeciesList)
   const areaSummaryRaw = lookupSummary(aiSummaries, 'area', areaId, summaryDate)
-  const fishSummary    = lookupSummary(aiSummaries, areaId !== null ? `fish_species_${areaId}` : 'fish_species', fishId, summaryDate)
+  const fishSummary    = lookupSummary(aiSummaries, 'fish_species', fishId, summaryDate)
   const areaSummary    = areaSummaryRaw && summaryDate
     ? addDatePrefix(areaSummaryRaw, summaryDate)
     : areaSummaryRaw
